@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Gradient Bench</title>
+<title>Mix It Up</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -138,7 +138,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .sec { padding: 16px 0; border-bottom: 1px solid var(--line); display: grid; gap: 12px; }
 .sec:last-child { border-bottom: 0; }
 .sec > h2 { margin: 0; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
-.seg { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--chip); border-radius: 8px; padding: 3px; gap: 2px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--chip); border-radius: 8px; padding: 3px; gap: 2px; }
 .seg button { border: 0; background: none; height: 30px; border-radius: 6px; font-weight: 500; color: var(--muted); }
 .seg button[aria-pressed="true"] { background: var(--panel); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
 
@@ -151,9 +151,19 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 }
 .bar .k.sel { box-shadow: 0 0 0 2px var(--fg), 0 2px 4px rgba(0,0,0,.2); }
 
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; padding-top: 4px; }
 .chip { width: 30px; height: 30px; border-radius: 8px; border: 0; padding: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
 .chip.sel { box-shadow: inset 0 0 0 1px rgba(0,0,0,.12), 0 0 0 2px var(--panel), 0 0 0 4px var(--fg); }
+.chipw { position: relative; }
+.chipw .x {
+  position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; padding: 0;
+  border-radius: 50%; border: 1px solid var(--line); background: var(--panel); color: var(--muted);
+  font-size: 12px; line-height: 1; display: grid; place-items: center;
+  opacity: 0; transition: opacity .15s;
+}
+.chipw:hover .x, .chipw .x:focus-visible { opacity: 1; }
+.chipw .x:hover { color: var(--fg); border-color: var(--muted); }
+@media (hover: none) { .chipw .x { opacity: 1; } }
 .chip.add { background: var(--chip); color: var(--muted); font-size: 18px; box-shadow: none; }
 
 .editor { display: grid; gap: 10px; background: var(--chip); border-radius: var(--r); padding: 12px; }
@@ -178,11 +188,6 @@ input[type="color"]::-moz-color-swatch { border: 1px solid rgba(0,0,0,.12); bord
 input[type="range"] { width: 100%; accent-color: var(--fg); }
 select { height: 34px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel); padding: 0 8px; width: 100%; }
 
-pre.code {
-  margin: 0; padding: 12px; border-radius: var(--r); background: var(--chip);
-  font: 12px/1.55 var(--mono); white-space: pre; overflow-x: auto; max-height: 220px;
-  user-select: all; -webkit-user-select: all;
-}
 .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .actions .btn { justify-content: center; }
 
@@ -218,7 +223,7 @@ pre.code {
 <body>
 
 <header class="top">
-  <div class="brand"><i id="logo"></i>Gradient Bench</div>
+  <div class="brand"><i id="logo"></i>Mix It Up</div>
   <div class="top-actions">
     <button class="btn" id="saveBtn" type="button">Save<span class="label" style="margin-left:-4px">to library</span></button>
     <button class="btn primary" id="randomBtn" type="button">Randomize <kbd>R</kbd></button>
@@ -246,7 +251,6 @@ pre.code {
       <div class="seg" id="modes" role="group" aria-label="Gradient type">
         <button type="button" data-mode="linear">Linear</button>
         <button type="button" data-mode="radial">Radial</button>
-        <button type="button" data-mode="conic">Conic</button>
         <button type="button" data-mode="mesh">Mesh</button>
       </div>
     </section>
@@ -282,6 +286,9 @@ pre.code {
         <label for="angle">Angle</label><input type="range" id="angle" min="0" max="360" step="1"><output id="angleOut"></output>
       </div>
       <div class="field">
+        <label for="blur">Blur</label><input type="range" id="blur" min="0" max="200" step="1"><output id="blurOut"></output>
+      </div>
+      <div class="field">
         <label for="grain">Grain</label><input type="range" id="grain" min="0" max="40" step="1"><output id="grainOut"></output>
       </div>
       <div class="field" style="grid-template-columns: 70px minmax(0,1fr)">
@@ -292,12 +299,11 @@ pre.code {
 
     <section class="sec">
       <h2>Export</h2>
-      <pre class="code" id="code"></pre>
-      <p class="note" id="grainNote" hidden>Grain is only in the PNG. CSS can't reproduce it.</p>
       <div class="actions">
         <button class="btn" id="copyBtn" type="button">Copy CSS</button>
         <button class="btn primary" id="pngBtn" type="button">Export PNG</button>
       </div>
+      <p class="note" id="cssNote" hidden>Copied CSS leaves out grain and blur above 100%. The PNG has everything.</p>
     </section>
   </aside>
 </main>
@@ -342,8 +348,8 @@ pre.code {
       stops: [['#c7d3dd', 0, 20, 25, 70], ['#f4e3d7', 50, 80, 20, 65], ['#d9d2e6', 100, 60, 85, 75]] },
     { name: 'Aurora', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#06131f', grain: 8,
       stops: [['#1de9b6', 0, 22, 30, 60], ['#2979ff', 33, 70, 22, 55], ['#7c4dff', 66, 82, 74, 55], ['#00bfa5', 100, 30, 88, 45]] },
-    { name: 'Sorbet', mode: 'conic', angle: 210, cx: 50, cy: 55, base: '#ffffff', grain: 0,
-      stops: [['#ffb3c7', 0, 20, 20, 60], ['#ffe1a8', 25, 80, 20, 60], ['#b8f0d0', 50, 80, 80, 60], ['#b7c8ff', 75, 20, 80, 60], ['#ffb3c7', 100, 50, 50, 60]] },
+    { name: 'Sorbet', mode: 'linear', angle: 120, cx: 50, cy: 55, base: '#ffffff', grain: 0,
+      stops: [['#ffb3c7', 0, 20, 20, 60], ['#ffe1a8', 33, 80, 20, 60], ['#b8f0d0', 66, 80, 80, 60], ['#b7c8ff', 100, 20, 80, 60]] },
     { name: 'Ember', mode: 'linear', angle: 200, cx: 50, cy: 50, base: '#120806', grain: 18,
       stops: [['#120806', 0, 20, 20, 60], ['#5a1a0e', 40, 80, 20, 60], ['#e2531f', 78, 60, 80, 60], ['#ffc46b', 100, 30, 80, 60]] },
     { name: 'Moss', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#1d2a1c', grain: 12,
@@ -351,7 +357,7 @@ pre.code {
   ];
   const fromPreset = p => ({
     mode: p.mode, angle: p.angle, cx: p.cx, cy: p.cy, base: p.base, grain: p.grain,
-    format: S ? S.format : '16:9',
+    format: S ? S.format : '16:9', blur: 100,
     stops: p.stops.map(([c, pos, x, y, s]) => ({ c, p: pos, x, y, s })),
   });
 
@@ -361,11 +367,17 @@ pre.code {
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
   };
 
+  // Older saves may use the removed conic type or predate the blur control.
+  const migrate = st => {
+    if (!['linear', 'radial', 'mesh'].includes(st.mode)) st.mode = 'linear';
+    if (typeof st.blur !== 'number') st.blur = 100;
+    if (!FORMATS[st.format]) st.format = '16:9';
+    return st;
+  };
   let S = null;
-  S = store.get('gb-current', null) || fromPreset(PRESETS[0]);
-  if (!FORMATS[S.format]) S.format = '16:9';
+  S = migrate(store.get('gb-current', null) || fromPreset(PRESETS[0]));
   let sel = 0;
-  let saved = store.get('gb-saved', []);
+  let saved = store.get('gb-saved', []).map(migrate);
 
   // ---------- Color helpers ----------
   const normHex = v => {
@@ -391,17 +403,32 @@ pre.code {
 
   // ---------- CSS output ----------
   const sorted = st => [...st.stops].sort((a, b) => a.p - b.p);
+  // Blur 0-100 sets how soft the color transitions are (0 = hard edges, 100 = fully smooth).
+  // Above 100 adds a real blur on top, which only the canvas and PNG can show.
+  const soft = st => clamp(st.blur, 0, 100) / 100;
+  function bandStops(st) {
+    const s = sorted(st), k = soft(st), out = [];
+    s.forEach((a, i) => {
+      out.push([a.c, a.p]);
+      const b = s[i + 1];
+      if (!b || k >= 1) return;
+      const mid = (a.p + b.p) / 2, t = (b.p - a.p) * k / 2;
+      out.push([a.c, mid - t], [b.c, mid + t]);
+    });
+    return out;
+  }
+  const blobCore = st => r1((1 - soft(st)) * 85);
   function gradient(st, pretty) {
     const nl = pretty ? ',\n    ' : ', ';
-    const list = sorted(st).map(s => `${s.c} ${r1(s.p)}%`).join(', ');
+    const list = bandStops(st).map(([c, p]) => `${c} ${r1(p)}%`).join(', ');
+    const core = blobCore(st);
     const cx = r1(st.cx), cy = r1(st.cy);
     switch (st.mode) {
       case 'linear': return `linear-gradient(${st.angle}deg, ${list})`;
       case 'radial': return `radial-gradient(circle farthest-corner at ${cx}% ${cy}%, ${list})`;
-      case 'conic':  return `conic-gradient(from ${st.angle}deg at ${cx}% ${cy}%, ${list})`;
       default:
         return [...st.stops].reverse()
-          .map(s => `radial-gradient(${r1(s.s)}% ${r1(s.s)}% at ${r1(s.x)}% ${r1(s.y)}%, ${s.c} 0%, ${s.c}00 100%)`)
+          .map(s => `radial-gradient(${r1(s.s)}% ${r1(s.s)}% at ${r1(s.x)}% ${r1(s.y)}%, ${s.c} 0%, ${core ? `${s.c} ${core}%, ` : ''}${s.c}00 100%)`)
           .concat(st.base).join(nl);
     }
   }
@@ -413,14 +440,29 @@ pre.code {
 
   function paint(ctx, w, h, st) {
     ctx.clearRect(0, 0, w, h);
+    const gb = Math.max(0, st.blur - 100) / 100 * 0.08 * Math.min(w, h);
+    if (gb > 0.5 && 'filter' in ctx) {
+      // render with a margin so the blur doesn't fade at the edges
+      const m = Math.ceil(gb * 3), off = document.createElement('canvas');
+      off.width = w + 2 * m; off.height = h + 2 * m;
+      const o = off.getContext('2d'); o.translate(m, m);
+      shape(o, w, h, st, m);
+      ctx.filter = `blur(${gb}px)`; ctx.drawImage(off, -m, -m); ctx.filter = 'none';
+    } else {
+      shape(ctx, w, h, st, 0);
+    }
+    addGrain(ctx, w, h, st);
+  }
+  function shape(ctx, w, h, st, m) {
     if (st.mode === 'mesh') {
-      ctx.fillStyle = st.base; ctx.fillRect(0, 0, w, h);
+      const core = blobCore(st) / 100;
+      ctx.fillStyle = st.base; ctx.fillRect(-m, -m, w + 2 * m, h + 2 * m);
       for (const s of st.stops) {
         ctx.save();
         ctx.translate(s.x / 100 * w, s.y / 100 * h);
         ctx.scale(s.s / 100 * w, s.s / 100 * h);
         const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
-        g.addColorStop(0, s.c); g.addColorStop(1, s.c + '00');
+        g.addColorStop(0, s.c); if (core) g.addColorStop(core, s.c); g.addColorStop(1, s.c + '00');
         ctx.fillStyle = g; ctx.fillRect(-1, -1, 2, 2);
         ctx.restore();
       }
@@ -431,15 +473,15 @@ pre.code {
         const t = st.angle * Math.PI / 180, dx = Math.sin(t), dy = -Math.cos(t);
         const L = Math.abs(w * dx) + Math.abs(h * dy);
         g = ctx.createLinearGradient(w / 2 - dx * L / 2, h / 2 - dy * L / 2, w / 2 + dx * L / 2, h / 2 + dy * L / 2);
-      } else if (st.mode === 'radial') {
+      } else {
         const R = Math.max(...[[0, 0], [w, 0], [0, h], [w, h]].map(([x, y]) => Math.hypot(x - cx, y - cy)));
         g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
-      } else {
-        g = ctx.createConicGradient((st.angle - 90) * Math.PI / 180, cx, cy);
       }
-      sorted(st).forEach(s => g.addColorStop(clamp(s.p / 100, 0, 1), s.c));
-      ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+      bandStops(st).forEach(([c, p]) => g.addColorStop(clamp(p / 100, 0, 1), c));
+      ctx.fillStyle = g; ctx.fillRect(-m, -m, w + 2 * m, h + 2 * m);
     }
+  }
+  function addGrain(ctx, w, h, st) {
     if (st.grain > 0) {
       const img = ctx.getImageData(0, 0, w, h), a = img.data, k = st.grain / 100, n = NOISE.length;
       for (let i = 0, j = 0; i < a.length; i += 4, j++) {
@@ -502,12 +544,22 @@ pre.code {
 
     // chips
     const chips = $('chips'); chips.innerHTML = '';
+    const canRemove = S.stops.length > minStops();
     S.stops.forEach((s, i) => {
+      const w = document.createElement('div'); w.className = 'chipw';
       const c = document.createElement('button');
       c.type = 'button'; c.className = 'chip' + (i === sel ? ' sel' : '');
       c.style.background = s.c; c.setAttribute('aria-label', `Select ${s.c}`);
       c.onclick = () => { sel = i; draw(); };
-      chips.appendChild(c);
+      w.appendChild(c);
+      if (canRemove) {
+        const x = document.createElement('button');
+        x.type = 'button'; x.className = 'x'; x.textContent = '×';
+        x.setAttribute('aria-label', `Remove ${s.c}`);
+        x.onclick = () => removeStop(i);
+        w.appendChild(x);
+      }
+      chips.appendChild(w);
     });
     const add = document.createElement('button');
     add.type = 'button'; add.className = 'chip add'; add.textContent = '+'; add.setAttribute('aria-label', 'Add color');
@@ -520,7 +572,7 @@ pre.code {
     $('selPos').value = cur.p; $('posOut').textContent = Math.round(cur.p) + '%';
     $('selSize').value = cur.s; $('sizeOut').textContent = Math.round(cur.s) + '%';
     $('posField').hidden = mesh; $('sizeField').hidden = !mesh;
-    $('removeBtn').disabled = S.stops.length <= 2;
+    $('removeBtn').disabled = !canRemove;
     $('baseRow').hidden = !mesh;
     $('baseColor').value = S.base;
     if (document.activeElement !== $('baseHex')) $('baseHex').value = S.base;
@@ -531,16 +583,16 @@ pre.code {
     $('reverseBtn').hidden = mesh;
 
     // shape
-    $('angleField').hidden = !(S.mode === 'linear' || S.mode === 'conic');
+    $('angleField').hidden = S.mode !== 'linear';
     $('angle').value = S.angle; $('angleOut').textContent = S.angle + '°';
+    $('blur').value = S.blur; $('blurOut').textContent = S.blur + '%';
     $('grain').value = S.grain; $('grainOut').textContent = S.grain;
     $('format').value = S.format;
 
     // output
-    $('code').textContent = cssText(S);
-    $('grainNote').hidden = !S.grain;
+    $('cssNote').hidden = !(S.grain || S.blur > 100);
     const [W, H, label] = FORMATS[S.format];
-    const modeLabel = { linear: `Linear ${S.angle}°`, radial: 'Radial', conic: `Conic ${S.angle}°`, mesh: 'Mesh' }[S.mode];
+    const modeLabel = { linear: `Linear ${S.angle}°`, radial: 'Radial', mesh: 'Mesh' }[S.mode];
     $('meta').textContent = `${W} × ${H} px · ${label} · ${modeLabel} · ${S.stops.length} colors`;
     $('logo').style.setProperty('--logo', gradient(S, false));
 
@@ -664,7 +716,14 @@ pre.code {
   }
 
   // ---------- Controls ----------
-  modeBtns.forEach(b => b.onclick = () => { S.mode = b.dataset.mode; draw(); });
+  modeBtns.forEach(b => b.onclick = () => {
+    S.mode = b.dataset.mode;
+    if (S.mode !== 'mesh' && S.stops.length < 2) {
+      S.stops[0].p = 0;
+      S.stops.push({ c: S.base, p: 100, x: 80, y: 80, s: 55 });
+    }
+    draw();
+  });
   $('selColor').addEventListener('input', e => { S.stops[sel].c = e.target.value.toLowerCase(); draw(); });
   $('selHex').addEventListener('input', e => {
     const v = normHex(e.target.value);
@@ -681,9 +740,18 @@ pre.code {
   $('baseHex').addEventListener('blur', () => draw());
   $('selPos').addEventListener('input', e => { S.stops[sel].p = +e.target.value; draw(); });
   $('selSize').addEventListener('input', e => { S.stops[sel].s = +e.target.value; draw(); });
-  $('removeBtn').onclick = () => { if (S.stops.length > 2) { S.stops.splice(sel, 1); sel = Math.max(0, sel - 1); draw(); } };
+  // Mesh works with a single color over the background; line types need two.
+  function minStops() { return S.mode === 'mesh' ? 1 : 2; }
+  function removeStop(i) {
+    if (S.stops.length <= minStops()) return;
+    S.stops.splice(i, 1);
+    if (sel >= i) sel = Math.max(0, sel - 1);
+    draw();
+  }
+  $('removeBtn').onclick = () => removeStop(sel);
   $('reverseBtn').onclick = () => { S.stops.forEach(s => s.p = r1(100 - s.p)); draw(); };
   $('angle').addEventListener('input', e => { S.angle = +e.target.value; draw(); });
+  $('blur').addEventListener('input', e => { S.blur = +e.target.value; draw(); });
   $('grain').addEventListener('input', e => { S.grain = +e.target.value; draw(); });
   const fmt = $('format');
   Object.entries(FORMATS).forEach(([k, [w, h, label]]) => fmt.add(new Option(`${label} · ${w} × ${h}`, k)));
@@ -710,7 +778,7 @@ pre.code {
         s: Math.round(45 + Math.random() * 30),
       };
     });
-    const modes = ['mesh', 'mesh', 'linear', 'radial', 'conic'];
+    const modes = ['mesh', 'mesh', 'linear', 'radial'];
     S = {
       ...S,
       mode: modes[Math.floor(Math.random() * modes.length)],
@@ -719,7 +787,6 @@ pre.code {
       base: dark ? oklch(0.18 + Math.random() * 0.08, 0.03 + Math.random() * 0.04, h0) : oklch(0.94, 0.02, h0),
       stops,
     };
-    if (S.mode === 'conic') S.stops.push({ ...S.stops[0], p: 100, x: 50, y: 50 }), S.stops.forEach((s, i, a) => s.p = r1(i / (a.length - 1) * 100));
     sel = 0;
     draw();
   }
@@ -757,7 +824,7 @@ pre.code {
       s.appendChild(e);
     }
     saved.forEach((st, i) => s.appendChild(tile(st, `Saved ${saved.length - i}`,
-      () => { S = JSON.parse(JSON.stringify(st)); S.format = FORMATS[S.format] ? S.format : '16:9'; sel = 0; fit(); draw(); },
+      () => { S = migrate(JSON.parse(JSON.stringify(st))); sel = 0; fit(); draw(); },
       () => { saved.splice(i, 1); store.set('gb-saved', saved); renderLibrary(); toast('Deleted'); })));
   }
   $('saveBtn').onclick = () => {
@@ -774,15 +841,18 @@ pre.code {
   $('copyBtn').onclick = () => {
     const text = cssText(S);
     const fallback = () => {
-      const r = document.createRange(); r.selectNodeContents($('code'));
-      const s = getSelection(); s.removeAllRanges(); s.addRange(r);
-      toast('Selected. Press Ctrl+C or ⌘C to copy');
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta); ta.select();
+      let ok = false; try { ok = document.execCommand('copy'); } catch {}
+      ta.remove();
+      toast(ok ? 'CSS copied' : 'Copy is blocked here. Try the downloaded file.');
     };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => toast('CSS copied'), fallback);
     else fallback();
   };
 
-  let blobUrl = null, fileName = 'gradient.png', lastFocus = null;
+  let blobUrl = null, fileName = 'mix-it-up.png', lastFocus = null;
   $('pngBtn').onclick = () => {
     const [W, H] = FORMATS[S.format];
     const c = document.createElement('canvas'); c.width = W; c.height = H;
@@ -790,7 +860,7 @@ pre.code {
     c.toBlob(b => {
       if (blobUrl) URL.revokeObjectURL(blobUrl);
       blobUrl = URL.createObjectURL(b);
-      fileName = `gradient-${S.mode}-${W}x${H}.png`;
+      fileName = `mix-it-up-${S.mode}-${W}x${H}.png`;
       $('exImg').src = blobUrl;
       $('exTitle').textContent = `${fileName}`;
       lastFocus = document.activeElement;
