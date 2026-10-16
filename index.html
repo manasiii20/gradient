@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&display=swap">
 <style>
-/* Layout: one 16:9 stage on a gridded grey board; headline centred, dock pinned to the bottom edge. Single light look, deliberately. */
+/* Layout: one vertical 9:16 phone stage on a gridded grey board; headline centred, dock pinned to the bottom edge. Single light look, deliberately. */
 :root {
   --page: #d6d6d4;
   --board: #e2e2e1;
@@ -42,14 +42,14 @@ body {
 /* ---------- Stage ---------- */
 .stage {
   position: relative;
-  width: min(100%, calc((100dvh - 110px) * 16 / 9));
+  width: min(100%, calc((100dvh - 110px) * 9 / 16));
   max-width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 9 / 16;
   container-type: size;
   overflow: hidden;
   border-radius: 10px;
   background-color: var(--board);
-  --cell: 10.6cqh;
+  --cell: 11.5cqw;
   background-image:
     linear-gradient(to right, var(--grid) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
@@ -68,19 +68,19 @@ body {
 .title {
   position: absolute;
   left: 50%;
-  top: 42%;
+  top: 44%;
   transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2.4cqh;
+  gap: 2.4cqw;
   pointer-events: none;
 }
 .pill {
   font-family: var(--sans);
-  font-size: 2.55cqh;
+  font-size: 2.55cqw;
   letter-spacing: 0.02em;
-  padding: 1.15cqh 2.1cqh;
+  padding: 1.15cqw 2.1cqw;
   border: 1px solid var(--ink);
   border-radius: 50%;
   line-height: 1;
@@ -89,7 +89,7 @@ h1 {
   margin: 0;
   font-family: var(--display);
   font-weight: 400;
-  font-size: 12.4cqh;
+  font-size: 15.5cqw;
   line-height: 0.84;
   letter-spacing: -0.035em;
   text-align: center;
@@ -100,7 +100,7 @@ h1 {
 h1 .line { display: block; white-space: nowrap; }
 h1 em { font-style: italic; letter-spacing: -0.03em; }
 
-.pill, h1 .line { opacity: 0; transform: translateY(0.9cqh); filter: blur(4px); }
+.pill, h1 .line { opacity: 0; transform: translateY(0.9cqw); filter: blur(4px); }
 .stage.intro .pill,
 .stage.intro h1 .line {
   animation: rise 0.9s cubic-bezier(.2,.7,.2,1) forwards;
@@ -112,16 +112,16 @@ h1 em { font-style: italic; letter-spacing: -0.03em; }
 .dock {
   position: absolute;
   left: 50%;
-  bottom: 3.6cqh;
+  bottom: 6cqw;
   z-index: 5;
   display: flex;
   align-items: center;
-  gap: 2.1cqh;
-  padding: 2.1cqh 2.6cqh;
-  border-radius: 3.6cqh;
+  gap: 2.1cqw;
+  padding: 2.1cqw 2.6cqw;
+  border-radius: 3.6cqw;
   background: var(--glass);
   border: 1px solid var(--glass-edge);
-  box-shadow: 0 0.6cqh 3cqh -1cqh rgba(0,0,0,.18), 0 0 0 0.5px rgba(0,0,0,.06);
+  box-shadow: 0 0.6cqw 3cqw -1cqw rgba(0,0,0,.18), 0 0 0 0.5px rgba(0,0,0,.06);
   -webkit-backdrop-filter: blur(22px) saturate(1.6);
   backdrop-filter: blur(22px) saturate(1.6);
   transform: translate(-50%, 170%);
@@ -130,11 +130,11 @@ h1 em { font-style: italic; letter-spacing: -0.03em; }
 }
 .stage.dock-in .dock { transform: translate(-50%, 0); opacity: 1; }
 
-.slot { position: relative; width: 11.2cqh; height: 11.2cqh; display: grid; place-items: center; }
+.slot { position: relative; width: 11.2cqw; height: 11.2cqw; display: grid; place-items: center; }
 .slot svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.slot.finder { width: 10cqh; height: 10cqh; }
-.slot.trash { width: 8.2cqh; height: 10cqh; }
-.divider { width: 1px; align-self: stretch; margin-block: 1.4cqh; background: rgba(0,0,0,.16); }
+.slot.finder { width: 10cqw; height: 10cqw; }
+.slot.trash { width: 8.2cqw; height: 10cqw; }
+.divider { width: 1px; align-self: stretch; margin-block: 1.4cqw; background: rgba(0,0,0,.16); }
 
 .folder {
   appearance: none;
@@ -143,24 +143,24 @@ h1 em { font-style: italic; letter-spacing: -0.03em; }
   padding: 0;
   width: 100%;
   height: 100%;
-  border-radius: 2cqh;
+  border-radius: 2cqw;
   transform-origin: 50% 100%;
   transition: transform 0.45s cubic-bezier(.3,1.6,.5,1);
 }
-.folder:focus-visible { outline: 2px solid #1e7be0; outline-offset: 0.6cqh; }
+.folder:focus-visible { outline: 2px solid #1e7be0; outline-offset: 0.6cqw; }
 .folder .paper, .folder .paper-back, .folder .front {
   transform-box: fill-box;
   transition: transform 0.45s cubic-bezier(.3,1.5,.5,1);
 }
 .folder .front { transform-origin: 50% 100%; }
-.slot.hot .folder, .stage.open .folder { transform: scale(1.14) translateY(-0.7cqh); }
+.slot.hot .folder, .stage.open .folder { transform: scale(1.14) translateY(-0.7cqw); }
 .slot.hot .folder .paper, .stage.open .folder .paper { transform: translateY(-8px); }
 .slot.hot .folder .paper-back, .stage.open .folder .paper-back { transform: translateY(-5px) rotate(-3deg); }
 .slot.hot .folder .front, .stage.open .folder .front { transform: scaleY(0.93) skewX(-2deg); }
-.folder:active { transform: scale(1.06) translateY(-0.3cqh) !important; transition-duration: 0.12s; }
+.folder:active { transform: scale(1.06) translateY(-0.3cqw) !important; transition-duration: 0.12s; }
 .dot {
-  position: absolute; bottom: -1.2cqh; left: 50%;
-  width: 0.7cqh; height: 0.7cqh; margin-left: -0.35cqh;
+  position: absolute; bottom: -1.2cqw; left: 50%;
+  width: 0.7cqw; height: 0.7cqw; margin-left: -0.35cqw;
   border-radius: 50%; background: rgba(0,0,0,.55);
   opacity: 0; transition: opacity .3s;
 }
@@ -171,8 +171,8 @@ h1 em { font-style: italic; letter-spacing: -0.03em; }
 .card {
   position: absolute;
   left: 0; top: 0;
-  width: 17cqh;
-  height: 17cqh;
+  width: 17cqw;
+  height: 17cqw;
   will-change: transform, opacity;
   opacity: 0;
 }
@@ -180,23 +180,23 @@ h1 em { font-style: italic; letter-spacing: -0.03em; }
 .card .inner {
   width: 100%; height: 100%;
   box-sizing: border-box;
-  padding: 0.95cqh;
+  padding: 0.95cqw;
   background: #fff;
-  border-radius: 1.5cqh;
-  box-shadow: 0 0.2cqh 0.4cqh rgba(0,0,0,.12), 0 1.4cqh 2.8cqh -1cqh rgba(0,0,0,.28);
+  border-radius: 1.5cqw;
+  box-shadow: 0 0.2cqw 0.4cqw rgba(0,0,0,.12), 0 1.4cqw 2.8cqw -1cqw rgba(0,0,0,.28);
   transition: transform .35s cubic-bezier(.3,1.5,.5,1), box-shadow .35s;
 }
-.card .inner svg { display: block; width: 100%; height: 100%; border-radius: 0.7cqh; }
-.card:hover .inner { transform: scale(1.08) rotate(0.0001deg); box-shadow: 0 0.3cqh 0.5cqh rgba(0,0,0,.12), 0 2.4cqh 4cqh -1.4cqh rgba(0,0,0,.35); }
+.card .inner svg { display: block; width: 100%; height: 100%; border-radius: 0.7cqw; }
+.card:hover .inner { transform: scale(1.08) rotate(0.0001deg); box-shadow: 0 0.3cqw 0.5cqw rgba(0,0,0,.12), 0 2.4cqw 4cqw -1.4cqw rgba(0,0,0,.35); }
 
 /* ---------- Cursor ---------- */
 .cursor {
   position: absolute; left: 0; top: 0; z-index: 20;
-  width: 2.9cqh; height: auto;
+  width: 2.9cqw; height: auto;
   pointer-events: none;
   opacity: 0;
   transition: opacity .15s;
-  filter: drop-shadow(0 0.2cqh 0.25cqh rgba(0,0,0,.3));
+  filter: drop-shadow(0 0.2cqw 0.25cqw rgba(0,0,0,.3));
 }
 .cursor.on { opacity: 1; }
 
@@ -225,14 +225,14 @@ h1 em { font-style: italic; letter-spacing: -0.03em; }
 </head>
 <body>
 
-<div class="stage" id="stage" aria-label="Saved for later in June">
+<div class="stage" id="stage" aria-label="Saved for later in September">
   <div class="title">
-    <div class="pill" style="--i:0">06/26</div>
+    <div class="pill" style="--i:0">09/26</div>
     <h1>
       <span class="line" style="--i:1">What I</span>
       <span class="line" style="--i:2"><em>saved for</em></span>
       <span class="line" style="--i:3"><em>later</em></span>
-      <span class="line" style="--i:4">in June</span>
+      <span class="line" style="--i:4">in September</span>
     </h1>
   </div>
 
@@ -260,7 +260,7 @@ h1 em { font-style: italic; letter-spacing: -0.03em; }
     <div class="divider" aria-hidden="true"></div>
 
     <div class="slot" id="folderSlot">
-      <button class="folder" id="folder" type="button" aria-label="Open June saves" aria-expanded="false">
+      <button class="folder" id="folder" type="button" aria-label="Open September saves" aria-expanded="false">
         <svg viewBox="0 0 120 96" aria-hidden="true">
           <defs>
             <linearGradient id="gBack" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#55aef0"/><stop offset="1" stop-color="#2d88da"/></linearGradient>
@@ -389,21 +389,21 @@ h1 em { font-style: italic; letter-spacing: -0.03em; }
     cardSize = cards[0].offsetWidth;
     const fx = fr.left - sr.left + fr.width / 2;
     const fy = fr.top - sr.top + fr.height * 0.42;
-    const rise = fy + 0.4 * H;
+    const rise = fy + 0.4 * W;
     lut = []; pathLen = 0;
     let px = fx, py = fy;
     for (let k = 0; k <= 300; k++) {
       const r = rise * k / 300;
-      const x = fx + 0.31 * H * (r / H) ** 2;
+      const x = fx + 0.16 * W * (r / W) ** 1.8;
       const y = fy - r;
       if (k) pathLen += Math.hypot(x - px, y - py);
       lut.push({ s: pathLen, x, y });
       px = x; py = y;
     }
-    gap = 0.205 * H;
+    gap = 0.23 * W;
     // rest so the lowest card sits one step above the folder, fully out
-    rest = gap * Math.round((pathLen - 0.3 * H) / gap);
-    maxOff = rest + (N - 5) * gap;
+    rest = gap * Math.round((pathLen - 0.3 * W) / gap);
+    maxOff = rest + (N - 7) * gap;
   }
   function at(s) {
     let lo = 0, hi = lut.length - 1;
@@ -447,7 +447,7 @@ h1 em { font-style: italic; letter-spacing: -0.03em; }
     open = v;
     stage.classList.toggle('open', v);
     folder.setAttribute('aria-expanded', String(v));
-    folder.setAttribute('aria-label', v ? 'Close June saves' : 'Open June saves');
+    folder.setAttribute('aria-label', v ? 'Close September saves' : 'Open September saves');
     measure();
     target = v ? rest : -gap;
   }
