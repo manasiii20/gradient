@@ -22,23 +22,16 @@
   --sans: "Geist", "Helvetica Neue", Arial, sans-serif;
   --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --r: 10px;
-  --ios-bg: #f2f2f7; --ios-cell: #ffffff; --ios-sep: rgba(60,60,67,.16); --ios-label2: rgba(60,60,67,.62);
-  --ios-fill: rgba(118,118,128,.14); --ios-seg-on: #ffffff; --ios-blue: #007aff; --ios-red: #ff3b30;
-  --ios-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Geist", "Helvetica Neue", Arial, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #111110; --panel: #191918; --line: #2c2c2a; --fg: #ecebe7; --muted: #99988f;
-    --chip: #242422; --focus: #7c9fff; --on-fg: #141413;
-    --ios-bg: #000000; --ios-cell: #1c1c1e; --ios-sep: rgba(84,84,88,.55); --ios-label2: rgba(235,235,245,.6);
-    --ios-fill: rgba(118,118,128,.26); --ios-seg-on: #636366; --ios-blue: #0a84ff; --ios-red: #ff453a; color-scheme: dark;
+    --chip: #242422; --focus: #7c9fff; --on-fg: #141413; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #111110; --panel: #191918; --line: #2c2c2a; --fg: #ecebe7; --muted: #99988f;
-  --chip: #242422; --focus: #7c9fff; --on-fg: #141413;
-    --ios-bg: #000000; --ios-cell: #1c1c1e; --ios-sep: rgba(84,84,88,.55); --ios-label2: rgba(235,235,245,.6);
-    --ios-fill: rgba(118,118,128,.26); --ios-seg-on: #636366; --ios-blue: #0a84ff; --ios-red: #ff453a; color-scheme: dark;
+  --chip: #242422; --focus: #7c9fff; --on-fg: #141413; color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -221,114 +214,12 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-
-/* ---------- iOS-style settings column ---------- */
-.panel.ios {
-  background: var(--ios-bg); font-family: var(--ios-font); font-size: 15px;
-  padding: 6px 16px 28px; border-left-color: var(--ios-sep);
-  -webkit-font-smoothing: antialiased;
-}
-.ios .ios-large { margin: 14px 4px 4px; font-size: 30px; font-weight: 700; letter-spacing: .01em; }
-.ios .group { margin-top: 22px; }
-.ios .group-head {
-  margin: 0; padding: 0 16px 7px; font-size: 13px; font-weight: 400; text-transform: uppercase;
-  letter-spacing: .02em; color: var(--ios-label2); display: flex; justify-content: space-between; align-items: baseline;
-}
-.ios .group-foot { margin: 0; padding: 7px 16px 0; font-size: 13px; line-height: 1.35; color: var(--ios-label2); }
-.ios .cell { background: var(--ios-cell); border-radius: 12px; overflow: hidden; }
-.ios .row {
-  position: relative; display: flex; align-items: center; gap: 10px;
-  min-height: 46px; padding: 6px 16px; width: 100%;
-}
-.ios .row + .row::before {
-  content: ""; position: absolute; top: 0; left: 16px; right: 0; height: 0.5px; background: var(--ios-sep);
-}
-.ios .row.stack { flex-direction: column; align-items: stretch; gap: 4px; padding-top: 11px; padding-bottom: 8px; }
-.ios .row-top { display: flex; justify-content: space-between; align-items: baseline; }
-.ios .row label { color: var(--fg); font-size: 15px; }
-.ios .row output { font: 15px var(--ios-font); color: var(--ios-label2); font-variant-numeric: tabular-nums; }
-.ios .grow { flex: 1; }
-
-.ios .link { border: 0; background: none; padding: 0; color: var(--ios-blue); font: 15px var(--ios-font); text-transform: none; letter-spacing: 0; }
-.ios .group-head .link { font-size: 13px; }
-.ios .link.danger { color: var(--ios-red); }
-.ios .link:disabled { opacity: .35; cursor: default; }
-.ios .link:hover:not(:disabled) { opacity: .7; }
-
-/* segmented control */
-.ios .seg { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); background: var(--ios-fill); border-radius: 9px; padding: 2px; gap: 0; }
-.ios .seg button { height: 30px; border: 0; background: none; border-radius: 7px; font: 500 13px var(--ios-font); color: var(--fg); }
-.ios .seg button[aria-pressed="true"] { background: var(--ios-seg-on); font-weight: 600; box-shadow: 0 3px 8px rgba(0,0,0,.12), 0 3px 1px rgba(0,0,0,.04), 0 0 0 .5px rgba(0,0,0,.04); }
-
-/* color wells */
-.ios .bar { margin: 4px 9px 18px; height: 28px; border-radius: 8px; }
-.ios .bar .k { border-color: var(--ios-cell); }
-.ios .chips { display: flex; flex-wrap: wrap; gap: 12px; padding: 6px 0 4px; }
-.ios .chip { width: 32px; height: 32px; border-radius: 50%; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.15); }
-.ios .chip.sel { box-shadow: inset 0 0 0 .5px rgba(0,0,0,.15), 0 0 0 2.5px var(--ios-cell), 0 0 0 4.5px var(--ios-blue); }
-.ios .chip.add { background: var(--ios-fill); color: var(--ios-blue); font-size: 20px; font-weight: 400; }
-.ios .chipw .x {
-  top: -5px; right: -5px; width: 17px; height: 17px; border: 0;
-  background: #8e8e93; color: #fff; font-size: 12px; font-weight: 600;
-  box-shadow: 0 0 0 2px var(--ios-cell);
-}
-.ios .chipw .x:hover { background: var(--ios-red); color: #fff; }
-
-.ios input[type="color"] { width: 30px; height: 30px; flex: none; border-radius: 50%; }
-.ios input[type="color"]::-webkit-color-swatch { border-radius: 50%; border: .5px solid rgba(0,0,0,.15); }
-.ios input[type="color"]::-moz-color-swatch { border-radius: 50%; border: .5px solid rgba(0,0,0,.15); }
-.ios .hex {
-  flex: 1; min-width: 0; height: 34px; border: 0; border-radius: 9px; padding: 0 10px;
-  background: var(--ios-fill); font: 15px var(--mono); color: var(--fg);
-}
-.ios .hex.short { flex: none; width: 104px; }
-.ios .hex[aria-invalid="true"] { box-shadow: inset 0 0 0 1.5px var(--ios-red); }
-
-/* sliders */
-.ios input[type="range"] { -webkit-appearance: none; appearance: none; height: 30px; margin: 0; background: transparent; cursor: pointer; }
-.ios input[type="range"]::-webkit-slider-runnable-track {
-  height: 4px; border-radius: 2px;
-  background: linear-gradient(to right, var(--ios-blue) var(--p, 50%), var(--ios-fill) var(--p, 50%));
-}
-.ios input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 28px; height: 28px; margin-top: -12px; border-radius: 50%; background: #fff;
-  box-shadow: 0 .5px 4px rgba(0,0,0,.12), 0 6px 13px rgba(0,0,0,.12), 0 0 0 .5px rgba(0,0,0,.06);
-}
-.ios input[type="range"]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--ios-fill); }
-.ios input[type="range"]::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--ios-blue); }
-.ios input[type="range"]::-moz-range-thumb {
-  width: 28px; height: 28px; border: 0; border-radius: 50%; background: #fff;
-  box-shadow: 0 .5px 4px rgba(0,0,0,.12), 0 6px 13px rgba(0,0,0,.12), 0 0 0 .5px rgba(0,0,0,.06);
-}
-
-/* menu-style picker */
-.ios select {
-  -webkit-appearance: none; appearance: none; width: auto; max-width: 210px; height: 34px;
-  border: 0; background: transparent; color: var(--ios-label2); font: 15px var(--ios-font);
-  text-align: right; text-align-last: right; padding: 0 20px 0 0; cursor: pointer;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='14' viewBox='0 0 9 14'%3E%3Cpath d='M1.5 5L4.5 2l3 3M1.5 9l3 3 3-3' fill='none' stroke='%238e8e93' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 2px center;
-}
-.ios select option { color: initial; }
-
-/* actions */
-.ios .row.action { border: 0; background: none; color: var(--ios-blue); font: 15px var(--ios-font); justify-content: space-between; text-align: left; }
-.ios .row.action .chev { color: var(--ios-label2); opacity: .6; }
-.ios .row.action:active { background: var(--ios-fill); }
-.ios .ios-primary {
-  width: 100%; height: 50px; margin-top: 12px; border: 0; border-radius: 12px;
-  background: var(--ios-blue); color: #fff; font: 600 16px var(--ios-font);
-}
-.ios .ios-primary:active { opacity: .8; }
-.ios :focus-visible { outline: 2px solid var(--ios-blue); outline-offset: 2px; }
-
 @media (max-width: 860px) {
   html, body { height: auto; }
   .app { grid-template-columns: minmax(0, 1fr); }
   .stage { min-height: 0; padding: 16px; }
   .panel { border-left: 0; border-top: 1px solid var(--line); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
   .top .label { display: none; }
-  .panel.ios { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -362,82 +253,65 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     </section>
   </div>
 
-  <aside class="panel ios" aria-label="Controls">
-    <h2 class="ios-large">Adjust</h2>
-
-    <section class="group">
-      <h3 class="group-head">Type</h3>
-      <div class="cell">
-        <div class="row">
-          <div class="seg" id="modes" role="group" aria-label="Gradient type">
-            <button type="button" data-mode="linear">Linear</button>
-            <button type="button" data-mode="radial">Radial</button>
-            <button type="button" data-mode="mesh">Mesh</button>
-          </div>
-        </div>
+  <aside class="panel" aria-label="Controls">
+    <section class="sec">
+      <h2>Type</h2>
+      <div class="seg" id="modes" role="group" aria-label="Gradient type">
+        <button type="button" data-mode="linear">Linear</button>
+        <button type="button" data-mode="radial">Radial</button>
+        <button type="button" data-mode="mesh">Mesh</button>
       </div>
     </section>
 
-    <section class="group">
-      <h3 class="group-head">Colors <button class="link" id="reverseBtn" type="button">Reverse</button></h3>
-      <div class="cell">
-        <div class="row stack">
-          <div class="bar" id="bar" title="Click to add a color"></div>
-          <div class="chips" id="chips"></div>
-        </div>
-        <div class="row">
+    <section class="sec">
+      <h2>Colors <button class="icon-btn" id="reverseBtn" type="button" title="Reverse color order">Reverse</button></h2>
+      <div class="bar" id="bar" title="Click to add a color"></div>
+      <div class="chips" id="chips"></div>
+      <div class="editor">
+        <div class="color-row">
           <input type="color" id="selColor" aria-label="Selected color">
           <input class="hex" id="selHex" spellcheck="false" maxlength="7" aria-label="Hex value">
-          <button class="link danger" id="removeBtn" type="button">Remove</button>
+          <button class="icon-btn" id="removeBtn" type="button">Remove</button>
         </div>
-        <div class="row stack" id="posField">
-          <div class="row-top"><label for="selPos">Position</label><output id="posOut"></output></div>
-          <input type="range" id="selPos" min="0" max="100" step="1">
+        <div class="field" id="posField">
+          <label for="selPos">Position</label><input type="range" id="selPos" min="0" max="100" step="1"><output id="posOut"></output>
         </div>
-        <div class="row stack" id="sizeField">
-          <div class="row-top"><label for="selSize">Spread</label><output id="sizeOut"></output></div>
-          <input type="range" id="selSize" min="15" max="120" step="1">
-        </div>
-        <div class="row" id="baseRow">
-          <label for="baseHex">Background</label>
-          <span class="grow"></span>
-          <input type="color" id="baseColor" aria-label="Background color">
-          <input class="hex short" id="baseHex" spellcheck="false" maxlength="7">
+        <div class="field" id="sizeField">
+          <label for="selSize">Spread</label><input type="range" id="selSize" min="15" max="120" step="1"><output id="sizeOut"></output>
         </div>
       </div>
-      <p class="group-foot" id="hint"></p>
+      <div class="field" id="baseRow" style="grid-template-columns: 70px 40px minmax(0,1fr)">
+        <label for="baseHex">Background</label>
+        <input type="color" id="baseColor" aria-label="Background color">
+        <input class="hex" id="baseHex" spellcheck="false" maxlength="7">
+      </div>
+      <p class="note" id="hint"></p>
     </section>
 
-    <section class="group">
-      <h3 class="group-head">Shape</h3>
-      <div class="cell">
-        <div class="row stack">
-          <div class="row-top"><label for="blur">Blur</label><output id="blurOut"></output></div>
-          <input type="range" id="blur" min="0" max="200" step="1">
-        </div>
-        <div class="row stack">
-          <div class="row-top"><label for="grain">Grain</label><output id="grainOut"></output></div>
-          <input type="range" id="grain" min="0" max="40" step="1">
-        </div>
-        <div class="row stack" id="angleField">
-          <div class="row-top"><label for="angle">Angle</label><output id="angleOut"></output></div>
-          <input type="range" id="angle" min="0" max="360" step="1">
-        </div>
-        <div class="row">
-          <label for="format">Size</label>
-          <span class="grow"></span>
-          <select id="format"></select>
-        </div>
+    <section class="sec">
+      <h2>Shape</h2>
+      <div class="field" id="angleField">
+        <label for="angle">Angle</label><input type="range" id="angle" min="0" max="360" step="1"><output id="angleOut"></output>
+      </div>
+      <div class="field">
+        <label for="blur">Blur</label><input type="range" id="blur" min="0" max="200" step="1"><output id="blurOut"></output>
+      </div>
+      <div class="field">
+        <label for="grain">Grain</label><input type="range" id="grain" min="0" max="40" step="1"><output id="grainOut"></output>
+      </div>
+      <div class="field" style="grid-template-columns: 70px minmax(0,1fr)">
+        <label for="format">Size</label>
+        <select id="format"></select>
       </div>
     </section>
 
-    <section class="group">
-      <h3 class="group-head">Export</h3>
-      <div class="cell">
-        <button class="row action" id="copyBtn" type="button">Copy CSS<svg class="chev" viewBox="0 0 8 13" width="8" height="13" aria-hidden="true"><path d="M1.5 1.5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <section class="sec">
+      <h2>Export</h2>
+      <div class="actions">
+        <button class="btn" id="copyBtn" type="button">Copy CSS</button>
+        <button class="btn primary" id="pngBtn" type="button">Export PNG</button>
       </div>
-      <button class="ios-primary" id="pngBtn" type="button">Export PNG</button>
-      <p class="group-foot" id="cssNote" hidden>Copied CSS leaves out grain and blur above 100%. The PNG has everything.</p>
+      <p class="note" id="cssNote" hidden>Copied CSS leaves out grain and blur above 100%. The PNG has everything.</p>
     </section>
   </aside>
 </main>
@@ -724,8 +598,6 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     $('format').value = S.format;
 
     // output
-    document.querySelectorAll('.ios input[type="range"]').forEach(r =>
-      r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%'));
     $('cssNote').hidden = !(S.grain || S.blur > 100);
     const [W, H, label] = FORMATS[S.format];
     const modeLabel = { linear: `Linear ${S.angle}°`, radial: 'Radial', mesh: 'Mesh' }[S.mode];
