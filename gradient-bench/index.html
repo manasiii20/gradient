@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gradient Bench</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the gradient is the workspace. Large live canvas on the left, a quiet control column on the right, library strip under the canvas. */
+:root {
+  --bg: #efeeeb;
+  --panel: #f9f9f7;
+  --line: #dddcd7;
+  --fg: #171716;
+  --muted: #6c6b66;
+  --chip: #e7e6e2;
+  --focus: #2f66f5;
+  --on-fg: #f9f9f7;
+  --sans: "Geist", "Helvetica Neue", Arial, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111110; --panel: #191918; --line: #2c2c2a; --fg: #ecebe7; --muted: #99988f;
+    --chip: #242422; --focus: #7c9fff; --on-fg: #141413; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111110; --panel: #191918; --line: #2c2c2a; --fg: #ecebe7; --muted: #99988f;
+  --chip: #242422; --focus: #7c9fff; --on-fg: #141413; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 14px/1.45 var(--sans);
+  display: flex;
+  flex-direction: column;
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* ---------- Top bar ---------- */
+.top {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding-block: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; font-size: 15px; }
+.brand i { width: 18px; height: 18px; border-radius: 5px; display: block; background: var(--logo, linear-gradient(135deg, #ff7a59, #ffd36e)); box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+.top-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 34px; padding: 0 14px;
+  border-radius: 8px; border: 1px solid var(--line);
+  background: var(--panel); font-weight: 500; white-space: nowrap;
+}
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--fg); color: var(--on-fg); border-color: var(--fg); }
+.btn.primary:hover { opacity: .88; }
+kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 1px solid currentColor; opacity: .55; }
+
+/* ---------- Main ---------- */
+.app {
+  flex: 1; min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+}
+.work { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.stage {
+  flex: 1; min-height: 280px;
+  display: grid; place-items: center;
+  padding: 24px;
+  position: relative;
+}
+.frame {
+  position: relative;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 24px 60px -28px rgba(0,0,0,.45);
+  max-width: 100%;
+}
+.frame canvas { display: block; width: 100%; height: 100%; border-radius: 6px; }
+.handles { position: absolute; inset: 0; }
+.h {
+  position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px;
+  border-radius: 50%; border: 2.5px solid #fff; padding: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.15);
+  touch-action: none; cursor: grab;
+  transition: transform .15s;
+}
+.h:active { cursor: grabbing; }
+.h.sel { transform: scale(1.3); box-shadow: 0 1px 6px rgba(0,0,0,.4), 0 0 0 2px rgba(0,0,0,.6); }
+.h.center { background: transparent; width: 26px; height: 26px; margin: -13px 0 0 -13px; }
+.h.center::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: #fff; }
+.meta {
+  text-align: center; font: 12px var(--mono); color: var(--muted);
+  padding: 0 16px 14px; font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Library ---------- */
+.library { border-top: 1px solid var(--line); padding: 12px 0 14px; display: grid; gap: 10px; }
+.lib-row { display: grid; grid-template-columns: 70px minmax(0, 1fr); align-items: center; gap: 8px; padding-left: 16px; }
+.lib-row h3 { margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 500; }
+.tiles { display: flex; gap: 8px; overflow-x: auto; padding: 3px 16px 3px 3px; scrollbar-width: thin; }
+.tile { position: relative; flex: none; }
+.tile > button:first-child {
+  width: 64px; height: 40px; border-radius: 7px; border: 0;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.1);
+}
+.tile > button:first-child:hover { transform: translateY(-1px); }
+.tile .del {
+  position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--panel); font-size: 12px; line-height: 1; padding: 0;
+  display: none; color: var(--muted);
+}
+.tile:hover .del, .tile .del:focus-visible { display: block; }
+.empty { color: var(--muted); font-size: 12px; padding: 10px 0; }
+
+/* ---------- Panel ---------- */
+.panel {
+  min-height: 0; overflow-y: auto;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  padding: 4px 18px 24px;
+}
+.sec { padding: 16px 0; border-bottom: 1px solid var(--line); display: grid; gap: 12px; }
+.sec:last-child { border-bottom: 0; }
+.sec > h2 { margin: 0; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+.seg { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--chip); border-radius: 8px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: none; height: 30px; border-radius: 6px; font-weight: 500; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--panel); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+
+.bar { position: relative; height: 30px; border-radius: 7px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); cursor: copy; margin: 0 9px 18px; touch-action: none; }
+.bar .k {
+  position: absolute; top: 100%; width: 18px; height: 22px; margin-left: -9px; margin-top: -8px;
+  border-radius: 5px; border: 2px solid var(--panel); padding: 0;
+  box-shadow: 0 0 0 1px var(--line), 0 2px 4px rgba(0,0,0,.2);
+  cursor: ew-resize; touch-action: none;
+}
+.bar .k.sel { box-shadow: 0 0 0 2px var(--fg), 0 2px 4px rgba(0,0,0,.2); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { width: 30px; height: 30px; border-radius: 8px; border: 0; padding: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+.chip.sel { box-shadow: inset 0 0 0 1px rgba(0,0,0,.12), 0 0 0 2px var(--panel), 0 0 0 4px var(--fg); }
+.chip.add { background: var(--chip); color: var(--muted); font-size: 18px; box-shadow: none; }
+
+.editor { display: grid; gap: 10px; background: var(--chip); border-radius: var(--r); padding: 12px; }
+.color-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+input[type="color"] { width: 40px; height: 34px; border: 0; padding: 0; background: none; border-radius: 7px; cursor: pointer; }
+input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+input[type="color"]::-webkit-color-swatch { border: 1px solid rgba(0,0,0,.12); border-radius: 7px; }
+input[type="color"]::-moz-color-swatch { border: 1px solid rgba(0,0,0,.12); border-radius: 7px; }
+.hex {
+  height: 34px; min-width: 0; padding: 0 10px; border-radius: 7px; border: 1px solid var(--line);
+  background: var(--panel); font-family: var(--mono); text-transform: lowercase;
+}
+.hex[aria-invalid="true"] { border-color: #d64545; }
+.icon-btn { height: 34px; padding: 0 10px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel); color: var(--muted); }
+.icon-btn:hover { color: var(--fg); }
+.icon-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+.field { display: grid; grid-template-columns: 70px minmax(0, 1fr) 48px; align-items: center; gap: 10px; }
+.field label { color: var(--muted); font-size: 13px; }
+.field output { font: 12px var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+.note { font-size: 12px; color: var(--muted); margin: 0; }
+input[type="range"] { width: 100%; accent-color: var(--fg); }
+select { height: 34px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel); padding: 0 8px; width: 100%; }
+
+pre.code {
+  margin: 0; padding: 12px; border-radius: var(--r); background: var(--chip);
+  font: 12px/1.55 var(--mono); white-space: pre; overflow-x: auto; max-height: 220px;
+  user-select: all; -webkit-user-select: all;
+}
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.actions .btn { justify-content: center; }
+
+/* ---------- Export overlay & toast ---------- */
+.overlay {
+  position: fixed; inset: 0; z-index: 30;
+  background: rgba(10,10,10,.6);
+  display: grid; place-items: center;
+  padding: 24px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px));
+}
+.sheet { background: var(--panel); border-radius: 14px; padding: 18px; width: min(720px, 100%); display: grid; gap: 14px; max-height: 100%; overflow: auto; }
+.sheet h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.sheet img { width: 100%; max-height: 52vh; object-fit: contain; border-radius: 8px; background: var(--chip); }
+.sheet-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.toast {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 40;
+  transform: translate(-50%, 20px); opacity: 0;
+  background: var(--fg); color: var(--on-fg); padding: 9px 16px; border-radius: 999px; font-weight: 500;
+  transition: opacity .2s, transform .2s; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 860px) {
+  html, body { height: auto; }
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .stage { min-height: 0; padding: 16px; }
+  .panel { border-left: 0; border-top: 1px solid var(--line); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .top .label { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><i id="logo"></i>Gradient Bench</div>
+  <div class="top-actions">
+    <button class="btn" id="saveBtn" type="button">Save<span class="label" style="margin-left:-4px">to library</span></button>
+    <button class="btn primary" id="randomBtn" type="button">Randomize <kbd>R</kbd></button>
+  </div>
+</header>
+
+<main class="app">
+  <div class="work">
+    <div class="stage" id="stage">
+      <div class="frame" id="frame">
+        <canvas id="cv" aria-label="Gradient preview"></canvas>
+        <div class="handles" id="handles"></div>
+      </div>
+    </div>
+    <div class="meta" id="meta"></div>
+    <section class="library" aria-label="Library">
+      <div class="lib-row"><h3>Presets</h3><div class="tiles" id="presets"></div></div>
+      <div class="lib-row"><h3>Saved</h3><div class="tiles" id="saved"></div></div>
+    </section>
+  </div>
+
+  <aside class="panel" aria-label="Controls">
+    <section class="sec">
+      <h2>Type</h2>
+      <div class="seg" id="modes" role="group" aria-label="Gradient type">
+        <button type="button" data-mode="linear">Linear</button>
+        <button type="button" data-mode="radial">Radial</button>
+        <button type="button" data-mode="conic">Conic</button>
+        <button type="button" data-mode="mesh">Mesh</button>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2>Colors <button class="icon-btn" id="reverseBtn" type="button" title="Reverse color order">Reverse</button></h2>
+      <div class="bar" id="bar" title="Click to add a color"></div>
+      <div class="chips" id="chips"></div>
+      <div class="editor">
+        <div class="color-row">
+          <input type="color" id="selColor" aria-label="Selected color">
+          <input class="hex" id="selHex" spellcheck="false" maxlength="7" aria-label="Hex value">
+          <button class="icon-btn" id="removeBtn" type="button">Remove</button>
+        </div>
+        <div class="field" id="posField">
+          <label for="selPos">Position</label><input type="range" id="selPos" min="0" max="100" step="1"><output id="posOut"></output>
+        </div>
+        <div class="field" id="sizeField">
+          <label for="selSize">Spread</label><input type="range" id="selSize" min="15" max="120" step="1"><output id="sizeOut"></output>
+        </div>
+      </div>
+      <div class="field" id="baseRow" style="grid-template-columns: 70px 40px minmax(0,1fr)">
+        <label for="baseHex">Background</label>
+        <input type="color" id="baseColor" aria-label="Background color">
+        <input class="hex" id="baseHex" spellcheck="false" maxlength="7">
+      </div>
+      <p class="note" id="hint"></p>
+    </section>
+
+    <section class="sec">
+      <h2>Shape</h2>
+      <div class="field" id="angleField">
+        <label for="angle">Angle</label><input type="range" id="angle" min="0" max="360" step="1"><output id="angleOut"></output>
+      </div>
+      <div class="field">
+        <label for="grain">Grain</label><input type="range" id="grain" min="0" max="40" step="1"><output id="grainOut"></output>
+      </div>
+      <div class="field" style="grid-template-columns: 70px minmax(0,1fr)">
+        <label for="format">Size</label>
+        <select id="format"></select>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2>Export</h2>
+      <pre class="code" id="code"></pre>
+      <p class="note" id="grainNote" hidden>Grain is only in the PNG. CSS can't reproduce it.</p>
+      <div class="actions">
+        <button class="btn" id="copyBtn" type="button">Copy CSS</button>
+        <button class="btn primary" id="pngBtn" type="button">Export PNG</button>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="exTitle">
+    <h2 id="exTitle">PNG</h2>
+    <img id="exImg" alt="Exported gradient">
+    <p class="note">If the download doesn't start, right-click the image (or long-press on a phone) and choose Save Image.</p>
+    <div class="sheet-actions">
+      <button class="btn" id="closeEx" type="button">Close</button>
+      <button class="btn primary" id="dlBtn" type="button">Download PNG</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const r1 = v => Math.round(v * 10) / 10;
+
+  const FORMATS = {
+    '16:9': [1920, 1080, 'Desktop 16:9'],
+    '9:16': [1080, 1920, 'Phone 9:16'],
+    '1:1':  [2048, 2048, 'Square 1:1'],
+    '4:5':  [1080, 1350, 'Portrait 4:5'],
+    '4k':   [3840, 2160, '4K 16:9'],
+  };
+
+  // ---------- Presets ----------
+  // stops: [color, position %, x %, y %, spread %]
+  const PRESETS = [
+    { name: 'Peach dusk', mode: 'mesh', angle: 135, cx: 50, cy: 50, base: '#2a1630', grain: 10,
+      stops: [['#ff7a59', 0, 16, 18, 70], ['#ffc27a', 33, 84, 14, 60], ['#c86bfa', 66, 78, 84, 70], ['#ff4f81', 100, 18, 86, 55]] },
+    { name: 'Lagoon', mode: 'linear', angle: 160, cx: 50, cy: 50, base: '#0b2530', grain: 0,
+      stops: [['#c9f2e6', 0, 20, 20, 60], ['#43c6ac', 45, 80, 30, 60], ['#0f4c75', 100, 50, 85, 60]] },
+    { name: 'Citrus', mode: 'radial', angle: 0, cx: 30, cy: 25, base: '#ffe9a8', grain: 6,
+      stops: [['#fff6c9', 0, 20, 20, 60], ['#ffd23f', 35, 70, 30, 60], ['#ff8a1f', 75, 30, 80, 60], ['#e2481b', 100, 80, 80, 60]] },
+    { name: 'Fog', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#e9e7e2', grain: 14,
+      stops: [['#c7d3dd', 0, 20, 25, 70], ['#f4e3d7', 50, 80, 20, 65], ['#d9d2e6', 100, 60, 85, 75]] },
+    { name: 'Aurora', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#06131f', grain: 8,
+      stops: [['#1de9b6', 0, 22, 30, 60], ['#2979ff', 33, 70, 22, 55], ['#7c4dff', 66, 82, 74, 55], ['#00bfa5', 100, 30, 88, 45]] },
+    { name: 'Sorbet', mode: 'conic', angle: 210, cx: 50, cy: 55, base: '#ffffff', grain: 0,
+      stops: [['#ffb3c7', 0, 20, 20, 60], ['#ffe1a8', 25, 80, 20, 60], ['#b8f0d0', 50, 80, 80, 60], ['#b7c8ff', 75, 20, 80, 60], ['#ffb3c7', 100, 50, 50, 60]] },
+    { name: 'Ember', mode: 'linear', angle: 200, cx: 50, cy: 50, base: '#120806', grain: 18,
+      stops: [['#120806', 0, 20, 20, 60], ['#5a1a0e', 40, 80, 20, 60], ['#e2531f', 78, 60, 80, 60], ['#ffc46b', 100, 30, 80, 60]] },
+    { name: 'Moss', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#1d2a1c', grain: 12,
+      stops: [['#8fb36b', 0, 25, 20, 65], ['#d8d38a', 50, 85, 35, 55], ['#3f6e4a', 100, 45, 90, 70]] },
+  ];
+  const fromPreset = p => ({
+    mode: p.mode, angle: p.angle, cx: p.cx, cy: p.cy, base: p.base, grain: p.grain,
+    format: S ? S.format : '16:9',
+    stops: p.stops.map(([c, pos, x, y, s]) => ({ c, p: pos, x, y, s })),
+  });
+
+  // ---------- Storage (per-browser convenience only) ----------
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  };
+
+  let S = null;
+  S = store.get('gb-current', null) || fromPreset(PRESETS[0]);
+  if (!FORMATS[S.format]) S.format = '16:9';
+  let sel = 0;
+  let saved = store.get('gb-saved', []);
+
+  // ---------- Color helpers ----------
+  const normHex = v => {
+    v = String(v).trim().toLowerCase().replace(/^#?/, '#');
+    if (/^#[0-9a-f]{3}$/.test(v)) v = '#' + v.slice(1).split('').map(ch => ch + ch).join('');
+    return /^#[0-9a-f]{6}$/.test(v) ? v : null;
+  };
+  const toRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const toHex = rgb => '#' + rgb.map(v => Math.round(clamp(v, 0, 255)).toString(16).padStart(2, '0')).join('');
+  const mix = (a, b, t) => { const A = toRgb(a), B = toRgb(b); return toHex(A.map((v, i) => v + (B[i] - v) * t)); };
+  function oklch(L, C, h) {
+    const a = C * Math.cos(h * Math.PI / 180), b = C * Math.sin(h * Math.PI / 180);
+    const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+    const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+    const s = (L - 0.0894841775 * a - 1.2914855480 * b) ** 3;
+    const lin = [
+      4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+      -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+      -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s,
+    ];
+    return toHex(lin.map(x => { x = clamp(x, 0, 1); return 255 * (x <= 0.0031308 ? 12.92 * x : 1.055 * x ** (1 / 2.4) - 0.055); }));
+  }
+
+  // ---------- CSS output ----------
+  const sorted = st => [...st.stops].sort((a, b) => a.p - b.p);
+  function gradient(st, pretty) {
+    const nl = pretty ? ',\n    ' : ', ';
+    const list = sorted(st).map(s => `${s.c} ${r1(s.p)}%`).join(', ');
+    const cx = r1(st.cx), cy = r1(st.cy);
+    switch (st.mode) {
+      case 'linear': return `linear-gradient(${st.angle}deg, ${list})`;
+      case 'radial': return `radial-gradient(circle farthest-corner at ${cx}% ${cy}%, ${list})`;
+      case 'conic':  return `conic-gradient(from ${st.angle}deg at ${cx}% ${cy}%, ${list})`;
+      default:
+        return [...st.stops].reverse()
+          .map(s => `radial-gradient(${r1(s.s)}% ${r1(s.s)}% at ${r1(s.x)}% ${r1(s.y)}%, ${s.c} 0%, ${s.c}00 100%)`)
+          .concat(st.base).join(nl);
+    }
+  }
+  const cssText = st => `background: ${st.mode === 'mesh' ? '\n    ' : ''}${gradient(st, true)};`;
+
+  // ---------- Canvas rendering (matches the CSS geometry) ----------
+  const NOISE = new Int8Array(1 << 21);
+  for (let i = 0; i < NOISE.length; i++) NOISE[i] = (Math.random() * 255 - 127.5) | 0;
+
+  function paint(ctx, w, h, st) {
+    ctx.clearRect(0, 0, w, h);
+    if (st.mode === 'mesh') {
+      ctx.fillStyle = st.base; ctx.fillRect(0, 0, w, h);
+      for (const s of st.stops) {
+        ctx.save();
+        ctx.translate(s.x / 100 * w, s.y / 100 * h);
+        ctx.scale(s.s / 100 * w, s.s / 100 * h);
+        const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+        g.addColorStop(0, s.c); g.addColorStop(1, s.c + '00');
+        ctx.fillStyle = g; ctx.fillRect(-1, -1, 2, 2);
+        ctx.restore();
+      }
+    } else {
+      const cx = st.cx / 100 * w, cy = st.cy / 100 * h;
+      let g;
+      if (st.mode === 'linear') {
+        const t = st.angle * Math.PI / 180, dx = Math.sin(t), dy = -Math.cos(t);
+        const L = Math.abs(w * dx) + Math.abs(h * dy);
+        g = ctx.createLinearGradient(w / 2 - dx * L / 2, h / 2 - dy * L / 2, w / 2 + dx * L / 2, h / 2 + dy * L / 2);
+      } else if (st.mode === 'radial') {
+        const R = Math.max(...[[0, 0], [w, 0], [0, h], [w, h]].map(([x, y]) => Math.hypot(x - cx, y - cy)));
+        g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+      } else {
+        g = ctx.createConicGradient((st.angle - 90) * Math.PI / 180, cx, cy);
+      }
+      sorted(st).forEach(s => g.addColorStop(clamp(s.p / 100, 0, 1), s.c));
+      ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    }
+    if (st.grain > 0) {
+      const img = ctx.getImageData(0, 0, w, h), a = img.data, k = st.grain / 100, n = NOISE.length;
+      for (let i = 0, j = 0; i < a.length; i += 4, j++) {
+        const v = NOISE[j % n] * k;
+        a[i] += v; a[i + 1] += v; a[i + 2] += v;
+      }
+      ctx.putImageData(img, 0, 0);
+    }
+  }
+
+  // ---------- Preview ----------
+  const stage = $('stage'), frame = $('frame'), cv = $('cv'), ctx = cv.getContext('2d', { willReadFrequently: true });
+  function fit() {
+    const [W, H] = FORMATS[S.format];
+    const cs = getComputedStyle(stage);
+    const aw = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const narrow = matchMedia('(max-width: 860px)').matches;
+    const ah = narrow ? Math.min(innerHeight * 0.62, aw * 1.4) : stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    const sc = Math.min(aw / W, ah / H);
+    const fw = Math.max(40, Math.floor(W * sc)), fh = Math.max(40, Math.floor(H * sc));
+    frame.style.width = fw + 'px'; frame.style.height = fh + 'px';
+    const dpr = Math.min(2, devicePixelRatio || 1);
+    const k = Math.min(dpr, 1400 / Math.max(fw, fh));
+    cv.width = Math.round(fw * k); cv.height = Math.round(fh * k);
+  }
+
+  let queued = false;
+  function draw() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      paint(ctx, cv.width, cv.height, S);
+      syncUI();
+      store.set('gb-current', S);
+    });
+  }
+
+  // ---------- UI sync ----------
+  const modeBtns = [...document.querySelectorAll('#modes button')];
+  function syncUI() {
+    const mesh = S.mode === 'mesh';
+    sel = clamp(sel, 0, S.stops.length - 1);
+    const cur = S.stops[sel];
+    modeBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === S.mode)));
+
+    // bar
+    const bar = $('bar');
+    bar.hidden = mesh;
+    bar.style.background = `linear-gradient(90deg, ${sorted(S).map(s => `${s.c} ${s.p}%`).join(', ')})`;
+    bar.innerHTML = '';
+    S.stops.forEach((s, i) => {
+      const k = document.createElement('button');
+      k.type = 'button'; k.className = 'k' + (i === sel ? ' sel' : '');
+      k.style.left = s.p + '%'; k.style.background = s.c;
+      k.setAttribute('aria-label', `Color ${i + 1} at ${Math.round(s.p)}%`);
+      k.dataset.i = i;
+      bar.appendChild(k);
+    });
+
+    // chips
+    const chips = $('chips'); chips.innerHTML = '';
+    S.stops.forEach((s, i) => {
+      const c = document.createElement('button');
+      c.type = 'button'; c.className = 'chip' + (i === sel ? ' sel' : '');
+      c.style.background = s.c; c.setAttribute('aria-label', `Select ${s.c}`);
+      c.onclick = () => { sel = i; draw(); };
+      chips.appendChild(c);
+    });
+    const add = document.createElement('button');
+    add.type = 'button'; add.className = 'chip add'; add.textContent = '+'; add.setAttribute('aria-label', 'Add color');
+    add.onclick = addStop; add.disabled = S.stops.length >= 8;
+    chips.appendChild(add);
+
+    // editor
+    $('selColor').value = cur.c;
+    if (document.activeElement !== $('selHex')) { $('selHex').value = cur.c; $('selHex').removeAttribute('aria-invalid'); }
+    $('selPos').value = cur.p; $('posOut').textContent = Math.round(cur.p) + '%';
+    $('selSize').value = cur.s; $('sizeOut').textContent = Math.round(cur.s) + '%';
+    $('posField').hidden = mesh; $('sizeField').hidden = !mesh;
+    $('removeBtn').disabled = S.stops.length <= 2;
+    $('baseRow').hidden = !mesh;
+    $('baseColor').value = S.base;
+    if (document.activeElement !== $('baseHex')) $('baseHex').value = S.base;
+    $('hint').textContent = mesh
+      ? 'Drag the dots on the canvas to move colors. Spread sets how far each color reaches.'
+      : S.mode === 'linear' ? 'Click the bar to add a color. Drag the markers to move them.'
+      : 'Drag the white dot on the canvas to move the center.';
+    $('reverseBtn').hidden = mesh;
+
+    // shape
+    $('angleField').hidden = !(S.mode === 'linear' || S.mode === 'conic');
+    $('angle').value = S.angle; $('angleOut').textContent = S.angle + '°';
+    $('grain').value = S.grain; $('grainOut').textContent = S.grain;
+    $('format').value = S.format;
+
+    // output
+    $('code').textContent = cssText(S);
+    $('grainNote').hidden = !S.grain;
+    const [W, H, label] = FORMATS[S.format];
+    const modeLabel = { linear: `Linear ${S.angle}°`, radial: 'Radial', conic: `Conic ${S.angle}°`, mesh: 'Mesh' }[S.mode];
+    $('meta').textContent = `${W} × ${H} px · ${label} · ${modeLabel} · ${S.stops.length} colors`;
+    $('logo').style.setProperty('--logo', gradient(S, false));
+
+    renderHandles();
+  }
+
+  // ---------- Canvas handles ----------
+  const handles = $('handles');
+  function renderHandles() {
+    handles.innerHTML = '';
+    if (S.mode === 'mesh') {
+      S.stops.forEach((s, i) => {
+        const h = mkHandle(s.x, s.y, `Move ${s.c}`);
+        h.style.background = s.c;
+        if (i === sel) h.classList.add('sel');
+        h.dataset.i = i;
+      });
+    } else if (S.mode !== 'linear') {
+      const h = mkHandle(S.cx, S.cy, 'Move center');
+      h.classList.add('center');
+      h.dataset.center = '1';
+    }
+  }
+  function mkHandle(x, y, label) {
+    const h = document.createElement('button');
+    h.type = 'button'; h.className = 'h';
+    h.style.left = x + '%'; h.style.top = y + '%';
+    h.setAttribute('aria-label', label);
+    handles.appendChild(h);
+    return h;
+  }
+  let drag = null;
+  handles.addEventListener('pointerdown', e => {
+    const h = e.target.closest('.h'); if (!h) return;
+    e.preventDefault();
+    handles.setPointerCapture(e.pointerId);
+    if (h.dataset.i) { sel = +h.dataset.i; }
+    drag = { center: !!h.dataset.center, i: sel, el: h };
+    draw();
+  });
+  handles.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const r = frame.getBoundingClientRect();
+    const x = r1(clamp((e.clientX - r.left) / r.width * 100, 0, 100));
+    const y = r1(clamp((e.clientY - r.top) / r.height * 100, 0, 100));
+    if (drag.center) { S.cx = x; S.cy = y; } else { S.stops[drag.i].x = x; S.stops[drag.i].y = y; }
+    draw();
+  });
+  const endDrag = () => { drag = null; };
+  handles.addEventListener('pointerup', endDrag);
+  handles.addEventListener('pointercancel', endDrag);
+  handles.addEventListener('keydown', e => {
+    const h = e.target.closest('.h'); if (!h) return;
+    const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+    if (!d) return;
+    e.preventDefault();
+    const step = e.shiftKey ? 10 : 1;
+    const o = h.dataset.center ? S : S.stops[+h.dataset.i];
+    const kx = h.dataset.center ? 'cx' : 'x', ky = h.dataset.center ? 'cy' : 'y';
+    o[kx] = clamp(o[kx] + d[0] * step, 0, 100); o[ky] = clamp(o[ky] + d[1] * step, 0, 100);
+    draw();
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const again = h.dataset.center ? handles.querySelector('[data-center]') : handles.querySelector(`[data-i="${h.dataset.i}"]`);
+      again && again.focus();
+    }));
+  });
+
+  // ---------- Stop bar ----------
+  const bar = $('bar');
+  let barDrag = null;
+  bar.addEventListener('pointerdown', e => {
+    const r = bar.getBoundingClientRect();
+    const pos = r1(clamp((e.clientX - r.left) / r.width * 100, 0, 100));
+    const k = e.target.closest('.k');
+    if (k) { sel = +k.dataset.i; }
+    else {
+      if (S.stops.length >= 8) { toast('Up to 8 colors'); return; }
+      S.stops.push({ c: colorAt(pos), p: pos, x: 20 + Math.random() * 60, y: 20 + Math.random() * 60, s: 55 });
+      sel = S.stops.length - 1;
+    }
+    barDrag = { i: sel };
+    bar.setPointerCapture(e.pointerId);
+    draw();
+  });
+  bar.addEventListener('pointermove', e => {
+    if (!barDrag) return;
+    const r = bar.getBoundingClientRect();
+    S.stops[barDrag.i].p = r1(clamp((e.clientX - r.left) / r.width * 100, 0, 100));
+    draw();
+  });
+  bar.addEventListener('pointerup', () => { barDrag = null; });
+  bar.addEventListener('pointercancel', () => { barDrag = null; });
+  bar.addEventListener('keydown', e => {
+    const k = e.target.closest('.k'); if (!k) return;
+    const d = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0; if (!d) return;
+    e.preventDefault();
+    const i = +k.dataset.i; sel = i;
+    S.stops[i].p = clamp(S.stops[i].p + d * (e.shiftKey ? 10 : 1), 0, 100);
+    draw();
+    requestAnimationFrame(() => requestAnimationFrame(() => bar.querySelector(`[data-i="${i}"]`)?.focus()));
+  });
+
+  function colorAt(pos) {
+    const s = sorted(S);
+    if (pos <= s[0].p) return s[0].c;
+    if (pos >= s[s.length - 1].p) return s[s.length - 1].c;
+    for (let i = 0; i < s.length - 1; i++) {
+      if (pos >= s[i].p && pos <= s[i + 1].p) return mix(s[i].c, s[i + 1].c, (pos - s[i].p) / ((s[i + 1].p - s[i].p) || 1));
+    }
+    return s[0].c;
+  }
+  function addStop() {
+    if (S.stops.length >= 8) return;
+    const s = sorted(S);
+    let best = 0, at = 50;
+    for (let i = 0; i < s.length - 1; i++) { const g = s[i + 1].p - s[i].p; if (g > best) { best = g; at = s[i].p + g / 2; } }
+    const c = S.mode === 'mesh' ? oklch(0.65 + Math.random() * 0.25, 0.08 + Math.random() * 0.12, Math.random() * 360) : colorAt(at);
+    S.stops.push({ c, p: r1(at), x: r1(15 + Math.random() * 70), y: r1(15 + Math.random() * 70), s: 55 });
+    sel = S.stops.length - 1;
+    draw();
+  }
+
+  // ---------- Controls ----------
+  modeBtns.forEach(b => b.onclick = () => { S.mode = b.dataset.mode; draw(); });
+  $('selColor').addEventListener('input', e => { S.stops[sel].c = e.target.value.toLowerCase(); draw(); });
+  $('selHex').addEventListener('input', e => {
+    const v = normHex(e.target.value);
+    e.target.toggleAttribute('aria-invalid', !v);
+    if (v) { S.stops[sel].c = v; draw(); }
+  });
+  $('selHex').addEventListener('blur', () => draw());
+  $('baseColor').addEventListener('input', e => { S.base = e.target.value.toLowerCase(); draw(); });
+  $('baseHex').addEventListener('input', e => {
+    const v = normHex(e.target.value);
+    e.target.toggleAttribute('aria-invalid', !v);
+    if (v) { S.base = v; draw(); }
+  });
+  $('baseHex').addEventListener('blur', () => draw());
+  $('selPos').addEventListener('input', e => { S.stops[sel].p = +e.target.value; draw(); });
+  $('selSize').addEventListener('input', e => { S.stops[sel].s = +e.target.value; draw(); });
+  $('removeBtn').onclick = () => { if (S.stops.length > 2) { S.stops.splice(sel, 1); sel = Math.max(0, sel - 1); draw(); } };
+  $('reverseBtn').onclick = () => { S.stops.forEach(s => s.p = r1(100 - s.p)); draw(); };
+  $('angle').addEventListener('input', e => { S.angle = +e.target.value; draw(); });
+  $('grain').addEventListener('input', e => { S.grain = +e.target.value; draw(); });
+  const fmt = $('format');
+  Object.entries(FORMATS).forEach(([k, [w, h, label]]) => fmt.add(new Option(`${label} · ${w} × ${h}`, k)));
+  fmt.addEventListener('change', () => { S.format = fmt.value; fit(); draw(); });
+
+  // ---------- Randomize ----------
+  function randomize() {
+    const h0 = Math.random() * 360;
+    const scheme = ['analogous', 'split', 'triad', 'mono'][Math.floor(Math.random() * 4)];
+    const n = 3 + Math.floor(Math.random() * 3);
+    const offs = {
+      analogous: i => i * (22 + Math.random() * 14),
+      split: i => [0, 150, 210, 30, 180][i],
+      triad: i => [0, 120, 240, 60, 180][i],
+      mono: i => i * 6,
+    }[scheme];
+    const dark = Math.random() < 0.45;
+    const stops = Array.from({ length: n }, (_, i) => {
+      const L = scheme === 'mono' ? 0.35 + i / (n - 1) * 0.55 : 0.6 + Math.random() * 0.3;
+      return {
+        c: oklch(L, 0.07 + Math.random() * 0.13, (h0 + offs(i)) % 360),
+        p: r1(i / (n - 1) * 100),
+        x: r1(12 + Math.random() * 76), y: r1(12 + Math.random() * 76),
+        s: Math.round(45 + Math.random() * 30),
+      };
+    });
+    const modes = ['mesh', 'mesh', 'linear', 'radial', 'conic'];
+    S = {
+      ...S,
+      mode: modes[Math.floor(Math.random() * modes.length)],
+      angle: Math.round(Math.random() * 36) * 10,
+      cx: r1(20 + Math.random() * 60), cy: r1(20 + Math.random() * 60),
+      base: dark ? oklch(0.18 + Math.random() * 0.08, 0.03 + Math.random() * 0.04, h0) : oklch(0.94, 0.02, h0),
+      stops,
+    };
+    if (S.mode === 'conic') S.stops.push({ ...S.stops[0], p: 100, x: 50, y: 50 }), S.stops.forEach((s, i, a) => s.p = r1(i / (a.length - 1) * 100));
+    sel = 0;
+    draw();
+  }
+  $('randomBtn').onclick = randomize;
+  addEventListener('keydown', e => {
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (['input', 'select', 'textarea'].includes(tag) || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'r' || e.key === 'R') { e.preventDefault(); randomize(); }
+    if (e.key === 'Escape' && !$('overlay').hidden) closeExport();
+  });
+
+  // ---------- Library ----------
+  function tile(st, title, onLoad, onDelete) {
+    const wrap = document.createElement('div'); wrap.className = 'tile';
+    const b = document.createElement('button');
+    b.type = 'button'; b.title = title; b.setAttribute('aria-label', `Load ${title}`);
+    b.style.background = gradient(st, false);
+    b.onclick = onLoad;
+    wrap.appendChild(b);
+    if (onDelete) {
+      const d = document.createElement('button');
+      d.type = 'button'; d.className = 'del'; d.textContent = '×'; d.setAttribute('aria-label', `Delete ${title}`);
+      d.onclick = onDelete;
+      wrap.appendChild(d);
+    }
+    return wrap;
+  }
+  function renderLibrary() {
+    const p = $('presets'); p.innerHTML = '';
+    PRESETS.forEach(pr => p.appendChild(tile(fromPreset(pr), pr.name, () => { S = fromPreset(pr); sel = 0; draw(); })));
+    const s = $('saved'); s.innerHTML = '';
+    if (!saved.length) {
+      const e = document.createElement('div'); e.className = 'empty';
+      e.textContent = 'Nothing saved yet. Press Save to library to keep the current gradient here.';
+      s.appendChild(e);
+    }
+    saved.forEach((st, i) => s.appendChild(tile(st, `Saved ${saved.length - i}`,
+      () => { S = JSON.parse(JSON.stringify(st)); S.format = FORMATS[S.format] ? S.format : '16:9'; sel = 0; fit(); draw(); },
+      () => { saved.splice(i, 1); store.set('gb-saved', saved); renderLibrary(); toast('Deleted'); })));
+  }
+  $('saveBtn').onclick = () => {
+    saved.unshift(JSON.parse(JSON.stringify(S)));
+    saved = saved.slice(0, 30);
+    store.set('gb-saved', saved);
+    renderLibrary();
+    toast('Saved to library');
+  };
+
+  // ---------- Copy + export ----------
+  const toastEl = $('toast'); let tt;
+  function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => toastEl.classList.remove('show'), 1600); }
+  $('copyBtn').onclick = () => {
+    const text = cssText(S);
+    const fallback = () => {
+      const r = document.createRange(); r.selectNodeContents($('code'));
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      toast('Selected. Press Ctrl+C or ⌘C to copy');
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => toast('CSS copied'), fallback);
+    else fallback();
+  };
+
+  let blobUrl = null, fileName = 'gradient.png', lastFocus = null;
+  $('pngBtn').onclick = () => {
+    const [W, H] = FORMATS[S.format];
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    paint(c.getContext('2d', { willReadFrequently: true }), W, H, S);
+    c.toBlob(b => {
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+      blobUrl = URL.createObjectURL(b);
+      fileName = `gradient-${S.mode}-${W}x${H}.png`;
+      $('exImg').src = blobUrl;
+      $('exTitle').textContent = `${fileName}`;
+      lastFocus = document.activeElement;
+      $('overlay').hidden = false;
+      $('dlBtn').focus();
+    }, 'image/png');
+  };
+  $('dlBtn').onclick = () => {
+    const a = document.createElement('a');
+    a.href = blobUrl; a.download = fileName;
+    document.body.appendChild(a); a.click(); a.remove();
+  };
+  function closeExport() { $('overlay').hidden = true; lastFocus && lastFocus.focus(); }
+  $('closeEx').onclick = closeExport;
+  $('overlay').addEventListener('click', e => { if (e.target.id === 'overlay') closeExport(); });
+
+  // ---------- Boot ----------
+  new ResizeObserver(() => { fit(); draw(); }).observe(stage);
+  renderLibrary();
+  fit();
+  draw();
+})();
+</script>
+</body>
+</html>
