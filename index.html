@@ -156,7 +156,6 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .card {
   background: var(--card); border-radius: 18px;
   box-shadow: 0 0 0 1px var(--card-edge), 0 18px 40px -24px rgba(0,0,0,.22);
-  overflow: hidden;
 }
 .grp { padding: 10px 0; border-top: 1px solid var(--card-line); }
 .grp:first-child { border-top: 0; }
@@ -198,27 +197,57 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .card .ib:disabled { opacity: .3; cursor: default; background: none; }
 
 .card .bar { margin: 6px 31px 18px; height: 22px; border-radius: 6px; }
-.clist { padding: 2px 0; }
-.crow { position: relative; display: flex; align-items: center; gap: 14px; height: 38px; padding: 0 22px; cursor: pointer; }
-.crow:hover { background: var(--card-hover); }
-.crow.sel { background: var(--card-sel); }
-.crow .sw { position: relative; width: 20px; height: 20px; border-radius: 4px; overflow: hidden; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); }
-.crow .sw input { position: absolute; inset: -6px; width: calc(100% + 12px); height: calc(100% + 12px); border: 0; padding: 0; opacity: 0; cursor: pointer; }
-.crow .hx {
-  flex: 1; min-width: 0; height: 28px; border: 0; background: none; padding: 0; color: var(--fg);
-  font: 14px var(--mono); letter-spacing: .04em; text-transform: uppercase; cursor: text;
+.swrow { display: flex; flex-wrap: wrap; gap: 10px; padding: 4px 22px 10px; }
+.swi { position: relative; }
+.sw { position: relative; display: block; width: 34px; height: 34px; border-radius: 9px; overflow: hidden; cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); transition: box-shadow .15s; }
+.sw input { position: absolute; inset: -8px; width: calc(100% + 16px); height: calc(100% + 16px); border: 0; padding: 0; opacity: 0; cursor: pointer; }
+.swi.sel .sw { box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 0 0 2px var(--card), 0 0 0 3.5px var(--fg); }
+.sw:focus-within { outline: 2px solid var(--focus); outline-offset: 3px; }
+.swi .x {
+  position: absolute; top: -7px; right: -7px; width: 18px; height: 18px; padding: 0; border-radius: 50%;
+  border: 1px solid var(--card-line-strong); background: var(--card); color: var(--muted);
+  font-size: 12px; line-height: 1; display: grid; place-items: center; opacity: 0; transition: opacity .15s;
 }
-.crow .hx:focus { outline: none; }
-.crow .hx[aria-invalid="true"] { color: #d64545; }
-.crow .x { width: 24px; height: 24px; border: 0; border-radius: 6px; background: none; color: var(--muted); font-size: 16px; line-height: 1; padding: 0; opacity: 0; }
-.crow:hover .x, .crow .x:focus-visible { opacity: 1; }
-.crow .x:hover { color: var(--fg); background: var(--card-hover); }
-@media (hover: none) { .crow .x { opacity: .7; } }
-.crow.base { cursor: default; margin-top: 6px; }
-.crow.base:hover { background: none; }
-.crow .tag { font-size: 13px; color: var(--muted); }
+.swi:hover .x, .swi .x:focus-visible { opacity: 1; }
+.swi .x:hover { color: var(--fg); }
+@media (hover: none) { .swi .x { opacity: 1; } }
+.swi.add button {
+  width: 34px; height: 34px; border-radius: 9px; padding: 0; display: grid; place-items: center;
+  border: 1px dashed var(--card-line-strong); background: none; color: var(--muted);
+}
+.swi.add button:hover { color: var(--fg); border-color: var(--muted); }
+.swi.add button:disabled { opacity: .35; cursor: default; }
+.card .rl { font-size: 14px; }
+.sw.base { width: 28px; height: 28px; border-radius: 7px; }
 
-.acts { padding: 6px 0; }
+/* segmented type control */
+.card .grp:first-child .row:first-child { padding-top: 8px; padding-bottom: 8px; }
+.card .seg { flex: 1; background: var(--card-sel); border-radius: 10px; padding: 3px; }
+.card .seg button { height: 32px; border-radius: 8px; font-size: 14px; }
+.card .seg button[aria-pressed="true"] { background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 0 0 .5px rgba(0,0,0,.06); }
+
+/* size dropdown */
+.dd { position: relative; }
+.dd-btn { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px; margin-right: -8px; border: 0; border-radius: 8px; background: none; color: var(--fg); font: 14px var(--sans); }
+.dd-btn:hover, .dd-btn[aria-expanded="true"] { background: var(--card-hover); }
+.dd-btn svg { color: var(--muted); transition: transform .15s; }
+.dd-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+.dd-menu {
+  position: absolute; right: -8px; top: calc(100% + 6px); z-index: 20; min-width: 250px; margin: 0; padding: 6px; list-style: none;
+  background: var(--card); border-radius: 12px; box-shadow: 0 0 0 1px var(--card-edge), 0 16px 40px -12px rgba(0,0,0,.28);
+}
+.dd-menu:focus { outline: none; }
+.dd-menu li {
+  display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: center; gap: 10px;
+  height: 36px; padding: 0 10px; border-radius: 8px; font-size: 14px; cursor: pointer;
+}
+.dd-menu li:hover, .dd-menu li:focus { background: var(--card-hover); outline: none; }
+.dd-menu li .ck { visibility: hidden; color: var(--fg); }
+.dd-menu li[aria-selected="true"] .ck { visibility: visible; }
+.dd-menu li .dim { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+
+.acts { padding: 6px 0; border-radius: 0 0 18px 18px; overflow: hidden; }
 .arow {
   display: flex; align-items: center; gap: 14px; width: 100%; height: 44px; padding: 0 22px;
   border: 0; background: none; color: var(--fg); font: 14px var(--sans); text-align: left;
@@ -420,18 +449,19 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     <div class="card">
       <div class="grp">
         <div class="row">
-          <label class="lbl" for="modeSel">Gradient</label>
-          <select class="pick" id="modeSel">
-            <option value="linear">Linear</option>
-            <option value="radial">Radial</option>
-            <option value="mesh">Mesh</option>
-          </select>
+          <div class="seg" id="modes" role="group" aria-label="Gradient type">
+            <button type="button" data-mode="linear">Linear</button>
+            <button type="button" data-mode="radial">Radial</button>
+            <button type="button" data-mode="mesh">Mesh</button>
+          </div>
         </div>
         <div class="row">
-          <label class="lbl" for="format">Size</label>
-          <select class="pick" id="format"></select>
+          <span class="lbl" id="sizeLbl">Size</span>
+          <div class="dd" id="sizeDD">
+            <button class="dd-btn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="sizeLbl sizeVal"><span id="sizeVal"></span><svg viewBox="0 0 11 7" width="11" height="7" aria-hidden="true"><path d="M1 1l4.5 4.5L10 1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <ul class="dd-menu" role="listbox" aria-labelledby="sizeLbl" tabindex="-1" hidden></ul>
+          </div>
         </div>
-        <div class="row dims"><span><b>W</b><span id="dimW"></span></span><span><b>H</b><span id="dimH"></span></span></div>
       </div>
 
       <div class="grp">
@@ -472,11 +502,10 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
           <span class="icons">
             <button class="ib" id="reverseBtn" type="button" title="Reverse order" aria-label="Reverse color order"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M5 7h11M13 4l3 3-3 3M15 13H4M7 10l-3 3 3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
             <button class="ib" id="shuffleBtn" type="button" title="New colors" aria-label="Pick new colors"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M16 10a6 6 0 1 1-1.8-4.3M16 3.5v3.2h-3.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-            <button class="ib" id="addBtn" type="button" title="Add color" aria-label="Add color"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 4v12M4 10h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
           </span>
         </div>
         <div class="bar" id="bar" title="Click to add a color"></div>
-        <div class="clist" id="colorList"></div>
+        <div class="swrow" id="colorList"></div>
         <div class="row slide" id="posField">
           <label for="selPos">Position</label>
           <input type="range" id="selPos" min="0" max="100" step="1"><output id="posOut" hidden></output>
@@ -485,10 +514,9 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
           <label for="selSize">Spread</label>
           <input type="range" id="selSize" min="15" max="120" step="1"><output id="sizeOut" hidden></output>
         </div>
-        <div class="crow base" id="baseRow">
-          <label class="sw"><input type="color" id="baseColor" aria-label="Background color"></label>
-          <input class="hx" id="baseHex" spellcheck="false" maxlength="7" aria-label="Background hex">
-          <span class="tag">Background</span>
+        <div class="row" id="baseRow">
+          <span class="rl">Background</span>
+          <label class="sw base"><input type="color" id="baseColor" aria-label="Background color"></label>
         </div>
       </div>
 
@@ -806,11 +834,12 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   document.addEventListener('visibilitychange', ensureLoop);
 
   // ---------- UI sync ----------
+  const modeBtns = [...document.querySelectorAll('#modes button')];
   function syncUI() {
     const mesh = S.mode === 'mesh';
     sel = clamp(sel, 0, S.stops.length - 1);
     const cur = S.stops[sel];
-    $('modeSel').value = S.mode;
+    modeBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === S.mode)));
 
     // bar
     const bar = $('bar');
@@ -835,16 +864,15 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     $('baseRow').hidden = !mesh;
     $('baseColor').value = S.base;
     $('baseColor').parentElement.style.background = S.base;
-    if (document.activeElement !== $('baseHex')) { $('baseHex').value = S.base.slice(1); $('baseHex').removeAttribute('aria-invalid'); }
     $('reverseBtn').hidden = mesh;
-    $('addBtn').disabled = S.stops.length >= 8;
 
     // shape
     $('angleField').hidden = S.mode !== 'linear';
     $('angle').value = S.angle; $('angleOut').textContent = S.angle + '°';
     $('blur').value = S.blur; $('blurOut').textContent = S.blur + '%';
     $('grain').value = S.grain; $('grainOut').textContent = S.grain;
-    $('format').value = S.format;
+    $('sizeVal').textContent = FORMATS[S.format][2];
+    ddMenu.querySelectorAll('li').forEach(li => li.setAttribute('aria-selected', String(li.dataset.k === S.format)));
 
     // output
     const mo = S.motion;
@@ -857,8 +885,6 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     if (S.grain || S.blur > 100) notes.push('Copied CSS leaves out grain and blur above 100%.');
     if (mo.on) notes.push('Copied CSS and the PNG are a still frame.');
     $('copyBtn').title = notes.join(' ');
-    const [dW, dH] = FORMATS[S.format];
-    $('dimW').textContent = dW; $('dimH').textContent = dH;
     document.querySelectorAll('.card input[type="range"]').forEach(r => {
       r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%');
       r.title = r.nextElementSibling ? r.nextElementSibling.textContent : '';
@@ -989,8 +1015,8 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   }
 
   // ---------- Controls ----------
-  $('modeSel').addEventListener('change', e => {
-    S.mode = e.target.value;
+  modeBtns.forEach(b => b.onclick = () => {
+    S.mode = b.dataset.mode;
     if (S.mode !== 'mesh' && S.stops.length < 2) {
       S.stops[0].p = 0;
       S.stops.push({ c: S.base, p: 100, x: 80, y: 80, s: 55 });
@@ -1008,48 +1034,43 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
       colorKey = key;
       list.innerHTML = '';
       S.stops.forEach((s, i) => {
-        const row = document.createElement('div');
-        row.className = 'crow';
-        row.dataset.i = i;
-        row.innerHTML = `<label class="sw"><input type="color" aria-label="Color ${i + 1}"></label>` +
-          `<input class="hx" spellcheck="false" maxlength="7" aria-label="Color ${i + 1} hex">` +
+        const item = document.createElement('div');
+        item.className = 'swi';
+        item.dataset.i = i;
+        item.innerHTML = `<label class="sw" title="Click to change"><input type="color" aria-label="Color ${i + 1}"></label>` +
           (canRemove ? `<button class="x" type="button" aria-label="Remove color ${i + 1}" title="Remove">×</button>` : '');
-        list.appendChild(row);
+        list.appendChild(item);
       });
+      const add = document.createElement('div');
+      add.className = 'swi add';
+      add.innerHTML = `<button type="button" id="addBtn" aria-label="Add color" title="Add color"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 4v12M4 10h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>`;
+      list.appendChild(add);
     }
-    [...list.children].forEach((row, i) => {
+    list.querySelectorAll('.swi:not(.add)').forEach((item, i) => {
       const c = S.stops[i].c;
-      row.classList.toggle('sel', i === sel);
-      row.querySelector('.sw').style.background = c;
-      const ci = row.querySelector('input[type="color"]'); if (ci.value !== c) ci.value = c;
-      const hx = row.querySelector('.hx');
-      if (document.activeElement !== hx) { hx.value = c.slice(1); hx.removeAttribute('aria-invalid'); }
+      item.classList.toggle('sel', i === sel);
+      item.querySelector('.sw').style.background = c;
+      const ci = item.querySelector('input'); if (ci.value !== c) ci.value = c;
     });
+    $('addBtn').disabled = S.stops.length >= 8;
   }
   const colorList = $('colorList');
   colorList.addEventListener('click', e => {
-    const row = e.target.closest('.crow'); if (!row) return;
-    const i = +row.dataset.i;
-    if (e.target.closest('.x')) { removeStop(i); return; }
+    if (e.target.closest('#addBtn')) { addStop(); return; }
+    const item = e.target.closest('.swi'); if (!item || item.classList.contains('add')) return;
+    const i = +item.dataset.i;
+    if (e.target.closest('.x')) { e.preventDefault(); removeStop(i); return; }
     if (sel !== i) { sel = i; draw(); }
   });
   colorList.addEventListener('focusin', e => {
-    const row = e.target.closest('.crow'); if (!row) return;
-    const i = +row.dataset.i;
-    if (sel !== i && !e.target.closest('.x')) { sel = i; draw(); }
+    const item = e.target.closest('.swi'); if (!item || item.classList.contains('add') || e.target.closest('.x')) return;
+    const i = +item.dataset.i;
+    if (sel !== i) { sel = i; draw(); }
   });
   colorList.addEventListener('input', e => {
-    const row = e.target.closest('.crow'); if (!row) return;
-    const i = +row.dataset.i;
-    if (e.target.type === 'color') { S.stops[i].c = e.target.value.toLowerCase(); draw(); return; }
-    if (e.target.classList.contains('hx')) {
-      const v = normHex(e.target.value);
-      e.target.toggleAttribute('aria-invalid', !v);
-      if (v) { S.stops[i].c = v; draw(); }
-    }
+    const item = e.target.closest('.swi'); if (!item) return;
+    S.stops[+item.dataset.i].c = e.target.value.toLowerCase(); draw();
   });
-  colorList.addEventListener('focusout', e => { if (e.target.classList.contains('hx')) draw(); });
-  $('addBtn').onclick = addStop;
   $('shuffleBtn').onclick = () => {
     // new colors only; positions, spreads and everything else stay put
     const h0 = Math.random() * 360, step = 18 + Math.random() * 40;
@@ -1057,12 +1078,6 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     draw();
   };
   $('baseColor').addEventListener('input', e => { S.base = e.target.value.toLowerCase(); draw(); });
-  $('baseHex').addEventListener('input', e => {
-    const v = normHex(e.target.value);
-    e.target.toggleAttribute('aria-invalid', !v);
-    if (v) { S.base = v; draw(); }
-  });
-  $('baseHex').addEventListener('blur', () => draw());
   $('selPos').addEventListener('input', e => { S.stops[sel].p = +e.target.value; draw(); });
   $('selSize').addEventListener('input', e => { S.stops[sel].s = +e.target.value; draw(); });
   // Mesh works with a single color over the background; line types need two.
@@ -1080,9 +1095,41 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   $('amount').addEventListener('input', e => { S.motion.amount = +e.target.value; draw(); });
   $('blur').addEventListener('input', e => { S.blur = +e.target.value; draw(); });
   $('grain').addEventListener('input', e => { S.grain = +e.target.value; draw(); });
-  const fmt = $('format');
-  Object.entries(FORMATS).forEach(([k, [w, h, label]]) => fmt.add(new Option(`${label} · ${w} × ${h}`, k)));
-  fmt.addEventListener('change', () => { S.format = fmt.value; fit(); draw(); });
+  // Size dropdown: a small listbox menu instead of the browser's native one.
+  const ddBtn = $('sizeDD').querySelector('.dd-btn'), ddMenu = $('sizeDD').querySelector('.dd-menu');
+  Object.entries(FORMATS).forEach(([k, [w, h, label]]) => {
+    const li = document.createElement('li');
+    li.role = 'option'; li.tabIndex = -1; li.dataset.k = k;
+    li.innerHTML = `<svg class="ck" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${label}</span><span class="dim">${w} × ${h}</span>`;
+    ddMenu.appendChild(li);
+  });
+  const ddItems = () => [...ddMenu.querySelectorAll('li')];
+  function openDD() {
+    ddMenu.hidden = false; ddBtn.setAttribute('aria-expanded', 'true');
+    (ddItems().find(li => li.dataset.k === S.format) || ddItems()[0]).focus();
+  }
+  function closeDD(refocus) {
+    if (ddMenu.hidden) return;
+    ddMenu.hidden = true; ddBtn.setAttribute('aria-expanded', 'false');
+    if (refocus) ddBtn.focus();
+  }
+  function chooseSize(k) { S.format = k; fit(); draw(); closeDD(true); }
+  ddBtn.addEventListener('click', () => ddMenu.hidden ? openDD() : closeDD(false));
+  ddBtn.addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); openDD(); } });
+  ddMenu.addEventListener('click', e => { const li = e.target.closest('li'); if (li) chooseSize(li.dataset.k); });
+  ddMenu.addEventListener('keydown', e => {
+    const items = ddItems(), i = items.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') items[(i + 1) % items.length].focus();
+    else if (e.key === 'ArrowUp') items[(i - 1 + items.length) % items.length].focus();
+    else if (e.key === 'Home') items[0].focus();
+    else if (e.key === 'End') items[items.length - 1].focus();
+    else if (e.key === 'Enter' || e.key === ' ') { if (i >= 0) chooseSize(items[i].dataset.k); }
+    else if (e.key === 'Escape') closeDD(true);
+    else if (e.key === 'Tab') { closeDD(false); return; }
+    else return;
+    e.preventDefault(); e.stopPropagation();
+  });
+  document.addEventListener('pointerdown', e => { if (!$('sizeDD').contains(e.target)) closeDD(false); });
 
   // ---------- Randomize ----------
   function randomize() {
