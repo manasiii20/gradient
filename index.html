@@ -152,9 +152,10 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .empty { color: var(--muted); font-size: 12px; padding: 10px 0; }
 
 /* ---------- Panel: one floating card ---------- */
-.panel { min-height: 0; overflow-y: auto; padding: 16px 20px 16px 0; scrollbar-width: none; }
+.panel { min-height: 0; overflow-y: auto; padding: 16px 20px 20px 0; scrollbar-width: none; }
 .panel::-webkit-scrollbar { display: none; }
 .card {
+  min-height: 100%; display: flex; flex-direction: column; box-sizing: border-box;
   background: var(--card); border-radius: 18px;
   box-shadow: 0 0 0 1px var(--card-edge), 0 18px 40px -24px rgba(0,0,0,.22);
 }
@@ -248,7 +249,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .dd-menu li[aria-selected="true"] .ck { visibility: visible; }
 .dd-menu li .dim { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
 
-.acts { padding: 4px 0; border-radius: 0 0 18px 18px; overflow: hidden; }
+.acts { margin-top: auto; padding: 4px 0; border-radius: 0 0 18px 18px; overflow: hidden; }
 .arow {
   display: flex; align-items: center; gap: 12px; width: 100%; height: 38px; padding: 0 20px;
   border: 0; background: none; color: var(--fg); font: 14px var(--sans); text-align: left;
