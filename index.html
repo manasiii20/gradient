@@ -152,14 +152,15 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .empty { color: var(--muted); font-size: 12px; padding: 10px 0; }
 
 /* ---------- Panel: one floating card ---------- */
-.panel { min-height: 0; overflow-y: auto; padding: 24px 24px 24px 0; }
+.panel { min-height: 0; overflow-y: auto; padding: 16px 20px 16px 0; scrollbar-width: none; }
+.panel::-webkit-scrollbar { display: none; }
 .card {
   background: var(--card); border-radius: 18px;
   box-shadow: 0 0 0 1px var(--card-edge), 0 18px 40px -24px rgba(0,0,0,.22);
 }
-.grp { padding: 10px 0; border-top: 1px solid var(--card-line); }
+.grp { padding: 6px 0; border-top: 1px solid var(--card-line); }
 .grp:first-child { border-top: 0; }
-.card .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; padding: 0 22px; }
+.card .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; padding: 0 20px; }
 .card .lbl { font-weight: 600; font-size: 14px; }
 .card .dims { justify-content: flex-start; gap: 0; font-variant-numeric: tabular-nums; }
 .card .dims > span { width: 50%; display: flex; gap: 14px; }
@@ -196,8 +197,8 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .card .ib:hover { background: var(--card-hover); }
 .card .ib:disabled { opacity: .3; cursor: default; background: none; }
 
-.card .bar { margin: 6px 31px 18px; height: 22px; border-radius: 6px; }
-.swrow { display: flex; flex-wrap: wrap; gap: 10px; padding: 4px 22px 10px; }
+.card .bar { margin: 4px 29px 16px; height: 20px; border-radius: 6px; }
+.swrow { display: flex; flex-wrap: wrap; gap: 10px; padding: 2px 20px 8px; }
 .swi { position: relative; }
 .sw { position: relative; display: block; width: 34px; height: 34px; border-radius: 9px; overflow: hidden; cursor: pointer;
   box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); transition: box-shadow .15s; }
@@ -222,7 +223,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .sw.base { width: 28px; height: 28px; border-radius: 7px; }
 
 /* segmented type control */
-.card .grp:first-child .row:first-child { padding-top: 8px; padding-bottom: 8px; }
+.card .grp:first-child .row:first-child { padding-top: 8px; padding-bottom: 4px; }
 .card .seg { flex: 1; background: var(--card-sel); border-radius: 10px; padding: 3px; }
 .card .seg button { height: 32px; border-radius: 8px; font-size: 14px; }
 .card .seg button[aria-pressed="true"] { background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 0 0 .5px rgba(0,0,0,.06); }
@@ -247,9 +248,9 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .dd-menu li[aria-selected="true"] .ck { visibility: visible; }
 .dd-menu li .dim { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
 
-.acts { padding: 6px 0; border-radius: 0 0 18px 18px; overflow: hidden; }
+.acts { padding: 4px 0; border-radius: 0 0 18px 18px; overflow: hidden; }
 .arow {
-  display: flex; align-items: center; gap: 14px; width: 100%; height: 44px; padding: 0 22px;
+  display: flex; align-items: center; gap: 12px; width: 100%; height: 38px; padding: 0 20px;
   border: 0; background: none; color: var(--fg); font: 14px var(--sans); text-align: left;
 }
 .arow:hover { background: var(--card-hover); }
@@ -414,6 +415,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 <header class="top">
   <div class="brand"><i id="logo"></i>Gradient</div>
   <div class="top-actions">
+    <button class="btn" id="saveBtn" type="button" title="Save to library (S)"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M6 3.5h8a1 1 0 0 1 1 1V17l-5-3.2L5 17V4.5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Save</button>
     <button class="btn" id="libBtn" type="button" title="Open library (L)">Library <span class="count" id="libCount">0</span></button>
     <div class="hist" role="group" aria-label="History">
       <button class="btn icon" id="undoBtn" type="button" aria-label="Undo" title="Undo (Ctrl+Z / ⌘Z)" disabled>
@@ -465,6 +467,30 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
       </div>
 
       <div class="grp">
+        <div class="row">
+          <span class="lbl">Colors</span>
+          <span class="icons">
+            <button class="ib" id="reverseBtn" type="button" title="Reverse order" aria-label="Reverse color order"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M5 7h11M13 4l3 3-3 3M15 13H4M7 10l-3 3 3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="ib" id="shuffleBtn" type="button" title="New colors" aria-label="Pick new colors"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M16 10a6 6 0 1 1-1.8-4.3M16 3.5v3.2h-3.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </span>
+        </div>
+        <div class="bar" id="bar" title="Click to add a color"></div>
+        <div class="swrow" id="colorList"></div>
+        <div class="row slide" id="posField">
+          <label for="selPos">Position</label>
+          <input type="range" id="selPos" min="0" max="100" step="1"><output id="posOut" hidden></output>
+        </div>
+        <div class="row slide" id="sizeField">
+          <label for="selSize">Spread</label>
+          <input type="range" id="selSize" min="15" max="120" step="1"><output id="sizeOut" hidden></output>
+        </div>
+        <div class="row" id="baseRow">
+          <span class="rl">Background</span>
+          <label class="sw base"><input type="color" id="baseColor" aria-label="Background color"></label>
+        </div>
+      </div>
+
+      <div class="grp">
         <div class="row slide" id="angleField">
           <label for="angle">Angle</label>
           <input type="range" id="angle" min="0" max="360" step="1"><output id="angleOut" hidden></output>
@@ -496,32 +522,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
         </div>
       </div>
 
-      <div class="grp">
-        <div class="row">
-          <span class="lbl">Colors</span>
-          <span class="icons">
-            <button class="ib" id="reverseBtn" type="button" title="Reverse order" aria-label="Reverse color order"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M5 7h11M13 4l3 3-3 3M15 13H4M7 10l-3 3 3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-            <button class="ib" id="shuffleBtn" type="button" title="New colors" aria-label="Pick new colors"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M16 10a6 6 0 1 1-1.8-4.3M16 3.5v3.2h-3.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          </span>
-        </div>
-        <div class="bar" id="bar" title="Click to add a color"></div>
-        <div class="swrow" id="colorList"></div>
-        <div class="row slide" id="posField">
-          <label for="selPos">Position</label>
-          <input type="range" id="selPos" min="0" max="100" step="1"><output id="posOut" hidden></output>
-        </div>
-        <div class="row slide" id="sizeField">
-          <label for="selSize">Spread</label>
-          <input type="range" id="selSize" min="15" max="120" step="1"><output id="sizeOut" hidden></output>
-        </div>
-        <div class="row" id="baseRow">
-          <span class="rl">Background</span>
-          <label class="sw base"><input type="color" id="baseColor" aria-label="Background color"></label>
-        </div>
-      </div>
-
       <div class="grp acts">
-        <button class="arow" id="saveBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M6 3.5h8a1 1 0 0 1 1 1V17l-5-3.2L5 17V4.5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Save to library<kbd>S</kbd></button>
         <button class="arow" id="copyBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M7 6l-4 4 4 4M13 6l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Copy CSS</button>
         <button class="arow" id="pngBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 3.5v9M6 9l4 4 4-4M4 16.5h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Download PNG</button>
         <button class="arow" id="mp4Btn" type="button" hidden><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="3" y="4.5" width="14" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8.5 8v4l3.5-2z" fill="currentColor"/></svg>Download MP4</button>
