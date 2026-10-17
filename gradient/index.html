@@ -278,6 +278,8 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   height: 26px; padding: 0 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg);
   font: 500 11px var(--sans); letter-spacing: 0; text-transform: none; color: var(--fg);
 }
+.sleeve.fresh { animation: fresh 1.4s ease-out; }
+@keyframes fresh { 0% { box-shadow: inset 0 0 0 2px var(--focus); } 100% { box-shadow: inset 0 0 0 2px transparent; } }
 .sleeve .acts button.danger.armed { background: #d64545; border-color: #d64545; color: #fff; }
 @media (hover: none) { .sleeve .acts { opacity: 1; transform: translate(-50%, 0); } }
 .libempty { max-width: 420px; margin: 18vh auto 0; text-align: center; color: var(--muted); }
@@ -1323,7 +1325,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
         <div class="acts">
           <button type="button" data-act="open">Open</button>
           <button type="button" data-act="rename">Rename</button>
-          <button type="button" data-act="shuffle" title="New random name">New name</button>
+          <button type="button" data-act="dup" title="Make a copy to build on">Duplicate</button>
           <button type="button" class="danger" data-act="del">Delete</button>
         </div>`;
       grid.appendChild(card);
@@ -1385,10 +1387,17 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
           const sel2 = getSelection(); sel2.removeAllRanges(); sel2.addRange(r);
           return;
         }
-        if (act && act.dataset.act === 'shuffle') {
-          entry.name = funName(st, library.filter(x => x !== entry).map(x => x.name));
-          nm.textContent = entry.name; persistLib();
-          card.setAttribute('aria-label', `Open ${entry.name}`);
+        if (act && act.dataset.act === 'dup') {
+          const names = library.map(x => x.name);
+          const base = entry.name.replace(/ copy( \d+)?$/, '');
+          let name = `${base} copy`, n = 2;
+          while (names.includes(name)) name = `${base} copy ${n++}`;
+          const copy = { id: Date.now(), savedAt: Date.now(), name, state: JSON.parse(JSON.stringify(st)) };
+          library.unshift(copy);
+          persistLib(); libCount(); renderLibView();
+          const first = $('libGrid').firstElementChild;
+          if (first) { first.classList.add('fresh'); first.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); first.focus({ preventScroll: true }); }
+          toast(`Duplicated as “${name}”`);
           return;
         }
         if (act && act.dataset.act === 'del') {
