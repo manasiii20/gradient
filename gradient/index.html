@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Mix It Up</title>
+<title>Gradient</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -194,6 +194,18 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 
 .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .actions .btn { justify-content: center; }
+.actions .wide { grid-column: 1 / -1; }
+.switch { position: relative; display: inline-block; width: 38px; height: 22px; text-transform: none; letter-spacing: 0; cursor: pointer; }
+.switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--line); transition: background .2s; pointer-events: none; }
+.switch span::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .2s; }
+.switch input:checked + span { background: var(--fg); }
+.switch input:checked + span::after { transform: translateX(16px); }
+.switch input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 2px; }
+.sheet video { width: 100%; max-height: 52vh; border-radius: 8px; background: #000; }
+.progress { display: grid; gap: 8px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pbar { height: 6px; border-radius: 3px; background: var(--chip); overflow: hidden; }
+.pbar i { display: block; height: 100%; width: 0; background: var(--fg); transition: width .15s; }
 
 /* ---------- Export overlay & toast ---------- */
 .overlay {
@@ -227,7 +239,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 <body>
 
 <header class="top">
-  <div class="brand"><i id="logo"></i>Mix It Up</div>
+  <div class="brand"><i id="logo"></i>Gradient</div>
   <div class="top-actions">
     <button class="btn icon" id="themeBtn" type="button" aria-label="Switch to light mode" title="Switch to light mode">
       <svg class="sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></g></svg>
@@ -306,12 +318,28 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     </section>
 
     <section class="sec">
+      <h2>Motion
+        <label class="switch" title="Animate the gradient">
+          <input type="checkbox" id="motionOn" aria-label="Animate the gradient"><span aria-hidden="true"></span>
+        </label>
+      </h2>
+      <div class="field" id="speedField">
+        <label for="speed">Loop</label><input type="range" id="speed" min="3" max="20" step="1"><output id="speedOut"></output>
+      </div>
+      <div class="field" id="amountField">
+        <label for="amount">Movement</label><input type="range" id="amount" min="5" max="100" step="1"><output id="amountOut"></output>
+      </div>
+      <p class="note" id="motionNote"></p>
+    </section>
+
+    <section class="sec">
       <h2>Export</h2>
       <div class="actions">
         <button class="btn" id="copyBtn" type="button">Copy CSS</button>
         <button class="btn primary" id="pngBtn" type="button">Export PNG</button>
+        <button class="btn primary wide" id="mp4Btn" type="button" hidden>Export MP4</button>
       </div>
-      <p class="note" id="cssNote" hidden>Copied CSS leaves out grain and blur above 100%. The PNG has everything.</p>
+      <p class="note" id="cssNote" hidden></p>
     </section>
   </aside>
 </main>
@@ -320,7 +348,12 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="exTitle">
     <h2 id="exTitle">PNG</h2>
     <img id="exImg" alt="Exported gradient">
-    <p class="note">If the download doesn't start, right-click the image (or long-press on a phone) and choose Save Image.</p>
+    <video id="exVid" loop muted playsinline controls hidden></video>
+    <div class="progress" id="exProgress" hidden>
+      <div class="pbar"><i id="pFill"></i></div>
+      <span id="pText">Rendering…</span>
+    </div>
+    <p class="note" id="exNote"></p>
     <div class="sheet-actions">
       <button class="btn" id="closeEx" type="button">Close</button>
       <button class="btn primary" id="dlBtn" type="button">Download PNG</button>
@@ -329,6 +362,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/build/mp4-muxer.js"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
@@ -366,6 +400,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   const fromPreset = p => ({
     mode: p.mode, angle: p.angle, cx: p.cx, cy: p.cy, base: p.base, grain: p.grain,
     format: S ? S.format : '16:9', blur: 100,
+    motion: S ? { ...S.motion } : { on: false, speed: 8, amount: 50 },
     stops: p.stops.map(([c, pos, x, y, s]) => ({ c, p: pos, x, y, s })),
   });
 
@@ -380,6 +415,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     if (!['linear', 'radial', 'mesh'].includes(st.mode)) st.mode = 'linear';
     if (typeof st.blur !== 'number') st.blur = 100;
     if (!FORMATS[st.format]) st.format = '16:9';
+    if (!st.motion) st.motion = { on: false, speed: 8, amount: 50 };
     return st;
   };
   let S = null;
@@ -446,7 +482,30 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   const NOISE = new Int8Array(1 << 21);
   for (let i = 0; i < NOISE.length; i++) NOISE[i] = (Math.random() * 255 - 127.5) | 0;
 
-  function paint(ctx, w, h, st) {
+  // Motion: every parameter moves on whole-number sine cycles of t (0..1), so the loop is seamless.
+  function animated(st, t) {
+    const m = st.motion;
+    if (!m || !m.on) return st;
+    const a = m.amount / 100, ph = t * Math.PI * 2;
+    const o = {
+      ...st,
+      stops: st.stops.map((s, i) => {
+        const f = i * 2.39996;
+        return {
+          ...s,
+          x: s.x + a * 14 * Math.sin(ph + f),
+          y: s.y + a * 10 * Math.sin(2 * ph + f * 1.3),
+          s: s.s * (1 + a * 0.12 * Math.sin(ph + f * 0.7)),
+          p: clamp(s.p + a * 8 * Math.sin(ph + f), 0, 100),
+        };
+      }),
+    };
+    if (st.mode === 'linear') o.angle = st.angle + a * 40 * Math.sin(ph);
+    if (st.mode === 'radial') { o.cx = st.cx + a * 15 * Math.cos(ph); o.cy = st.cy + a * 12 * Math.sin(ph); }
+    return o;
+  }
+
+  function paint(ctx, w, h, st, frame = 0) {
     ctx.clearRect(0, 0, w, h);
     const gb = Math.max(0, st.blur - 100) / 100 * 0.08 * Math.min(w, h);
     if (gb > 0.5 && 'filter' in ctx) {
@@ -459,7 +518,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     } else {
       shape(ctx, w, h, st, 0);
     }
-    addGrain(ctx, w, h, st);
+    addGrain(ctx, w, h, st, frame);
   }
   function shape(ctx, w, h, st, m) {
     if (st.mode === 'mesh') {
@@ -489,10 +548,10 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
       ctx.fillStyle = g; ctx.fillRect(-m, -m, w + 2 * m, h + 2 * m);
     }
   }
-  function addGrain(ctx, w, h, st) {
+  function addGrain(ctx, w, h, st, frame = 0) {
     if (st.grain > 0) {
       const img = ctx.getImageData(0, 0, w, h), a = img.data, k = st.grain / 100, n = NOISE.length;
-      for (let i = 0, j = 0; i < a.length; i += 4, j++) {
+      for (let i = 0, j = frame * 7919; i < a.length; i += 4, j++) {
         const v = NOISE[j % n] * k;
         a[i] += v; a[i + 1] += v; a[i + 2] += v;
       }
@@ -522,11 +581,27 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     queued = true;
     requestAnimationFrame(() => {
       queued = false;
-      paint(ctx, cv.width, cv.height, S);
+      render();
       syncUI();
       store.set('gb-current', S);
+      ensureLoop();
     });
   }
+
+  let anim = 0, encoding = false;
+  function render(now = performance.now()) {
+    const on = S.motion.on;
+    const t = on ? (now / 1000 / S.motion.speed) % 1 : 0;
+    paint(ctx, cv.width, cv.height, animated(S, t), on ? Math.floor(now / 40) : 0);
+  }
+  function loop(now) {
+    anim = 0;
+    if (!S.motion.on || document.hidden || encoding) return;
+    render(now);
+    anim = requestAnimationFrame(loop);
+  }
+  function ensureLoop() { if (S.motion.on && !anim) anim = requestAnimationFrame(loop); }
+  document.addEventListener('visibilitychange', ensureLoop);
 
   // ---------- UI sync ----------
   const modeBtns = [...document.querySelectorAll('#modes button')];
@@ -598,10 +673,23 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     $('format').value = S.format;
 
     // output
-    $('cssNote').hidden = !(S.grain || S.blur > 100);
+    const mo = S.motion;
+    $('motionOn').checked = mo.on;
+    $('speedField').hidden = $('amountField').hidden = !mo.on;
+    $('speed').value = mo.speed; $('speedOut').textContent = mo.speed + 's';
+    $('amount').value = mo.amount; $('amountOut').textContent = mo.amount + '%';
+    $('motionNote').textContent = mo.on
+      ? 'Loop is how long one full cycle takes. The MP4 is one seamless loop.'
+      : 'Turn on to make the gradient drift, then export it as an MP4.';
+    $('mp4Btn').hidden = !mo.on;
+    const notes = [];
+    if (S.grain || S.blur > 100) notes.push('Copied CSS leaves out grain and blur above 100%.');
+    if (mo.on) notes.push('Copied CSS and the PNG are a still frame.');
+    $('cssNote').textContent = notes.join(' ');
+    $('cssNote').hidden = !notes.length;
     const [W, H, label] = FORMATS[S.format];
     const modeLabel = { linear: `Linear ${S.angle}°`, radial: 'Radial', mesh: 'Mesh' }[S.mode];
-    $('meta').textContent = `${W} × ${H} px · ${label} · ${modeLabel} · ${S.stops.length} colors`;
+    $('meta').textContent = `${W} × ${H} px · ${label} · ${modeLabel} · ${S.stops.length} colors${mo.on ? ` · ${mo.speed}s loop` : ''}`;
     $('logo').style.setProperty('--logo', gradient(S, false));
 
     renderHandles();
@@ -759,6 +847,9 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   $('removeBtn').onclick = () => removeStop(sel);
   $('reverseBtn').onclick = () => { S.stops.forEach(s => s.p = r1(100 - s.p)); draw(); };
   $('angle').addEventListener('input', e => { S.angle = +e.target.value; draw(); });
+  $('motionOn').addEventListener('change', e => { S.motion.on = e.target.checked; draw(); });
+  $('speed').addEventListener('input', e => { S.motion.speed = +e.target.value; draw(); });
+  $('amount').addEventListener('input', e => { S.motion.amount = +e.target.value; draw(); });
   $('blur').addEventListener('input', e => { S.blur = +e.target.value; draw(); });
   $('grain').addEventListener('input', e => { S.grain = +e.target.value; draw(); });
   const fmt = $('format');
@@ -860,7 +951,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     else fallback();
   };
 
-  let blobUrl = null, fileName = 'mix-it-up.png', lastFocus = null;
+  let blobUrl = null, fileName = 'gradient.png', lastFocus = null;
   $('pngBtn').onclick = () => {
     const [W, H] = FORMATS[S.format];
     const c = document.createElement('canvas'); c.width = W; c.height = H;
@@ -868,11 +959,10 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     c.toBlob(b => {
       if (blobUrl) URL.revokeObjectURL(blobUrl);
       blobUrl = URL.createObjectURL(b);
-      fileName = `mix-it-up-${S.mode}-${W}x${H}.png`;
+      fileName = `gradient-${S.mode}-${W}x${H}.png`;
+      openSheet('image', fileName);
       $('exImg').src = blobUrl;
-      $('exTitle').textContent = `${fileName}`;
-      lastFocus = document.activeElement;
-      $('overlay').hidden = false;
+      $('dlBtn').hidden = false;
       $('dlBtn').focus();
     }, 'image/png');
   };
@@ -881,9 +971,130 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     a.href = blobUrl; a.download = fileName;
     document.body.appendChild(a); a.click(); a.remove();
   };
-  function closeExport() { $('overlay').hidden = true; lastFocus && lastFocus.focus(); }
+  function openSheet(kind, title) {
+    if ($('overlay').hidden) lastFocus = document.activeElement;
+    $('exTitle').textContent = title;
+    $('exImg').hidden = kind !== 'image';
+    $('exVid').hidden = kind !== 'video';
+    $('exProgress').hidden = kind !== 'progress';
+    $('dlBtn').hidden = kind === 'progress';
+    $('dlBtn').textContent = kind === 'video' ? 'Download video' : 'Download PNG';
+    $('closeEx').textContent = kind === 'progress' ? 'Cancel' : 'Close';
+    $('exNote').textContent = kind === 'progress' ? 'Rendering every frame at full size. Bigger sizes and grain take longer.'
+      : kind === 'video' ? "If the download doesn't start, right-click the video and choose Save Video As."
+      : "If the download doesn't start, right-click the image (or long-press on a phone) and choose Save Image.";
+    $('overlay').hidden = false;
+  }
+  function progress(i, total) {
+    $('pFill').style.width = (i / total * 100) + '%';
+    $('pText').textContent = `Rendering frame ${i} of ${total}`;
+  }
+  const tick = () => new Promise(r => setTimeout(r, 0));
+
+  let cancelEnc = false;
+  $('mp4Btn').onclick = async () => {
+    if (encoding) return;
+    const [W, H] = FORMATS[S.format];
+    const fps = 30, total = Math.round(fps * S.motion.speed);
+    const snap = JSON.parse(JSON.stringify(S));
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const cx = c.getContext('2d', { willReadFrequently: true });
+    const drawFrame = i => paint(cx, W, H, animated(snap, i / total), i);
+    const bitrate = Math.round(W * H * fps * 0.2);
+    encoding = true; cancelEnc = false;
+    openSheet('progress', 'Making your video'); progress(0, total);
+    $('exVid').pause();
+    try {
+      let out = null;
+      if (window.VideoEncoder && window.VideoFrame && window.Mp4Muxer) out = await encodeMp4(c, drawFrame, W, H, fps, total, bitrate);
+      if (!out && !cancelEnc) out = await recordVideo(c, drawFrame, fps, total, bitrate);
+      if (!out) { encoding = false; ensureLoop(); return; }
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+      blobUrl = URL.createObjectURL(out.blob);
+      fileName = `gradient-${snap.mode}-${W}x${H}-${snap.motion.speed}s.${out.ext}`;
+      openSheet('video', fileName);
+      if (out.ext !== 'mp4') $('exNote').textContent = "This browser can't make MP4 files, so this is a WebM video. Chrome, Edge and Safari can export MP4.";
+      else if (out.codec && out.codec !== 'avc') $('exNote').textContent = "This browser has no H.264 encoder, so the MP4 uses VP9/AV1. Browsers play it, but some apps (like QuickTime) may not. Chrome, Edge or Safari give a standard H.264 MP4.";
+      else if (out.realtime) $('exNote').textContent = "Recorded in real time, so the length can run a little long if your computer is busy.";
+      $('exVid').src = blobUrl; $('exVid').play().catch(() => {});
+      $('dlBtn').focus();
+    } catch (err) {
+      openSheet('image', 'Video export failed');
+      $('exImg').hidden = true; $('dlBtn').hidden = true;
+      $('exNote').textContent = `The video couldn't be made in this browser (${err && err.message ? err.message : err}). Try a smaller size, or Chrome.`;
+    }
+    encoding = false; ensureLoop();
+  };
+
+  // Frame-by-frame H.264 encoding: exact timing and a perfect loop, faster than real time.
+  async function encodeMp4(c, drawFrame, W, H, fps, total, bitrate) {
+    // H.264 first (plays everywhere); VP9 / AV1 in MP4 if the browser has no H.264 encoder.
+    const CODECS = [
+      ['avc1.640033', 'avc'], ['avc1.4d0033', 'avc'], ['avc1.42e033', 'avc'], ['avc1.640028', 'avc'],
+      ['vp09.00.51.08', 'vp9'], ['vp09.00.41.08', 'vp9'], ['av01.0.12M.08', 'av1'], ['av01.0.08M.08', 'av1'],
+    ];
+    let config = null, muxCodec = null;
+    for (const [codec, mc] of CODECS) {
+      const cfg = { codec, width: W, height: H, bitrate, framerate: fps };
+      try { const r = await VideoEncoder.isConfigSupported(cfg); if (r.supported) { config = cfg; muxCodec = mc; break; } } catch {}
+    }
+    if (!config) return null;
+    const muxer = new Mp4Muxer.Muxer({
+      target: new Mp4Muxer.ArrayBufferTarget(),
+      video: { codec: muxCodec, width: W, height: H, frameRate: fps },
+      fastStart: 'in-memory',
+    });
+    let encErr = null;
+    const enc = new VideoEncoder({ output: (chunk, meta) => muxer.addVideoChunk(chunk, meta), error: e => { encErr = e; } });
+    enc.configure(config);
+    for (let i = 0; i < total; i++) {
+      if (cancelEnc) { try { enc.close(); } catch {} return null; }
+      if (encErr) throw encErr;
+      drawFrame(i);
+      const vf = new VideoFrame(c, { timestamp: Math.round(i * 1e6 / fps), duration: Math.round(1e6 / fps) });
+      enc.encode(vf, { keyFrame: i % (fps * 2) === 0 });
+      vf.close();
+      while (enc.encodeQueueSize > 4) await new Promise(r => setTimeout(r, 4));
+      progress(i + 1, total);
+      await tick();
+    }
+    await enc.flush();
+    if (encErr) throw encErr;
+    muxer.finalize();
+    return { blob: new Blob([muxer.target.buffer], { type: 'video/mp4' }), ext: 'mp4', codec: muxCodec };
+  }
+
+  // Fallback: record the canvas in real time with whatever the browser supports.
+  async function recordVideo(c, drawFrame, fps, total, bitrate) {
+    if (!window.MediaRecorder || !c.captureStream) throw new Error('video recording is not supported');
+    const type = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm']
+      .find(t => MediaRecorder.isTypeSupported(t));
+    if (!type) throw new Error('no supported video format');
+    const rec = new MediaRecorder(c.captureStream(fps), { mimeType: type, videoBitsPerSecond: bitrate });
+    const chunks = [];
+    rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+    const done = new Promise(r => { rec.onstop = r; });
+    drawFrame(0);
+    rec.start();
+    const start = performance.now();
+    for (let i = 0; i < total; i++) {
+      if (cancelEnc) { rec.stop(); await done; return null; }
+      drawFrame(i);
+      progress(i + 1, total);
+      const wait = start + (i + 1) * 1000 / fps - performance.now();
+      await new Promise(r => setTimeout(r, Math.max(0, wait)));
+    }
+    rec.stop(); await done;
+    return { blob: new Blob(chunks, { type }), ext: type.includes('mp4') ? 'mp4' : 'webm', realtime: true };
+  }
+
+  function closeExport() {
+    if (encoding) { cancelEnc = true; }
+    $('exVid').pause();
+    $('overlay').hidden = true; lastFocus && lastFocus.focus();
+  }
   $('closeEx').onclick = closeExport;
-  $('overlay').addEventListener('click', e => { if (e.target.id === 'overlay') closeExport(); });
+  $('overlay').addEventListener('click', e => { if (e.target.id === 'overlay' && !encoding) closeExport(); });
 
   // ---------- Light / dark ----------
   const themeBtn = $('themeBtn');
