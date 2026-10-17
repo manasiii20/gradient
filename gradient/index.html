@@ -226,6 +226,57 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .sheet h2 { margin: 0; font-size: 16px; font-weight: 600; }
 .sheet img { width: 100%; max-height: 52vh; object-fit: contain; border-radius: 8px; background: var(--chip); }
 .sheet-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+/* ---------- Library view ---------- */
+.btn .count {
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--chip);
+  font: 500 11px/20px var(--mono); text-align: center; color: var(--muted);
+}
+.libview {
+  position: fixed; inset: 0; z-index: 25; overflow-y: auto;
+  background: var(--bg);
+  padding-block: calc(env(safe-area-inset-top, 0px) + 20px) calc(env(safe-area-inset-bottom, 0px) + 40px);
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+  animation: libin .28s cubic-bezier(.2,.7,.2,1);
+}
+@keyframes libin { from { opacity: 0; transform: translateY(14px); } }
+.libview-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 0 auto 20px; max-width: 1480px; }
+.libview-title { display: flex; align-items: baseline; gap: 12px; }
+.libview-title h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+.libview-title span { font: 12px var(--mono); color: var(--muted); }
+.libgrid {
+  max-width: 1480px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); gap: 10px;
+}
+.sleeve {
+  position: relative; aspect-ratio: 4 / 3; background: var(--panel); cursor: pointer;
+  color: var(--muted); font: 500 9.5px/1.45 var(--sans); letter-spacing: .09em; text-transform: uppercase;
+  outline-offset: 3px; overflow: hidden;
+}
+.sleeve .tl, .sleeve .tr, .sleeve .bl, .sleeve .br { position: absolute; }
+.sleeve .tl { top: 18px; left: 20px; color: var(--fg); }
+.sleeve .tl small { display: block; margin-top: 10px; font-size: 8px; color: var(--muted); }
+.sleeve .tr { top: 18px; right: 20px; color: var(--fg); }
+.sleeve .bl { bottom: 18px; left: 20px; font-variant-numeric: tabular-nums; }
+.sleeve .br { bottom: 16px; right: 20px; font-weight: 600; letter-spacing: .22em; color: var(--fg); font-size: 9px; }
+.sleeve .art { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); transition: transform .5s cubic-bezier(.2,.7,.2,1); }
+.sleeve .art canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.sleeve .art .glow { filter: blur(26px) saturate(1.15); opacity: .55; transform: scale(1.12); }
+.sleeve:hover .art, .sleeve:focus-visible .art { transform: translate(-50%, -50%) scale(1.04); }
+.sleeve .acts {
+  position: absolute; left: 50%; bottom: 14px; transform: translate(-50%, 6px); display: flex; gap: 6px;
+  opacity: 0; transition: opacity .2s, transform .2s;
+}
+.sleeve:hover .acts, .sleeve:focus-within .acts { opacity: 1; transform: translate(-50%, 0); }
+.sleeve .acts button {
+  height: 26px; padding: 0 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg);
+  font: 500 11px var(--sans); letter-spacing: 0; text-transform: none; color: var(--fg);
+}
+.sleeve .acts button.danger.armed { background: #d64545; border-color: #d64545; color: #fff; }
+@media (hover: none) { .sleeve .acts { opacity: 1; transform: translate(-50%, 0); } }
+.libempty { max-width: 420px; margin: 18vh auto 0; text-align: center; color: var(--muted); }
+.libempty p:first-child { font-size: 18px; color: var(--fg); margin-bottom: 6px; }
+
 .toast {
   position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 40;
   transform: translate(-50%, 20px); opacity: 0;
@@ -249,6 +300,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 <header class="top">
   <div class="brand"><i id="logo"></i>Gradient</div>
   <div class="top-actions">
+    <button class="btn" id="libBtn" type="button" title="Open library (L)">Library <span class="count" id="libCount">0</span></button>
     <div class="hist" role="group" aria-label="History">
       <button class="btn icon" id="undoBtn" type="button" aria-label="Undo" title="Undo (Ctrl+Z / ⌘Z)" disabled>
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 14L4 9l5-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
@@ -349,6 +401,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     <section class="sec">
       <h2>Export</h2>
       <div class="actions">
+        <button class="btn wide" id="saveBtn" type="button">Save to library <kbd>S</kbd></button>
         <button class="btn" id="copyBtn" type="button">Copy CSS</button>
         <button class="btn primary" id="pngBtn" type="button">Export PNG</button>
         <button class="btn primary wide" id="mp4Btn" type="button" hidden>Export MP4</button>
@@ -372,6 +425,20 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
       <button class="btn" id="closeEx" type="button">Close</button>
       <button class="btn primary" id="dlBtn" type="button">Download PNG</button>
     </div>
+  </div>
+</div>
+<div class="libview" id="libView" hidden role="dialog" aria-modal="true" aria-labelledby="libTitle">
+  <header class="libview-head">
+    <div class="libview-title">
+      <h2 id="libTitle">Library</h2>
+      <span id="libSub"></span>
+    </div>
+    <button class="btn" id="libClose" type="button">Close <kbd>Esc</kbd></button>
+  </header>
+  <div class="libgrid" id="libGrid"></div>
+  <div class="libempty" id="libEmpty" hidden>
+    <p>Nothing saved yet.</p>
+    <p>Make something you like, then press <b>Save to library</b> or <kbd>S</kbd>. It will show up here.</p>
   </div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -944,8 +1011,13 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
       if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); redo(); return; }
     }
     if (['input', 'select', 'textarea'].includes(tag) || e.metaKey || e.ctrlKey || e.altKey) return;
-    if (e.key === 'r' || e.key === 'R') { e.preventDefault(); randomize(); }
-    if (e.key === 'Escape' && !$('overlay').hidden) closeExport();
+    if (e.key === 'Escape' && !$('overlay').hidden) { closeExport(); return; }
+    if (e.key === 'Escape' && !$('libView').hidden) { closeLibrary(); return; }
+    const k = e.key.toLowerCase();
+    if (k === 'l') { e.preventDefault(); $('libView').hidden ? openLibrary() : closeLibrary(); return; }
+    if (!$('libView').hidden) return;
+    if (k === 'r') { e.preventDefault(); randomize(); }
+    if (k === 's') { e.preventDefault(); saveToLibrary(); }
   });
 
   // ---------- Library ----------
@@ -1153,6 +1225,113 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   };
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncTheme);
   syncTheme();
+
+  // ---------- Saved library ----------
+  // Entries: { id, savedAt, state }. Older saves were bare states; wrap them on load.
+  let library = store.get('gb-saved', []).map((e, i) => e && e.state
+    ? { ...e, state: migrate(e.state) }
+    : { id: Date.now() - i, savedAt: Date.now(), state: migrate(e) });
+  const persistLib = () => store.set('gb-saved', library);
+  const libCount = () => { $('libCount').textContent = library.length; };
+
+  function saveToLibrary() {
+    library.unshift({ id: Date.now(), savedAt: Date.now(), state: JSON.parse(JSON.stringify(S)) });
+    persistLib(); libCount();
+    toast(`Saved to library · ${library.length} saved`);
+    if (!$('libView').hidden) renderLibView();
+  }
+  $('saveBtn').onclick = saveToLibrary;
+
+  const pad = (n, w = 2) => String(n).padStart(w, '0');
+  const dateStr = t => { const d = new Date(t); return `${pad(d.getMonth() + 1)} — ${pad(d.getDate())} — ${d.getFullYear()}`; };
+  const MODE_NAME = { linear: 'Linear', radial: 'Radial', mesh: 'Mesh' };
+  let libAnims = [];
+
+  function renderLibView() {
+    libAnims.forEach(a => cancelAnimationFrame(a.raf)); libAnims = [];
+    const grid = $('libGrid'); grid.innerHTML = '';
+    $('libEmpty').hidden = library.length > 0;
+    $('libSub').textContent = library.length ? `${library.length} saved` : '';
+    library.forEach((entry, idx) => {
+      const st = entry.state, [W, H, label] = FORMATS[st.format];
+      const num = library.length - idx;
+      const card = document.createElement('div');
+      card.className = 'sleeve'; card.tabIndex = 0; card.setAttribute('role', 'button');
+      card.setAttribute('aria-label', `Open saved gradient ${num}`);
+      card.innerHTML = `
+        <div class="tl">${MODE_NAME[st.mode]}<br>— ${st.stops.length} colors<small>${st.motion.on ? `${st.motion.speed}s loop` : 'Still'}</small></div>
+        <div class="tr">GRD — ${pad(num, 3)}</div>
+        <div class="bl">${dateStr(entry.savedAt)}</div>
+        <div class="br">Gradient</div>
+        <div class="art"><canvas class="glow"></canvas><canvas class="main"></canvas></div>
+        <div class="acts"><button type="button" data-act="open">Open</button><button type="button" class="danger" data-act="del">Delete</button></div>`;
+      grid.appendChild(card);
+
+      // size the artwork to the gradient's own proportions, inside the sleeve
+      const art = card.querySelector('.art');
+      const box = card.getBoundingClientRect();
+      const sc = Math.min(box.width * 0.5 / W, box.height * 0.52 / H);
+      const aw = Math.round(W * sc), ah = Math.round(H * sc);
+      art.style.width = aw + 'px'; art.style.height = ah + 'px';
+      const dpr = Math.min(2, devicePixelRatio || 1);
+      const main = card.querySelector('.main'), glow = card.querySelector('.glow');
+      main.width = Math.round(aw * dpr); main.height = Math.round(ah * dpr);
+      glow.width = Math.max(1, Math.round(aw / 4)); glow.height = Math.max(1, Math.round(ah / 4));
+      const mctx = main.getContext('2d', { willReadFrequently: true });
+      const drawAt = t => {
+        // grain is per pixel, so thin it out on these small previews to keep it looking fine
+        paint(mctx, main.width, main.height, { ...animated(st, t), grain: st.grain * 0.45 });
+        const g = glow.getContext('2d'); g.clearRect(0, 0, glow.width, glow.height); g.drawImage(main, 0, 0, glow.width, glow.height);
+      };
+      drawAt(0);
+
+      // saved motion plays while you hover
+      const anim = { raf: 0 };
+      libAnims.push(anim);
+      if (st.motion.on) {
+        const t0 = { v: 0 };
+        const step = now => { if (!t0.v) t0.v = now; drawAt(((now - t0.v) / 1000 / st.motion.speed) % 1); anim.raf = requestAnimationFrame(step); };
+        card.addEventListener('mouseenter', () => { t0.v = 0; anim.raf = requestAnimationFrame(step); });
+        card.addEventListener('mouseleave', () => { cancelAnimationFrame(anim.raf); drawAt(0); });
+      }
+
+      const open = () => {
+        S = migrate(JSON.parse(JSON.stringify(st)));
+        sel = 0; fit(); draw(); closeLibrary();
+        toast(`Opened GRD — ${pad(num, 3)}`);
+      };
+      const del = card.querySelector('[data-act="del"]');
+      card.addEventListener('click', e => {
+        const act = e.target.closest('[data-act]');
+        if (act && act.dataset.act === 'del') {
+          if (!del.classList.contains('armed')) { del.classList.add('armed'); del.textContent = 'Delete for good?'; return; }
+          library = library.filter(x => x !== entry); persistLib(); libCount(); renderLibView(); toast('Deleted');
+          return;
+        }
+        open();
+      });
+      card.addEventListener('mouseleave', () => { del.classList.remove('armed'); del.textContent = 'Delete'; });
+      card.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === card) { e.preventDefault(); open(); } });
+    });
+  }
+  let libReturn = null;
+  function openLibrary() {
+    libReturn = document.activeElement;
+    $('libView').hidden = false;
+    document.body.style.overflow = 'hidden';
+    renderLibView();
+    $('libClose').focus();
+  }
+  function closeLibrary() {
+    libAnims.forEach(a => cancelAnimationFrame(a.raf)); libAnims = [];
+    $('libView').hidden = true;
+    document.body.style.overflow = '';
+    libReturn && libReturn.focus && libReturn.focus();
+  }
+  $('libBtn').onclick = openLibrary;
+  $('libClose').onclick = closeLibrary;
+  addEventListener('resize', () => { if (!$('libView').hidden) renderLibView(); });
+  libCount();
 
   // ---------- Boot ----------
   new ResizeObserver(() => { fit(); draw(); }).observe(stage);
