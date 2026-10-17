@@ -64,7 +64,7 @@ button { cursor: pointer; }
 /* ---------- Top bar ---------- */
 .top {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding-block: 7px;
+  padding-block: 9px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   border-bottom: 1px solid var(--line);
@@ -75,14 +75,14 @@ button { cursor: pointer; }
 
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
-  height: 30px; padding: 0 12px; font-size: 13px;
+  height: 32px; padding: 0 12px; font-size: 13px;
   border-radius: 8px; border: 1px solid var(--line);
   background: var(--panel); font-weight: 500; white-space: nowrap;
 }
 .btn:hover { border-color: var(--muted); }
 .btn.primary { background: var(--fg); color: var(--on-fg); border-color: var(--fg); }
 .btn.primary:hover { opacity: .88; }
-.btn.icon { width: 30px; padding: 0; justify-content: center; }
+.btn.icon { width: 32px; padding: 0; justify-content: center; }
 .btn.icon .moon { display: none; }
 .btn:disabled { opacity: .4; cursor: default; }
 .btn:disabled:hover { border-color: var(--line); }
@@ -393,6 +393,14 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 @keyframes fresh { 0% { box-shadow: inset 0 0 0 2px var(--focus); } 100% { box-shadow: inset 0 0 0 2px transparent; } }
 .sleeve .acts button.danger.armed { background: #d64545; border-color: #d64545; color: #fff; }
 @media (hover: none) { .sleeve .acts { opacity: 1; transform: translate(-50%, 0); } }
+.sleeve.savecard { border: 0; padding: 0; text-align: left; box-shadow: inset 0 0 0 1.5px var(--card-line-strong); }
+.sleeve.savecard .tr { color: var(--muted); }
+.savepill {
+  position: absolute; left: 50%; bottom: 46px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 6px;
+  height: 28px; padding: 0 13px; border-radius: 999px; background: var(--fg); color: var(--on-fg);
+  font: 500 12px var(--sans); letter-spacing: 0; text-transform: none;
+}
+.sleeve.savecard:hover .savepill { transform: translateX(-50%) translateY(-1px); }
 .libempty { max-width: 420px; margin: 18vh auto 0; text-align: center; color: var(--muted); }
 .libempty p:first-child { font-size: 18px; color: var(--fg); margin-bottom: 6px; }
 
@@ -419,8 +427,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 <header class="top">
   <div class="brand"><i id="logo"></i>Gradient</div>
   <div class="top-actions">
-    <button class="btn" id="saveBtn" type="button" title="Save to library (S)"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M6 3.5h8a1 1 0 0 1 1 1V17l-5-3.2L5 17V4.5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Save</button>
-    <button class="btn" id="libBtn" type="button" title="Open library (L)">Library <span class="count" id="libCount">0</span></button>
+    <button class="btn" id="libBtn" type="button" title="Library (L) · save with S">Library <span class="count" id="libCount">0</span></button>
     <div class="hist" role="group" aria-label="History">
       <button class="btn icon" id="undoBtn" type="button" aria-label="Undo" title="Undo (Ctrl+Z / ⌘Z)" disabled>
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 14L4 9l5-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
@@ -1460,9 +1467,12 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     library.unshift({ id: Date.now(), savedAt: Date.now(), name, state: JSON.parse(JSON.stringify(S)) });
     persistLib(); libCount();
     toast(`Saved as “${name}”`);
-    if (!$('libView').hidden) renderLibView();
+    if (!$('libView').hidden) {
+      renderLibView();
+      const fresh = $('libGrid').children[1];
+      if (fresh) fresh.classList.add('fresh');
+    }
   }
-  $('saveBtn').onclick = saveToLibrary;
 
   const pad = (n, w = 2) => String(n).padStart(w, '0');
   const dateStr = t => { const d = new Date(t); return `${pad(d.getMonth() + 1)} — ${pad(d.getDate())} — ${d.getFullYear()}`; };
@@ -1472,7 +1482,31 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   function renderLibView() {
     libAnims.forEach(a => cancelAnimationFrame(a.raf)); libAnims = [];
     const grid = $('libGrid'); grid.innerHTML = '';
-    $('libEmpty').hidden = library.length > 0;
+    $('libEmpty').hidden = true;
+
+    // First card: save what's in the editor right now
+    {
+      const [W, H] = FORMATS[S.format];
+      const card = document.createElement('button');
+      card.type = 'button'; card.className = 'sleeve savecard';
+      card.setAttribute('aria-label', 'Save the current gradient to the library');
+      card.innerHTML = `
+        <div class="tl"><span class="nm">Save this gradient</span><br>— ${MODE_NAME[S.mode]} · ${S.stops.length} colors<small>${S.motion.on ? `${S.motion.speed}s loop` : 'Still'} · press S anytime</small></div>
+        <div class="tr">New</div>
+        <div class="bl">${dateStr(Date.now())}</div>
+        <div class="br">Gradient</div>
+        <div class="art"><canvas class="main"></canvas></div>
+        <span class="savepill"><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M10 4v12M4 10h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Save</span>`;
+      grid.appendChild(card);
+      const box = card.getBoundingClientRect();
+      const sc = Math.min(box.width * 0.5 / W, box.height * 0.52 / H);
+      const art = card.querySelector('.art'), cv2 = card.querySelector('canvas');
+      const aw = Math.round(W * sc), ah = Math.round(H * sc), dpr = Math.min(2, devicePixelRatio || 1);
+      art.style.width = aw + 'px'; art.style.height = ah + 'px';
+      cv2.width = Math.round(aw * dpr); cv2.height = Math.round(ah * dpr);
+      paint(cv2.getContext('2d', { willReadFrequently: true }), cv2.width, cv2.height, { ...S, grain: S.grain * 0.45 });
+      card.addEventListener('click', saveToLibrary);
+    }
     $('libSub').textContent = library.length ? `${library.length} saved` : '';
     library.forEach((entry, idx) => {
       const st = entry.state, [W, H, label] = FORMATS[st.format];
