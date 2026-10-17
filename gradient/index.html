@@ -23,18 +23,21 @@
   --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --r: 10px;
   --frame-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 20px 50px -28px rgba(0,0,0,.28);
+  --art-shadow: 0 0 0 .5px rgba(0,0,0,.06), 0 10px 24px -14px rgba(0,0,0,.28);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #111110; --panel: #191918; --line: #2c2c2a; --fg: #ecebe7; --muted: #99988f;
     --chip: #242422; --focus: #7c9fff; --on-fg: #141413;
-    --frame-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 24px 60px -28px rgba(0,0,0,.45); color-scheme: dark;
+    --frame-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 24px 60px -28px rgba(0,0,0,.45);
+    --art-shadow: 0 0 0 .5px rgba(255,255,255,.08), 0 12px 28px -14px rgba(0,0,0,.7); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #111110; --panel: #191918; --line: #2c2c2a; --fg: #ecebe7; --muted: #99988f;
   --chip: #242422; --focus: #7c9fff; --on-fg: #141413;
-    --frame-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 24px 60px -28px rgba(0,0,0,.45); color-scheme: dark;
+    --frame-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 24px 60px -28px rgba(0,0,0,.45);
+    --art-shadow: 0 0 0 .5px rgba(255,255,255,.08), 0 12px 28px -14px rgba(0,0,0,.7); color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -256,15 +259,18 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .sleeve .tl, .sleeve .tr, .sleeve .bl, .sleeve .br { position: absolute; }
 .sleeve .tl { top: 18px; left: 20px; color: var(--fg); }
 .sleeve .tl small { display: block; margin-top: 10px; font-size: 8px; color: var(--muted); }
+.sleeve .tl .nm { font-size: 11px; letter-spacing: .1em; }
+.sleeve .tl .nm[contenteditable="true"] { outline: 1px solid var(--focus); outline-offset: 3px; border-radius: 2px; cursor: text; text-transform: none; letter-spacing: .02em; }
 .sleeve .tr { top: 18px; right: 20px; color: var(--fg); }
 .sleeve .bl { bottom: 18px; left: 20px; font-variant-numeric: tabular-nums; }
 .sleeve .br { bottom: 16px; right: 20px; font-weight: 600; letter-spacing: .22em; color: var(--fg); font-size: 9px; }
 .sleeve .art { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); transition: transform .5s cubic-bezier(.2,.7,.2,1); }
 .sleeve .art canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.sleeve .art .glow { filter: blur(26px) saturate(1.15); opacity: .55; transform: scale(1.12); }
+.sleeve .art { box-shadow: var(--art-shadow); border-radius: 2px; }
+.sleeve .art canvas { border-radius: 2px; }
 .sleeve:hover .art, .sleeve:focus-visible .art { transform: translate(-50%, -50%) scale(1.04); }
 .sleeve .acts {
-  position: absolute; left: 50%; bottom: 14px; transform: translate(-50%, 6px); display: flex; gap: 6px;
+  position: absolute; left: 50%; bottom: 46px; transform: translate(-50%, 6px); display: flex; gap: 6px; white-space: nowrap;
   opacity: 0; transition: opacity .2s, transform .2s;
 }
 .sleeve:hover .acts, .sleeve:focus-within .acts { opacity: 1; transform: translate(-50%, 0); }
@@ -1226,18 +1232,68 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncTheme);
   syncTheme();
 
+  // ---------- Fun names ----------
+  // A color word picked from the gradient's main hue, plus a mood word. Sometimes a single word.
+  const HUE_WORDS = {
+    red: ['Cherry', 'Ruby', 'Ember', 'Poppy', 'Scarlet', 'Cinnabar'],
+    orange: ['Peach', 'Apricot', 'Tangerine', 'Marmalade', 'Copper', 'Papaya'],
+    yellow: ['Honey', 'Butter', 'Citrus', 'Lemon', 'Saffron', 'Goldie'],
+    green: ['Moss', 'Mint', 'Fern', 'Pistachio', 'Lime', 'Matcha'],
+    teal: ['Lagoon', 'Seafoam', 'Aqua', 'Jade', 'Reef', 'Pool'],
+    blue: ['Cobalt', 'Glacier', 'Sky', 'Denim', 'Indigo', 'Ocean'],
+    purple: ['Lilac', 'Violet', 'Plum', 'Lavender', 'Grape', 'Velvet'],
+    pink: ['Bubblegum', 'Blush', 'Rose', 'Flamingo', 'Candy', 'Petal'],
+    light: ['Mist', 'Linen', 'Cloud', 'Pearl', 'Milk', 'Haze'],
+    dark: ['Midnight', 'Ink', 'Shadow', 'Night', 'Smoke', 'Onyx'],
+  };
+  const MOOD_WORDS = ['Fizz', 'Drift', 'Hour', 'Bloom', 'Static', 'Lullaby', 'Mirage', 'Daydream', 'Echo', 'Afterglow',
+    'Ripple', 'Reverie', 'Sundae', 'Parade', 'Nectar', 'Tide', 'Hush', 'Rush', 'Disco', 'Soda', 'Swoon', 'Haze',
+    'Pop', 'Spritz', 'Melt', 'Crush', 'Sorbet', 'Dream', 'Wave', 'Glow', 'Club', 'Bliss', 'Jam', 'Fever'];
+  const SOLO_WORDS = ['Halcyon', 'Sherbet', 'Daydream', 'Moonbeam', 'Gelato', 'Nebula', 'Lullaby', 'Mirage',
+    'Starlight', 'Aurora', 'Hologram', 'Nostalgia', 'Kaleidoscope', 'Sundown', 'Cosmo', 'Bonbon'];
+  function hexHsl(h) {
+    const [r, g, b] = toRgb(h).map(v => v / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+    if (!d) return [0, 0, l];
+    const sat = d / (1 - Math.abs(2 * l - 1));
+    let hue = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    return [(hue * 60 + 360) % 360, sat, l];
+  }
+  function hueFamily(st) {
+    let x = 0, y = 0, wsum = 0, lsum = 0;
+    st.stops.forEach(sp => {
+      const [h, sat, l] = hexHsl(sp.c), w = sat * (1 - Math.abs(2 * l - 1)) + 0.02;
+      x += Math.cos(h * Math.PI / 180) * w; y += Math.sin(h * Math.PI / 180) * w; wsum += w; lsum += l;
+    });
+    const avgL = lsum / st.stops.length, strength = Math.hypot(x, y) / wsum;
+    if (strength < 0.25 || wsum / st.stops.length < 0.12) return avgL < 0.35 ? 'dark' : 'light';
+    const h = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+    return h < 15 || h >= 345 ? 'red' : h < 40 ? 'orange' : h < 65 ? 'yellow' : h < 160 ? 'green'
+      : h < 195 ? 'teal' : h < 250 ? 'blue' : h < 290 ? 'purple' : 'pink';
+  }
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  function funName(st, taken = []) {
+    const fam = hueFamily(st);
+    for (let i = 0; i < 30; i++) {
+      const n = Math.random() < 0.22 ? pick(SOLO_WORDS) : `${pick(HUE_WORDS[fam])} ${pick(MOOD_WORDS)}`;
+      if (!taken.includes(n)) return n;
+    }
+    return `${pick(HUE_WORDS[fam])} ${pick(MOOD_WORDS)} ${taken.length + 1}`;
+  }
+
   // ---------- Saved library ----------
   // Entries: { id, savedAt, state }. Older saves were bare states; wrap them on load.
   let library = store.get('gb-saved', []).map((e, i) => e && e.state
     ? { ...e, state: migrate(e.state) }
     : { id: Date.now() - i, savedAt: Date.now(), state: migrate(e) });
+  library.forEach(e => { if (!e.name) e.name = funName(e.state, library.map(x => x.name)); });
   const persistLib = () => store.set('gb-saved', library);
   const libCount = () => { $('libCount').textContent = library.length; };
 
   function saveToLibrary() {
-    library.unshift({ id: Date.now(), savedAt: Date.now(), state: JSON.parse(JSON.stringify(S)) });
+    const name = funName(S, library.map(x => x.name));
+    library.unshift({ id: Date.now(), savedAt: Date.now(), name, state: JSON.parse(JSON.stringify(S)) });
     persistLib(); libCount();
-    toast(`Saved to library · ${library.length} saved`);
+    toast(`Saved as “${name}”`);
     if (!$('libView').hidden) renderLibView();
   }
   $('saveBtn').onclick = saveToLibrary;
@@ -1257,15 +1313,22 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
       const num = library.length - idx;
       const card = document.createElement('div');
       card.className = 'sleeve'; card.tabIndex = 0; card.setAttribute('role', 'button');
-      card.setAttribute('aria-label', `Open saved gradient ${num}`);
+      card.setAttribute('aria-label', `Open ${entry.name}`);
       card.innerHTML = `
-        <div class="tl">${MODE_NAME[st.mode]}<br>— ${st.stops.length} colors<small>${st.motion.on ? `${st.motion.speed}s loop` : 'Still'}</small></div>
+        <div class="tl"><span class="nm" spellcheck="false"></span><br>— ${MODE_NAME[st.mode]} · ${st.stops.length} colors<small>${st.motion.on ? `${st.motion.speed}s loop` : 'Still'}</small></div>
         <div class="tr">GRD — ${pad(num, 3)}</div>
         <div class="bl">${dateStr(entry.savedAt)}</div>
         <div class="br">Gradient</div>
-        <div class="art"><canvas class="glow"></canvas><canvas class="main"></canvas></div>
-        <div class="acts"><button type="button" data-act="open">Open</button><button type="button" class="danger" data-act="del">Delete</button></div>`;
+        <div class="art"><canvas class="main"></canvas></div>
+        <div class="acts">
+          <button type="button" data-act="open">Open</button>
+          <button type="button" data-act="rename">Rename</button>
+          <button type="button" data-act="shuffle" title="New random name">New name</button>
+          <button type="button" class="danger" data-act="del">Delete</button>
+        </div>`;
       grid.appendChild(card);
+      const nm = card.querySelector('.nm');
+      nm.textContent = entry.name;
 
       // size the artwork to the gradient's own proportions, inside the sleeve
       const art = card.querySelector('.art');
@@ -1274,14 +1337,12 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
       const aw = Math.round(W * sc), ah = Math.round(H * sc);
       art.style.width = aw + 'px'; art.style.height = ah + 'px';
       const dpr = Math.min(2, devicePixelRatio || 1);
-      const main = card.querySelector('.main'), glow = card.querySelector('.glow');
+      const main = card.querySelector('.main');
       main.width = Math.round(aw * dpr); main.height = Math.round(ah * dpr);
-      glow.width = Math.max(1, Math.round(aw / 4)); glow.height = Math.max(1, Math.round(ah / 4));
       const mctx = main.getContext('2d', { willReadFrequently: true });
       const drawAt = t => {
         // grain is per pixel, so thin it out on these small previews to keep it looking fine
         paint(mctx, main.width, main.height, { ...animated(st, t), grain: st.grain * 0.45 });
-        const g = glow.getContext('2d'); g.clearRect(0, 0, glow.width, glow.height); g.drawImage(main, 0, 0, glow.width, glow.height);
       };
       drawAt(0);
 
@@ -1298,11 +1359,38 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
       const open = () => {
         S = migrate(JSON.parse(JSON.stringify(st)));
         sel = 0; fit(); draw(); closeLibrary();
-        toast(`Opened GRD — ${pad(num, 3)}`);
+        toast(`Opened ${entry.name}`);
       };
       const del = card.querySelector('[data-act="del"]');
+      const finishRename = () => {
+        if (nm.contentEditable !== 'true') return;
+        nm.contentEditable = 'false';
+        const v = nm.textContent.replace(/\s+/g, ' ').trim().slice(0, 40);
+        if (v) { entry.name = v; persistLib(); }
+        nm.textContent = entry.name;
+        card.setAttribute('aria-label', `Open ${entry.name}`);
+      };
+      nm.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); finishRename(); card.focus(); }
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); nm.textContent = entry.name; finishRename(); card.focus(); }
+        e.stopPropagation();
+      });
+      nm.addEventListener('blur', finishRename);
       card.addEventListener('click', e => {
+        if (nm.contentEditable === 'true' && e.target === nm) return;
         const act = e.target.closest('[data-act]');
+        if (act && act.dataset.act === 'rename') {
+          nm.contentEditable = 'true'; nm.focus();
+          const r = document.createRange(); r.selectNodeContents(nm);
+          const sel2 = getSelection(); sel2.removeAllRanges(); sel2.addRange(r);
+          return;
+        }
+        if (act && act.dataset.act === 'shuffle') {
+          entry.name = funName(st, library.filter(x => x !== entry).map(x => x.name));
+          nm.textContent = entry.name; persistLib();
+          card.setAttribute('aria-label', `Open ${entry.name}`);
+          return;
+        }
         if (act && act.dataset.act === 'del') {
           if (!del.classList.contains('armed')) { del.classList.add('armed'); del.textContent = 'Delete for good?'; return; }
           library = library.filter(x => x !== entry); persistLib(); libCount(); renderLibView(); toast('Deleted');
@@ -1312,6 +1400,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
       });
       card.addEventListener('mouseleave', () => { del.classList.remove('armed'); del.textContent = 'Delete'; });
       card.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === card) { e.preventDefault(); open(); } });
+      card.addEventListener('mouseleave', finishRename);
     });
   }
   let libReturn = null;
