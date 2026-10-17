@@ -198,16 +198,17 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .card .ib:hover { background: var(--card-hover); }
 .card .ib:disabled { opacity: .3; cursor: default; background: none; }
 
-.card .bar { margin: 4px 29px 16px; height: 20px; border-radius: 6px; }
-.swrow { display: flex; flex-wrap: wrap; gap: 10px; padding: 2px 20px 8px; }
+.card .bar { margin: 2px 26px 18px; height: 14px; border-radius: 5px; }
+.card .bar .k { width: 12px; height: 16px; margin-left: -6px; margin-top: -6px; border-radius: 4px; border-width: 2px; }
+.swrow { display: flex; flex-wrap: wrap; gap: 8px; padding: 2px 20px 6px; }
 .swi { position: relative; }
-.sw { position: relative; display: block; width: 34px; height: 34px; border-radius: 9px; overflow: hidden; cursor: pointer;
+.sw { position: relative; display: block; width: 28px; height: 28px; border-radius: 8px; overflow: hidden; cursor: pointer;
   box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); transition: box-shadow .15s; }
 .sw input { position: absolute; inset: -8px; width: calc(100% + 16px); height: calc(100% + 16px); border: 0; padding: 0; opacity: 0; cursor: pointer; }
 .swi.sel .sw { box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 0 0 2px var(--card), 0 0 0 3.5px var(--fg); }
 .sw:focus-within { outline: 2px solid var(--focus); outline-offset: 3px; }
 .swi .x {
-  position: absolute; top: -7px; right: -7px; width: 18px; height: 18px; padding: 0; border-radius: 50%;
+  position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; padding: 0; border-radius: 50%;
   border: 1px solid var(--card-line-strong); background: var(--card); color: var(--muted);
   font-size: 12px; line-height: 1; display: grid; place-items: center; opacity: 0; transition: opacity .15s;
 }
@@ -215,7 +216,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .swi .x:hover { color: var(--fg); }
 @media (hover: none) { .swi .x { opacity: 1; } }
 .swi.add button {
-  width: 34px; height: 34px; border-radius: 9px; padding: 0; display: grid; place-items: center;
+  width: 28px; height: 28px; border-radius: 8px; padding: 0; display: grid; place-items: center;
   border: 1px dashed var(--card-line-strong); background: none; color: var(--muted);
 }
 .swi.add button:hover { color: var(--fg); border-color: var(--muted); }
