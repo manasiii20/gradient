@@ -72,6 +72,11 @@ button { cursor: pointer; }
 .btn.primary:hover { opacity: .88; }
 .btn.icon { width: 34px; padding: 0; justify-content: center; }
 .btn.icon .moon { display: none; }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn:disabled:hover { border-color: var(--line); }
+.hist { display: flex; }
+.hist .btn:first-child { border-radius: 8px 0 0 8px; }
+.hist .btn:last-child { border-radius: 0 8px 8px 0; margin-left: -1px; }
 .btn.icon.to-dark .moon { display: block; }
 .btn.icon.to-dark .sun { display: none; }
 kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 1px solid currentColor; opacity: .55; }
@@ -241,6 +246,14 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 <header class="top">
   <div class="brand"><i id="logo"></i>Gradient</div>
   <div class="top-actions">
+    <div class="hist" role="group" aria-label="History">
+      <button class="btn icon" id="undoBtn" type="button" aria-label="Undo" title="Undo (Ctrl+Z / ⌘Z)" disabled>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 14L4 9l5-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+      </button>
+      <button class="btn icon" id="redoBtn" type="button" aria-label="Redo" title="Redo (Shift+Ctrl+Z / ⇧⌘Z)" disabled>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 14l5-5-5-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+      </button>
+    </div>
     <button class="btn icon" id="themeBtn" type="button" aria-label="Switch to light mode" title="Switch to light mode">
       <svg class="sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></g></svg>
       <svg class="moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="currentColor"/></svg>
@@ -380,6 +393,20 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   // ---------- Presets ----------
   // stops: [color, position %, x %, y %, spread %]
   const PRESETS = [
+    // From your Pinterest favourites
+    { name: 'Sunrise arc', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#eceef7', grain: 10, blur: 80,
+      stops: [['#b3bdec', 0, 50, 112, 122], ['#bf8fd6', 25, 50, 110, 104], ['#d6559a', 50, 50, 110, 92],
+              ['#f3505a', 75, 50, 112, 72], ['#fe9a62', 100, 50, 116, 44]] },
+    { name: 'Cream corners', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#f6efe5', grain: 10, blur: 90,
+      stops: [['#f597ee', 0, -4, 0, 44], ['#f8b9a2', 50, 100, 84, 44], ['#fa5527', 100, 104, 106, 32]] },
+    { name: 'Deep blue', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#2f63d1', grain: 6, blur: 90,
+      stops: [['#1a237c', 0, 18, 106, 58], ['#2546c2', 15, 62, 96, 50], ['#3a8fe8', 30, 94, 55, 42],
+              ['#bfe3fd', 60, 30, 26, 46], ['#ffffff', 75, 48, -12, 62], ['#ffffff', 100, 10, -4, 42]] },
+    { name: 'Candy haze', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#dcbdef', grain: 8, blur: 80,
+      stops: [['#93e8e8', 0, 20, -8, 88], ['#e5aef0', 33, 55, 55, 50], ['#f98747', 66, 108, 58, 40], ['#f98a4c', 100, 50, 114, 80]] },
+    { name: 'Morning mist', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#fbf8f4', grain: 4,
+      stops: [['#d0d8ee', 0, 18, 72, 50], ['#d2d9ee', 25, 56, 100, 42], ['#e3ddf0', 50, 55, 48, 34],
+              ['#9d99d6', 75, 14, -4, 55], ['#eeacae', 100, 24, 28, 34]] },
     { name: 'Peach dusk', mode: 'mesh', angle: 135, cx: 50, cy: 50, base: '#2a1630', grain: 10,
       stops: [['#ff7a59', 0, 16, 18, 70], ['#ffc27a', 33, 84, 14, 60], ['#c86bfa', 66, 78, 84, 70], ['#ff4f81', 100, 18, 86, 55]] },
     { name: 'Lagoon', mode: 'linear', angle: 160, cx: 50, cy: 50, base: '#0b2530', grain: 0,
@@ -399,7 +426,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   ];
   const fromPreset = p => ({
     mode: p.mode, angle: p.angle, cx: p.cx, cy: p.cy, base: p.base, grain: p.grain,
-    format: S ? S.format : '16:9', blur: 100,
+    format: S ? S.format : '16:9', blur: p.blur ?? 100,
     motion: S ? { ...S.motion } : { on: false, speed: 8, amount: 50 },
     stops: p.stops.map(([c, pos, x, y, s]) => ({ c, p: pos, x, y, s })),
   });
@@ -585,8 +612,41 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
       syncUI();
       store.set('gb-current', S);
       ensureLoop();
+      if (restoring) restoring = false; else recordSoon();
+      syncHist();
     });
   }
+
+  // ---------- Undo / redo ----------
+  // Changes are grouped: a slider drag or a burst of edits becomes one step once things settle.
+  const hist = [JSON.stringify(S)];
+  let hi = 0, histTimer = 0, restoring = false;
+  function recordSoon() { clearTimeout(histTimer); histTimer = setTimeout(record, 400); }
+  function record() {
+    clearTimeout(histTimer); histTimer = 0;
+    const j = JSON.stringify(S);
+    if (j === hist[hi]) return;
+    hist.splice(hi + 1);
+    hist.push(j);
+    if (hist.length > 150) hist.shift();
+    hi = hist.length - 1;
+    syncHist();
+  }
+  function restore() {
+    S = migrate(JSON.parse(hist[hi]));
+    sel = clamp(sel, 0, S.stops.length - 1);
+    restoring = true;
+    fit(); draw();
+  }
+  function undo() { record(); if (hi > 0) { hi--; restore(); } }
+  function redo() { record(); if (hi < hist.length - 1) { hi++; restore(); } }
+  function syncHist() {
+    const dirty = !!histTimer && JSON.stringify(S) !== hist[hi];
+    $('undoBtn').disabled = hi <= 0 && !dirty;
+    $('redoBtn').disabled = hi >= hist.length - 1 || dirty;
+  }
+  $('undoBtn').onclick = undo;
+  $('redoBtn').onclick = redo;
 
   let anim = 0, encoding = false;
   function render(now = performance.now()) {
@@ -892,6 +952,12 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   $('randomBtn').onclick = randomize;
   addEventListener('keydown', e => {
     const tag = (e.target.tagName || '').toLowerCase();
+    const typing = tag === 'textarea' || (tag === 'input' && e.target.type === 'text') || e.target.classList.contains('hex');
+    if ((e.metaKey || e.ctrlKey) && !e.altKey && !typing) {
+      const k = e.key.toLowerCase();
+      if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
+      if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); redo(); return; }
+    }
     if (['input', 'select', 'textarea'].includes(tag) || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key === 'r' || e.key === 'R') { e.preventDefault(); randomize(); }
     if (e.key === 'Escape' && !$('overlay').hidden) closeExport();
