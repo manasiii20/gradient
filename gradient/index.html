@@ -258,7 +258,6 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
       <svg class="sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></g></svg>
       <svg class="moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="currentColor"/></svg>
     </button>
-    <button class="btn" id="saveBtn" type="button">Save<span class="label" style="margin-left:-4px">to library</span></button>
     <button class="btn primary" id="randomBtn" type="button">Randomize <kbd>R</kbd></button>
   </div>
 </header>
@@ -274,7 +273,6 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     <div class="meta" id="meta"></div>
     <section class="library" aria-label="Library">
       <div class="lib-row"><h3>Presets</h3><div class="tiles" id="presets"></div></div>
-      <div class="lib-row"><h3>Saved</h3><div class="tiles" id="saved"></div></div>
     </section>
   </div>
 
@@ -407,22 +405,6 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     { name: 'Morning mist', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#fbf8f4', grain: 4,
       stops: [['#d0d8ee', 0, 18, 72, 50], ['#d2d9ee', 25, 56, 100, 42], ['#e3ddf0', 50, 55, 48, 34],
               ['#9d99d6', 75, 14, -4, 55], ['#eeacae', 100, 24, 28, 34]] },
-    { name: 'Peach dusk', mode: 'mesh', angle: 135, cx: 50, cy: 50, base: '#2a1630', grain: 10,
-      stops: [['#ff7a59', 0, 16, 18, 70], ['#ffc27a', 33, 84, 14, 60], ['#c86bfa', 66, 78, 84, 70], ['#ff4f81', 100, 18, 86, 55]] },
-    { name: 'Lagoon', mode: 'linear', angle: 160, cx: 50, cy: 50, base: '#0b2530', grain: 0,
-      stops: [['#c9f2e6', 0, 20, 20, 60], ['#43c6ac', 45, 80, 30, 60], ['#0f4c75', 100, 50, 85, 60]] },
-    { name: 'Citrus', mode: 'radial', angle: 0, cx: 30, cy: 25, base: '#ffe9a8', grain: 6,
-      stops: [['#fff6c9', 0, 20, 20, 60], ['#ffd23f', 35, 70, 30, 60], ['#ff8a1f', 75, 30, 80, 60], ['#e2481b', 100, 80, 80, 60]] },
-    { name: 'Fog', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#e9e7e2', grain: 14,
-      stops: [['#c7d3dd', 0, 20, 25, 70], ['#f4e3d7', 50, 80, 20, 65], ['#d9d2e6', 100, 60, 85, 75]] },
-    { name: 'Aurora', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#06131f', grain: 8,
-      stops: [['#1de9b6', 0, 22, 30, 60], ['#2979ff', 33, 70, 22, 55], ['#7c4dff', 66, 82, 74, 55], ['#00bfa5', 100, 30, 88, 45]] },
-    { name: 'Sorbet', mode: 'linear', angle: 120, cx: 50, cy: 55, base: '#ffffff', grain: 0,
-      stops: [['#ffb3c7', 0, 20, 20, 60], ['#ffe1a8', 33, 80, 20, 60], ['#b8f0d0', 66, 80, 80, 60], ['#b7c8ff', 100, 20, 80, 60]] },
-    { name: 'Ember', mode: 'linear', angle: 200, cx: 50, cy: 50, base: '#120806', grain: 18,
-      stops: [['#120806', 0, 20, 20, 60], ['#5a1a0e', 40, 80, 20, 60], ['#e2531f', 78, 60, 80, 60], ['#ffc46b', 100, 30, 80, 60]] },
-    { name: 'Moss', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#1d2a1c', grain: 12,
-      stops: [['#8fb36b', 0, 25, 20, 65], ['#d8d38a', 50, 85, 35, 55], ['#3f6e4a', 100, 45, 90, 70]] },
   ];
   const fromPreset = p => ({
     mode: p.mode, angle: p.angle, cx: p.cx, cy: p.cy, base: p.base, grain: p.grain,
@@ -448,7 +430,6 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   let S = null;
   S = migrate(store.get('gb-current', null) || fromPreset(PRESETS[0]));
   let sel = 0;
-  let saved = store.get('gb-saved', []).map(migrate);
 
   // ---------- Color helpers ----------
   const normHex = v => {
@@ -775,7 +756,8 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   function mkHandle(x, y, label) {
     const h = document.createElement('button');
     h.type = 'button'; h.className = 'h';
-    h.style.left = x + '%'; h.style.top = y + '%';
+    // colors placed just off the canvas keep their dot on the edge so it stays reachable
+    h.style.left = clamp(x, 0, 100) + '%'; h.style.top = clamp(y, 0, 100) + '%';
     h.setAttribute('aria-label', label);
     handles.appendChild(h);
     return h;
@@ -982,23 +964,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   function renderLibrary() {
     const p = $('presets'); p.innerHTML = '';
     PRESETS.forEach(pr => p.appendChild(tile(fromPreset(pr), pr.name, () => { S = fromPreset(pr); sel = 0; draw(); })));
-    const s = $('saved'); s.innerHTML = '';
-    if (!saved.length) {
-      const e = document.createElement('div'); e.className = 'empty';
-      e.textContent = 'Nothing saved yet. Press Save to library to keep the current gradient here.';
-      s.appendChild(e);
-    }
-    saved.forEach((st, i) => s.appendChild(tile(st, `Saved ${saved.length - i}`,
-      () => { S = migrate(JSON.parse(JSON.stringify(st))); sel = 0; fit(); draw(); },
-      () => { saved.splice(i, 1); store.set('gb-saved', saved); renderLibrary(); toast('Deleted'); })));
   }
-  $('saveBtn').onclick = () => {
-    saved.unshift(JSON.parse(JSON.stringify(S)));
-    saved = saved.slice(0, 30);
-    store.set('gb-saved', saved);
-    renderLibrary();
-    toast('Saved to library');
-  };
 
   // ---------- Copy + export ----------
   const toastEl = $('toast'); let tt;
