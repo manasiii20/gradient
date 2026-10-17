@@ -23,6 +23,8 @@
   --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --r: 10px;
   --frame-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 20px 50px -28px rgba(0,0,0,.28);
+  --card: #ffffff; --card-edge: rgba(0,0,0,.06); --card-line: rgba(0,0,0,.08); --card-line-strong: rgba(0,0,0,.16);
+  --card-hover: rgba(0,0,0,.035); --card-sel: rgba(0,0,0,.06); --dot: rgba(0,0,0,.09);
   --art-shadow: 0 0 0 .5px rgba(0,0,0,.06), 0 10px 24px -14px rgba(0,0,0,.28);
 }
 @media (prefers-color-scheme: dark) {
@@ -30,14 +32,18 @@
     --bg: #111110; --panel: #191918; --line: #2c2c2a; --fg: #ecebe7; --muted: #99988f;
     --chip: #242422; --focus: #7c9fff; --on-fg: #141413;
     --frame-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 24px 60px -28px rgba(0,0,0,.45);
-    --art-shadow: 0 0 0 .5px rgba(255,255,255,.08), 0 12px 28px -14px rgba(0,0,0,.7); color-scheme: dark;
+    --art-shadow: 0 0 0 .5px rgba(255,255,255,.08), 0 12px 28px -14px rgba(0,0,0,.7);
+    --card: #1b1b1a; --card-edge: rgba(255,255,255,.07); --card-line: rgba(255,255,255,.08); --card-line-strong: rgba(255,255,255,.18);
+    --card-hover: rgba(255,255,255,.04); --card-sel: rgba(255,255,255,.07); --dot: rgba(255,255,255,.07); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #111110; --panel: #191918; --line: #2c2c2a; --fg: #ecebe7; --muted: #99988f;
   --chip: #242422; --focus: #7c9fff; --on-fg: #141413;
     --frame-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 24px 60px -28px rgba(0,0,0,.45);
-    --art-shadow: 0 0 0 .5px rgba(255,255,255,.08), 0 12px 28px -14px rgba(0,0,0,.7); color-scheme: dark;
+    --art-shadow: 0 0 0 .5px rgba(255,255,255,.08), 0 12px 28px -14px rgba(0,0,0,.7);
+    --card: #1b1b1a; --card-edge: rgba(255,255,255,.07); --card-line: rgba(255,255,255,.08); --card-line-strong: rgba(255,255,255,.18);
+    --card-hover: rgba(255,255,255,.04); --card-sel: rgba(255,255,255,.07); --dot: rgba(255,255,255,.07); color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -91,7 +97,9 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .app {
   flex: 1; min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-columns: minmax(0, 1fr) 356px;
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.2px);
+  background-size: 22px 22px;
 }
 .work { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .stage {
@@ -102,11 +110,11 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 }
 .frame {
   position: relative;
-  border-radius: 6px;
+  border-radius: 24px;
   box-shadow: var(--frame-shadow);
   max-width: 100%;
 }
-.frame canvas { display: block; width: 100%; height: 100%; border-radius: 6px; }
+.frame canvas { display: block; width: 100%; height: 100%; border-radius: 24px; }
 .handles { position: absolute; inset: 0; }
 .h {
   position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px;
@@ -143,13 +151,82 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .tile:hover .del, .tile .del:focus-visible { display: block; }
 .empty { color: var(--muted); font-size: 12px; padding: 10px 0; }
 
-/* ---------- Panel ---------- */
-.panel {
-  min-height: 0; overflow-y: auto;
-  background: var(--panel);
-  border-left: 1px solid var(--line);
-  padding: 4px 18px 24px;
+/* ---------- Panel: one floating card ---------- */
+.panel { min-height: 0; overflow-y: auto; padding: 24px 24px 24px 0; }
+.card {
+  background: var(--card); border-radius: 18px;
+  box-shadow: 0 0 0 1px var(--card-edge), 0 18px 40px -24px rgba(0,0,0,.22);
+  overflow: hidden;
 }
+.grp { padding: 10px 0; border-top: 1px solid var(--card-line); }
+.grp:first-child { border-top: 0; }
+.card .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; padding: 0 22px; }
+.card .lbl { font-weight: 600; font-size: 14px; }
+.card .dims { justify-content: flex-start; gap: 0; font-variant-numeric: tabular-nums; }
+.card .dims > span { width: 50%; display: flex; gap: 14px; }
+.card .dims b { font-weight: 600; }
+.card .row.slide { display: grid; grid-template-columns: 92px minmax(0, 1fr); }
+.card .row.slide label { font-size: 14px; }
+.card select.pick {
+  -webkit-appearance: none; appearance: none; border: 0; background-color: transparent; width: auto; max-width: 220px;
+  height: 32px; padding: 0 20px 0 6px; font: 14px var(--sans); color: var(--fg); text-align: right; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' fill='none' stroke='%238a8984' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 2px center;
+}
+.card select.pick option { color: initial; }
+.card select.pick:hover { opacity: .75; }
+
+.card input[type="range"] { -webkit-appearance: none; appearance: none; height: 24px; margin: 0; background: transparent; cursor: pointer; }
+.card input[type="range"]::-webkit-slider-runnable-track {
+  height: 3px; border-radius: 2px;
+  background: linear-gradient(to right, var(--fg) var(--p, 50%), var(--card-line-strong) var(--p, 50%));
+}
+.card input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 20px; height: 20px; margin-top: -8.5px; border-radius: 50%; background: #fff;
+  box-shadow: 0 0 0 .5px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.2);
+}
+.card input[type="range"]::-moz-range-track { height: 3px; border-radius: 2px; background: var(--card-line-strong); }
+.card input[type="range"]::-moz-range-progress { height: 3px; border-radius: 2px; background: var(--fg); }
+.card input[type="range"]::-moz-range-thumb {
+  width: 20px; height: 20px; border: 0; border-radius: 50%; background: #fff;
+  box-shadow: 0 0 0 .5px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.2);
+}
+
+.card .icons { display: flex; gap: 2px; margin-right: -6px; }
+.card .ib { width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 8px; background: none; color: var(--fg); padding: 0; }
+.card .ib:hover { background: var(--card-hover); }
+.card .ib:disabled { opacity: .3; cursor: default; background: none; }
+
+.card .bar { margin: 6px 31px 18px; height: 22px; border-radius: 6px; }
+.clist { padding: 2px 0; }
+.crow { position: relative; display: flex; align-items: center; gap: 14px; height: 38px; padding: 0 22px; cursor: pointer; }
+.crow:hover { background: var(--card-hover); }
+.crow.sel { background: var(--card-sel); }
+.crow .sw { position: relative; width: 20px; height: 20px; border-radius: 4px; overflow: hidden; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); }
+.crow .sw input { position: absolute; inset: -6px; width: calc(100% + 12px); height: calc(100% + 12px); border: 0; padding: 0; opacity: 0; cursor: pointer; }
+.crow .hx {
+  flex: 1; min-width: 0; height: 28px; border: 0; background: none; padding: 0; color: var(--fg);
+  font: 14px var(--mono); letter-spacing: .04em; text-transform: uppercase; cursor: text;
+}
+.crow .hx:focus { outline: none; }
+.crow .hx[aria-invalid="true"] { color: #d64545; }
+.crow .x { width: 24px; height: 24px; border: 0; border-radius: 6px; background: none; color: var(--muted); font-size: 16px; line-height: 1; padding: 0; opacity: 0; }
+.crow:hover .x, .crow .x:focus-visible { opacity: 1; }
+.crow .x:hover { color: var(--fg); background: var(--card-hover); }
+@media (hover: none) { .crow .x { opacity: .7; } }
+.crow.base { cursor: default; margin-top: 6px; }
+.crow.base:hover { background: none; }
+.crow .tag { font-size: 13px; color: var(--muted); }
+
+.acts { padding: 6px 0; }
+.arow {
+  display: flex; align-items: center; gap: 14px; width: 100%; height: 44px; padding: 0 22px;
+  border: 0; background: none; color: var(--fg); font: 14px var(--sans); text-align: left;
+}
+.arow:hover { background: var(--card-hover); }
+.arow svg { flex: none; }
+.arow kbd { margin-left: auto; }
+
 .sec { padding: 16px 0; border-bottom: 1px solid var(--line); display: grid; gap: 12px; }
 .sec:last-child { border-bottom: 0; }
 .sec > h2 { margin: 0; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
@@ -297,7 +374,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   html, body { height: auto; }
   .app { grid-template-columns: minmax(0, 1fr); }
   .stage { min-height: 0; padding: 16px; }
-  .panel { border-left: 0; border-top: 1px solid var(--line); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .panel { padding: 8px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); }
   .top .label { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -340,82 +417,88 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   </div>
 
   <aside class="panel" aria-label="Controls">
-    <section class="sec">
-      <h2>Type</h2>
-      <div class="seg" id="modes" role="group" aria-label="Gradient type">
-        <button type="button" data-mode="linear">Linear</button>
-        <button type="button" data-mode="radial">Radial</button>
-        <button type="button" data-mode="mesh">Mesh</button>
-      </div>
-    </section>
-
-    <section class="sec">
-      <h2>Colors <button class="icon-btn" id="reverseBtn" type="button" title="Reverse color order">Reverse</button></h2>
-      <div class="bar" id="bar" title="Click to add a color"></div>
-      <div class="chips" id="chips"></div>
-      <div class="editor">
-        <div class="color-row">
-          <input type="color" id="selColor" aria-label="Selected color">
-          <input class="hex" id="selHex" spellcheck="false" maxlength="7" aria-label="Hex value">
-          <button class="icon-btn" id="removeBtn" type="button">Remove</button>
+    <div class="card">
+      <div class="grp">
+        <div class="row">
+          <label class="lbl" for="modeSel">Gradient</label>
+          <select class="pick" id="modeSel">
+            <option value="linear">Linear</option>
+            <option value="radial">Radial</option>
+            <option value="mesh">Mesh</option>
+          </select>
         </div>
-        <div class="field" id="posField">
-          <label for="selPos">Position</label><input type="range" id="selPos" min="0" max="100" step="1"><output id="posOut"></output>
+        <div class="row">
+          <label class="lbl" for="format">Size</label>
+          <select class="pick" id="format"></select>
         </div>
-        <div class="field" id="sizeField">
-          <label for="selSize">Spread</label><input type="range" id="selSize" min="15" max="120" step="1"><output id="sizeOut"></output>
+        <div class="row dims"><span><b>W</b><span id="dimW"></span></span><span><b>H</b><span id="dimH"></span></span></div>
+      </div>
+
+      <div class="grp">
+        <div class="row slide" id="angleField">
+          <label for="angle">Angle</label>
+          <input type="range" id="angle" min="0" max="360" step="1"><output id="angleOut" hidden></output>
+        </div>
+        <div class="row slide">
+          <label for="blur">Blur</label>
+          <input type="range" id="blur" min="0" max="200" step="1"><output id="blurOut" hidden></output>
+        </div>
+        <div class="row slide">
+          <label for="grain">Noise</label>
+          <input type="range" id="grain" min="0" max="40" step="1"><output id="grainOut" hidden></output>
         </div>
       </div>
-      <div class="field" id="baseRow" style="grid-template-columns: 70px 40px minmax(0,1fr)">
-        <label for="baseHex">Background</label>
-        <input type="color" id="baseColor" aria-label="Background color">
-        <input class="hex" id="baseHex" spellcheck="false" maxlength="7">
-      </div>
-      <p class="note" id="hint"></p>
-    </section>
 
-    <section class="sec">
-      <h2>Shape</h2>
-      <div class="field" id="angleField">
-        <label for="angle">Angle</label><input type="range" id="angle" min="0" max="360" step="1"><output id="angleOut"></output>
+      <div class="grp">
+        <div class="row">
+          <span class="lbl">Motion</span>
+          <label class="switch" title="Animate the gradient">
+            <input type="checkbox" id="motionOn" aria-label="Animate the gradient"><span aria-hidden="true"></span>
+          </label>
+        </div>
+        <div class="row slide" id="speedField">
+          <label for="speed">Loop</label>
+          <input type="range" id="speed" min="3" max="20" step="1"><output id="speedOut" hidden></output>
+        </div>
+        <div class="row slide" id="amountField">
+          <label for="amount">Movement</label>
+          <input type="range" id="amount" min="5" max="100" step="1"><output id="amountOut" hidden></output>
+        </div>
       </div>
-      <div class="field">
-        <label for="blur">Blur</label><input type="range" id="blur" min="0" max="200" step="1"><output id="blurOut"></output>
-      </div>
-      <div class="field">
-        <label for="grain">Grain</label><input type="range" id="grain" min="0" max="40" step="1"><output id="grainOut"></output>
-      </div>
-      <div class="field" style="grid-template-columns: 70px minmax(0,1fr)">
-        <label for="format">Size</label>
-        <select id="format"></select>
-      </div>
-    </section>
 
-    <section class="sec">
-      <h2>Motion
-        <label class="switch" title="Animate the gradient">
-          <input type="checkbox" id="motionOn" aria-label="Animate the gradient"><span aria-hidden="true"></span>
-        </label>
-      </h2>
-      <div class="field" id="speedField">
-        <label for="speed">Loop</label><input type="range" id="speed" min="3" max="20" step="1"><output id="speedOut"></output>
+      <div class="grp">
+        <div class="row">
+          <span class="lbl">Colors</span>
+          <span class="icons">
+            <button class="ib" id="reverseBtn" type="button" title="Reverse order" aria-label="Reverse color order"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M5 7h11M13 4l3 3-3 3M15 13H4M7 10l-3 3 3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="ib" id="shuffleBtn" type="button" title="New colors" aria-label="Pick new colors"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M16 10a6 6 0 1 1-1.8-4.3M16 3.5v3.2h-3.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="ib" id="addBtn" type="button" title="Add color" aria-label="Add color"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 4v12M4 10h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+          </span>
+        </div>
+        <div class="bar" id="bar" title="Click to add a color"></div>
+        <div class="clist" id="colorList"></div>
+        <div class="row slide" id="posField">
+          <label for="selPos">Position</label>
+          <input type="range" id="selPos" min="0" max="100" step="1"><output id="posOut" hidden></output>
+        </div>
+        <div class="row slide" id="sizeField">
+          <label for="selSize">Spread</label>
+          <input type="range" id="selSize" min="15" max="120" step="1"><output id="sizeOut" hidden></output>
+        </div>
+        <div class="crow base" id="baseRow">
+          <label class="sw"><input type="color" id="baseColor" aria-label="Background color"></label>
+          <input class="hx" id="baseHex" spellcheck="false" maxlength="7" aria-label="Background hex">
+          <span class="tag">Background</span>
+        </div>
       </div>
-      <div class="field" id="amountField">
-        <label for="amount">Movement</label><input type="range" id="amount" min="5" max="100" step="1"><output id="amountOut"></output>
-      </div>
-      <p class="note" id="motionNote"></p>
-    </section>
 
-    <section class="sec">
-      <h2>Export</h2>
-      <div class="actions">
-        <button class="btn wide" id="saveBtn" type="button">Save to library <kbd>S</kbd></button>
-        <button class="btn" id="copyBtn" type="button">Copy CSS</button>
-        <button class="btn primary" id="pngBtn" type="button">Export PNG</button>
-        <button class="btn primary wide" id="mp4Btn" type="button" hidden>Export MP4</button>
+      <div class="grp acts">
+        <button class="arow" id="saveBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M6 3.5h8a1 1 0 0 1 1 1V17l-5-3.2L5 17V4.5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Save to library<kbd>S</kbd></button>
+        <button class="arow" id="copyBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M7 6l-4 4 4 4M13 6l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Copy CSS</button>
+        <button class="arow" id="pngBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 3.5v9M6 9l4 4 4-4M4 16.5h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Download PNG</button>
+        <button class="arow" id="mp4Btn" type="button" hidden><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="3" y="4.5" width="14" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8.5 8v4l3.5-2z" fill="currentColor"/></svg>Download MP4</button>
       </div>
-      <p class="note" id="cssNote" hidden></p>
-    </section>
+    </div>
   </aside>
 </main>
 
@@ -723,12 +806,11 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   document.addEventListener('visibilitychange', ensureLoop);
 
   // ---------- UI sync ----------
-  const modeBtns = [...document.querySelectorAll('#modes button')];
   function syncUI() {
     const mesh = S.mode === 'mesh';
     sel = clamp(sel, 0, S.stops.length - 1);
     const cur = S.stops[sel];
-    modeBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === S.mode)));
+    $('modeSel').value = S.mode;
 
     // bar
     const bar = $('bar');
@@ -744,45 +826,18 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
       bar.appendChild(k);
     });
 
-    // chips
-    const chips = $('chips'); chips.innerHTML = '';
+    // colors
+    renderColors();
     const canRemove = S.stops.length > minStops();
-    S.stops.forEach((s, i) => {
-      const w = document.createElement('div'); w.className = 'chipw';
-      const c = document.createElement('button');
-      c.type = 'button'; c.className = 'chip' + (i === sel ? ' sel' : '');
-      c.style.background = s.c; c.setAttribute('aria-label', `Select ${s.c}`);
-      c.onclick = () => { sel = i; draw(); };
-      w.appendChild(c);
-      if (canRemove) {
-        const x = document.createElement('button');
-        x.type = 'button'; x.className = 'x'; x.textContent = '×';
-        x.setAttribute('aria-label', `Remove ${s.c}`);
-        x.onclick = () => removeStop(i);
-        w.appendChild(x);
-      }
-      chips.appendChild(w);
-    });
-    const add = document.createElement('button');
-    add.type = 'button'; add.className = 'chip add'; add.textContent = '+'; add.setAttribute('aria-label', 'Add color');
-    add.onclick = addStop; add.disabled = S.stops.length >= 8;
-    chips.appendChild(add);
-
-    // editor
-    $('selColor').value = cur.c;
-    if (document.activeElement !== $('selHex')) { $('selHex').value = cur.c; $('selHex').removeAttribute('aria-invalid'); }
     $('selPos').value = cur.p; $('posOut').textContent = Math.round(cur.p) + '%';
     $('selSize').value = cur.s; $('sizeOut').textContent = Math.round(cur.s) + '%';
     $('posField').hidden = mesh; $('sizeField').hidden = !mesh;
-    $('removeBtn').disabled = !canRemove;
     $('baseRow').hidden = !mesh;
     $('baseColor').value = S.base;
-    if (document.activeElement !== $('baseHex')) $('baseHex').value = S.base;
-    $('hint').textContent = mesh
-      ? 'Drag the dots on the canvas to move colors. Spread sets how far each color reaches.'
-      : S.mode === 'linear' ? 'Click the bar to add a color. Drag the markers to move them.'
-      : 'Drag the white dot on the canvas to move the center.';
+    $('baseColor').parentElement.style.background = S.base;
+    if (document.activeElement !== $('baseHex')) { $('baseHex').value = S.base.slice(1); $('baseHex').removeAttribute('aria-invalid'); }
     $('reverseBtn').hidden = mesh;
+    $('addBtn').disabled = S.stops.length >= 8;
 
     // shape
     $('angleField').hidden = S.mode !== 'linear';
@@ -797,15 +852,17 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     $('speedField').hidden = $('amountField').hidden = !mo.on;
     $('speed').value = mo.speed; $('speedOut').textContent = mo.speed + 's';
     $('amount').value = mo.amount; $('amountOut').textContent = mo.amount + '%';
-    $('motionNote').textContent = mo.on
-      ? 'Loop is how long one full cycle takes. The MP4 is one seamless loop.'
-      : 'Turn on to make the gradient drift, then export it as an MP4.';
     $('mp4Btn').hidden = !mo.on;
     const notes = [];
     if (S.grain || S.blur > 100) notes.push('Copied CSS leaves out grain and blur above 100%.');
     if (mo.on) notes.push('Copied CSS and the PNG are a still frame.');
-    $('cssNote').textContent = notes.join(' ');
-    $('cssNote').hidden = !notes.length;
+    $('copyBtn').title = notes.join(' ');
+    const [dW, dH] = FORMATS[S.format];
+    $('dimW').textContent = dW; $('dimH').textContent = dH;
+    document.querySelectorAll('.card input[type="range"]').forEach(r => {
+      r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%');
+      r.title = r.nextElementSibling ? r.nextElementSibling.textContent : '';
+    });
     const [W, H, label] = FORMATS[S.format];
     const modeLabel = { linear: `Linear ${S.angle}°`, radial: 'Radial', mesh: 'Mesh' }[S.mode];
     $('meta').textContent = `${W} × ${H} px · ${label} · ${modeLabel} · ${S.stops.length} colors${mo.on ? ` · ${mo.speed}s loop` : ''}`;
@@ -932,21 +989,73 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   }
 
   // ---------- Controls ----------
-  modeBtns.forEach(b => b.onclick = () => {
-    S.mode = b.dataset.mode;
+  $('modeSel').addEventListener('change', e => {
+    S.mode = e.target.value;
     if (S.mode !== 'mesh' && S.stops.length < 2) {
       S.stops[0].p = 0;
       S.stops.push({ c: S.base, p: 100, x: 80, y: 80, s: 55 });
     }
     draw();
   });
-  $('selColor').addEventListener('input', e => { S.stops[sel].c = e.target.value.toLowerCase(); draw(); });
-  $('selHex').addEventListener('input', e => {
-    const v = normHex(e.target.value);
-    e.target.toggleAttribute('aria-invalid', !v);
-    if (v) { S.stops[sel].c = v; draw(); }
+  // Color list: rebuilt only when the set of colors or the selection changes, so typing and the
+  // native color picker are never interrupted; otherwise values are updated in place.
+  let colorKey = '';
+  function renderColors() {
+    const list = $('colorList');
+    const canRemove = S.stops.length > minStops();
+    const key = `${S.stops.length}|${canRemove}`;
+    if (key !== colorKey) {
+      colorKey = key;
+      list.innerHTML = '';
+      S.stops.forEach((s, i) => {
+        const row = document.createElement('div');
+        row.className = 'crow';
+        row.dataset.i = i;
+        row.innerHTML = `<label class="sw"><input type="color" aria-label="Color ${i + 1}"></label>` +
+          `<input class="hx" spellcheck="false" maxlength="7" aria-label="Color ${i + 1} hex">` +
+          (canRemove ? `<button class="x" type="button" aria-label="Remove color ${i + 1}" title="Remove">×</button>` : '');
+        list.appendChild(row);
+      });
+    }
+    [...list.children].forEach((row, i) => {
+      const c = S.stops[i].c;
+      row.classList.toggle('sel', i === sel);
+      row.querySelector('.sw').style.background = c;
+      const ci = row.querySelector('input[type="color"]'); if (ci.value !== c) ci.value = c;
+      const hx = row.querySelector('.hx');
+      if (document.activeElement !== hx) { hx.value = c.slice(1); hx.removeAttribute('aria-invalid'); }
+    });
+  }
+  const colorList = $('colorList');
+  colorList.addEventListener('click', e => {
+    const row = e.target.closest('.crow'); if (!row) return;
+    const i = +row.dataset.i;
+    if (e.target.closest('.x')) { removeStop(i); return; }
+    if (sel !== i) { sel = i; draw(); }
   });
-  $('selHex').addEventListener('blur', () => draw());
+  colorList.addEventListener('focusin', e => {
+    const row = e.target.closest('.crow'); if (!row) return;
+    const i = +row.dataset.i;
+    if (sel !== i && !e.target.closest('.x')) { sel = i; draw(); }
+  });
+  colorList.addEventListener('input', e => {
+    const row = e.target.closest('.crow'); if (!row) return;
+    const i = +row.dataset.i;
+    if (e.target.type === 'color') { S.stops[i].c = e.target.value.toLowerCase(); draw(); return; }
+    if (e.target.classList.contains('hx')) {
+      const v = normHex(e.target.value);
+      e.target.toggleAttribute('aria-invalid', !v);
+      if (v) { S.stops[i].c = v; draw(); }
+    }
+  });
+  colorList.addEventListener('focusout', e => { if (e.target.classList.contains('hx')) draw(); });
+  $('addBtn').onclick = addStop;
+  $('shuffleBtn').onclick = () => {
+    // new colors only; positions, spreads and everything else stay put
+    const h0 = Math.random() * 360, step = 18 + Math.random() * 40;
+    S.stops.forEach((s, i) => { s.c = oklch(0.6 + Math.random() * 0.3, 0.07 + Math.random() * 0.13, (h0 + i * step) % 360); });
+    draw();
+  };
   $('baseColor').addEventListener('input', e => { S.base = e.target.value.toLowerCase(); draw(); });
   $('baseHex').addEventListener('input', e => {
     const v = normHex(e.target.value);
@@ -964,7 +1073,6 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     if (sel >= i) sel = Math.max(0, sel - 1);
     draw();
   }
-  $('removeBtn').onclick = () => removeStop(sel);
   $('reverseBtn').onclick = () => { S.stops.forEach(s => s.p = r1(100 - s.p)); draw(); };
   $('angle').addEventListener('input', e => { S.angle = +e.target.value; draw(); });
   $('motionOn').addEventListener('change', e => { S.motion.on = e.target.checked; draw(); });
