@@ -343,11 +343,11 @@ body, .card { transition: background-color .3s ease, color .3s ease, box-shadow 
 .arow:hover:not(:disabled) { background: var(--card-hover); }
 .arow:disabled { opacity: .38; cursor: default; }
 .card .row.off { opacity: .38; }
-.card .switch { width: 40px; height: 24px; }
+.card .switch { width: 34px; height: 20px; }
 .card .switch span { background: var(--card-line-strong); }
-.card .switch span::after { top: 3px; left: 3px; width: 18px; height: 18px; }
+.card .switch span::after { top: 2.5px; left: 2.5px; width: 15px; height: 15px; }
 .card .switch input:checked + span { background: var(--fg); }
-.card .switch input:checked + span::after { transform: translateX(16px); background: var(--card); box-shadow: none; }
+.card .switch input:checked + span::after { transform: translateX(14px); background: var(--card); box-shadow: none; }
 .card .row.off input { cursor: default; }
 .arow svg { flex: none; }
 .arow kbd { margin-left: auto; }
@@ -548,9 +548,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   .card .seg button { height: 38px; }
   .card input[type="range"], .card input[type="range"]::-webkit-slider-runnable-track, .card input[type="range"]::-moz-range-track, .card input[type="range"]::-moz-range-progress { height: 40px; }
   .card input[type="range"]::-webkit-slider-thumb { height: 18px; margin-top: 11px; }
-  .card .switch { width: 48px; height: 28px; }
-  .card .switch span::after { width: 22px; height: 22px; }
-  .card .switch input:checked + span::after { transform: translateX(20px); }
+  .card .switch { width: 42px; height: 24px; }
+  .card .switch span::after { top: 3px; left: 3px; width: 18px; height: 18px; }
+  .card .switch input:checked + span::after { transform: translateX(18px); }
   .swrow { gap: 12px; padding-top: 8px; }
   .sw, .sw.base, .swi.add button { width: 36px; height: 36px; border-radius: 7px; }
   .side .colorline .sw, .side .colorline .swi.add button { width: 34px; height: 34px; }
