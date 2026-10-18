@@ -124,7 +124,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
   transition: transform .15s;
 }
 .h:active { cursor: grabbing; }
-.h.sel { transform: scale(1.15); box-shadow: 0 1px 5px rgba(0,0,0,.35), 0 0 0 2px rgba(120,120,118,.85); }
+.h.sel { transform: scale(1.15); box-shadow: 0 1px 5px rgba(0,0,0,.35), 0 0 0 .75px rgba(120,120,118,.9); }
 .h.center { background: transparent; width: 22px; height: 22px; margin: -11px 0 0 -11px; }
 .h.center::after { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: #fff; }
 .meta {
@@ -202,7 +202,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .card .bar .k { width: 14px; height: 14px; margin-left: -7px; margin-top: -7px; border-radius: 4px; border-width: 2px; }
 .swrow { display: flex; flex-wrap: wrap; gap: 8px; padding: 2px 20px 6px; }
 .swi { position: relative; }
-.sw { position: relative; display: block; width: 28px; height: 28px; border-radius: 8px; overflow: hidden; cursor: pointer;
+.sw { position: relative; display: block; width: 28px; height: 28px; border-radius: 5px; overflow: hidden; cursor: pointer;
   box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); transition: box-shadow .15s; }
 .sw input { position: absolute; inset: -8px; width: calc(100% + 16px); height: calc(100% + 16px); border: 0; padding: 0; opacity: 0; cursor: pointer; }
 .swi.sel .sw { box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 0 0 2px var(--card), 0 0 0 3.5px var(--fg); }
@@ -216,13 +216,13 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .swi .x:hover { color: var(--fg); }
 @media (hover: none) { .swi .x { opacity: 1; } }
 .swi.add button {
-  width: 28px; height: 28px; border-radius: 8px; padding: 0; display: grid; place-items: center;
+  width: 28px; height: 28px; border-radius: 5px; padding: 0; display: grid; place-items: center;
   border: 1px dashed var(--card-line-strong); background: none; color: var(--muted);
 }
 .swi.add button:hover { color: var(--fg); border-color: var(--muted); }
 .swi.add button:disabled { opacity: .35; cursor: default; }
 .card .rl { font-size: 14px; }
-.sw.base { width: 28px; height: 28px; border-radius: 7px; }
+.sw.base { width: 28px; height: 28px; border-radius: 5px; }
 
 /* segmented type control */
 .card .grp:first-child .row:first-child { padding-top: 8px; padding-bottom: 4px; }
