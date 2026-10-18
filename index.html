@@ -199,7 +199,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
   animation: popin .16s ease-out;
 }
 .psep { height: 0; margin: 9px 0; }
-.side .row:has(> #modes) + .psep { margin: 3px 0; }
+.side .row:has(> #modes) + .psep { margin: 6px 0; }
 .menu { top: calc(100% + 8px); bottom: auto; left: auto; right: 0; width: 230px; padding: 6px 0; }
 .menu .arow { height: 40px; }
 @keyframes popin { from { opacity: 0; transform: translateY(6px); } }
@@ -217,9 +217,9 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .side-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; padding: 12px 0; }
 .side-scroll::-webkit-scrollbar { display: none; }
 .side .seg { flex: 1; margin: 2px 0 6px; }
-.side #modes { margin-bottom: 0; }
-.side #modes button { height: 28px; font-size: 13.5px; }
-.side .seg.tex { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.side #modes button { font-size: 13.5px; }
+.side #modes button, .side #sizes button { height: 30px; }
+.side .seg.tex { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .side .seg.tex button { font-size: 13px; }
 .side .row { padding: 0 18px; }
 .side .bar { margin: 4px 24px 22px; }
@@ -231,8 +231,9 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 /* the background reads as a round swatch, apart from the square colours that sit on it */
 .sw.base { border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12), 0 0 0 2px var(--card), 0 0 0 3px var(--card-line-strong); }
 .cdiv { width: 1px; height: 22px; background: var(--card-line-strong); }
-.side .seg.sizes { grid-template-columns: 1fr 1fr .8fr 1.25fr; margin: 8px 0 2px; }
-.seg.sizes button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: 28px; padding: 0 2px; font-size: 12px; white-space: nowrap; }
+.side .seg.sizes { grid-template-columns: 1fr 1fr .8fr 1.25fr; margin-bottom: 0; }
+.side .row:has(> #sizes) + .row > #modes { margin-top: 8px; }
+.seg.sizes button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 0 2px; font-size: 12px; white-space: nowrap; }
 .seg.sizes button svg { width: 15px; height: 14px; flex: none; }
 
 .sidebtn { display: none; }
@@ -528,7 +529,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   .h.center::before { inset: -11px; }
   .card .row { min-height: 44px; }
   .card .ib { width: 40px; height: 40px; }
-  .card .seg button { height: 38px; }
+  .card .seg button, .side #modes button, .side #sizes button { height: 38px; }
   .card input[type="range"], .card input[type="range"]::-webkit-slider-runnable-track, .card input[type="range"]::-moz-range-track, .card input[type="range"]::-moz-range-progress { height: 40px; }
   .card input[type="range"]::-webkit-slider-thumb { height: 18px; margin-top: 11px; }
   .card .switch { width: 48px; height: 28px; }
@@ -620,14 +621,14 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   <aside class="side card" id="side" aria-label="Settings">
     <div class="side-scroll">
       <div class="row">
+        <div class="seg sizes" id="sizes" role="radiogroup" aria-label="Size"></div>
+      </div>
+      <div class="row">
         <div class="seg" id="modes" role="group" aria-label="Gradient type">
           <button type="button" data-mode="linear">Linear</button>
           <button type="button" data-mode="radial">Radial</button>
           <button type="button" data-mode="mesh">Mesh</button>
         </div>
-      </div>
-      <div class="row">
-        <div class="seg sizes" id="sizes" role="radiogroup" aria-label="Size"></div>
       </div>
       <div class="psep"></div>
       <div class="row">
@@ -652,11 +653,19 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
         <label for="blur">Blur</label>
         <input type="range" id="blur" min="0" max="200" step="1"><output id="blurOut"></output>
       </div>
+      <div class="row slide">
+        <label for="grain">Noise</label>
+        <input type="range" id="grain" min="0" max="40" step="1"><output id="grainOut"></output>
+      </div>
       <div class="psep"></div>
-      <div class="row"><span class="lbl">Texture</span></div>
       <div class="row">
+        <span class="lbl">Texture</span>
+        <label class="switch" title="Glass texture">
+          <input type="checkbox" id="texOn" aria-label="Glass texture"><span aria-hidden="true"></span>
+        </label>
+      </div>
+      <div class="row" id="texKindsRow">
         <div class="seg tex" id="texKinds" role="group" aria-label="Texture">
-          <button type="button" data-tex="none">None</button>
           <button type="button" data-tex="fluted">Fluted</button>
           <button type="button" data-tex="ripple">Ripple</button>
           <button type="button" data-tex="grid">Grid</button>
@@ -669,10 +678,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       <div class="row slide" id="texDepthField">
         <label for="texDepth">Depth</label>
         <input type="range" id="texDepth" min="0" max="100" step="1"><output id="texDepthOut"></output>
-      </div>
-      <div class="row slide">
-        <label for="grain">Noise</label>
-        <input type="range" id="grain" min="0" max="40" step="1"><output id="grainOut"></output>
       </div>
       <div class="psep"></div>
       <div class="row">
@@ -754,7 +759,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const r1 = v => Math.round(v * 10) / 10;
 
-  const TEXTURES = { none: 'None', fluted: 'Fluted', ripple: 'Ripple', grid: 'Grid' };
+  const TEXTURES = { fluted: 'Fluted', ripple: 'Ripple', grid: 'Grid' };
   const FORMATS = {
     '16:9': [1920, 1080, 'Desktop 16:9'],
     '9:16': [1080, 1920, 'Phone 9:16'],
@@ -802,7 +807,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     mode: p.mode, angle: p.angle, cx: p.cx, cy: p.cy, base: p.base, grain: p.grain,
     format: S ? S.format : '16:9', blur: p.blur ?? 100,
     motion: S ? { ...S.motion } : { on: false, speed: 8, amount: 50 },
-    texture: S ? { ...S.texture } : { kind: 'none', scale: 50, depth: 50 },
+    texture: S ? { ...S.texture } : { on: false, kind: 'fluted', scale: 50, depth: 50 },
     stops: p.stops.map(([c, pos, x, y, s]) => ({ c, p: pos, x, y, s })),
   });
 
@@ -818,7 +823,10 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (typeof st.blur !== 'number') st.blur = 100;
     if (!FORMATS[st.format]) st.format = '16:9';
     if (!st.motion) st.motion = { on: false, speed: 8, amount: 50 };
-    if (!st.texture || !TEXTURES[st.texture.kind]) st.texture = { kind: 'none', scale: 50, depth: 50 };
+    // texture has an on/off switch; older saves marked "off" with the kind 'none'
+    if (!st.texture) st.texture = { on: false, kind: 'fluted', scale: 50, depth: 50 };
+    if (typeof st.texture.on !== 'boolean') st.texture.on = !!TEXTURES[st.texture.kind];
+    if (!TEXTURES[st.texture.kind]) st.texture.kind = 'fluted';
     return st;
   };
   let S = null;
@@ -937,7 +945,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   let texSrc = null, texTiles = null;
   function applyTexture(ctx, w, h, st) {
     const tx = st.texture;
-    if (!tx || tx.kind === 'none' || w < 8 || h < 8) return;
+    if (!tx || !tx.on || w < 8 || h < 8) return;
     if (!texSrc) texSrc = document.createElement('canvas');
     if (texSrc.width !== w || texSrc.height !== h) { texSrc.width = w; texSrc.height = h; }
     const src = texSrc.getContext('2d', { willReadFrequently: true });
@@ -1181,8 +1189,11 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     $('blur').value = S.blur; $('blurOut').textContent = S.blur + '%';
     $('grain').value = S.grain; $('grainOut').textContent = S.grain;
     const tx = S.texture;
-    texBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tex === tx.kind)));
-    $('texSizeField').hidden = $('texDepthField').hidden = tx.kind === 'none';
+    texBtns.forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.tex === tx.kind)); b.disabled = !tx.on; });
+    $('texOn').checked = tx.on;
+    // switched off, the texture controls stay in view but grey out, like Motion's
+    ['texKindsRow', 'texSizeField', 'texDepthField'].forEach(id => $(id).classList.toggle('off', !tx.on));
+    $('texSize').disabled = $('texDepth').disabled = !tx.on;
     $('texSize').value = tx.scale; $('texSizeOut').textContent = tx.scale + '%';
     $('texDepth').value = tx.depth; $('texDepthOut').textContent = tx.depth + '%';
     $('sizes').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === S.format)));
@@ -1201,7 +1212,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     $('mp4Btn').title = mo.on ? '' : 'Turn on Motion to export a video';
     const notes = [];
     if (S.grain || S.blur > 100) notes.push('Copied CSS leaves out grain and blur above 100%.');
-    if (S.texture.kind !== 'none') notes.push('Textures are only in the PNG and video.');
+    if (S.texture.on) notes.push('Textures are only in the PNG and video.');
     if (mo.on) notes.push('Copied CSS and the PNG are a still frame.');
     $('copyBtn').title = notes.join(' ');
     document.querySelectorAll('.card input[type="range"]').forEach(r => {
@@ -1476,6 +1487,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   // Texture: the kind of glass, how big its ribs or tiles are, and how strongly it bends.
   const texBtns = [...document.querySelectorAll('#texKinds button')];
   texBtns.forEach(b => b.onclick = () => { S.texture.kind = b.dataset.tex; draw(); });
+  $('texOn').addEventListener('change', e => { S.texture.on = e.target.checked; draw(); });
   $('texSize').addEventListener('input', e => { S.texture.scale = +e.target.value; draw(); });
   $('texDepth').addEventListener('input', e => { S.texture.depth = +e.target.value; draw(); });
 
