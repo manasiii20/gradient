@@ -116,16 +116,24 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .frame canvas { display: block; width: 100%; height: 100%; border-radius: 24px; }
 .handles { position: absolute; inset: 0; }
 .h {
-  position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px;
-  border-radius: 50%; border: 2.5px solid #fff; padding: 0;
-  box-shadow: 0 1px 4px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.15);
+  /* glass handle: frosted ring with the color as a dot in the middle */
+  --c: #fff;
+  position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; padding: 0;
+  border-radius: 50%; border: 1px solid rgba(255,255,255,.65);
+  background: linear-gradient(145deg, rgba(255,255,255,.42), rgba(255,255,255,.08) 55%, rgba(255,255,255,.2));
+  -webkit-backdrop-filter: blur(8px) saturate(1.6); backdrop-filter: blur(8px) saturate(1.6);
+  box-shadow: 0 4px 14px rgba(0,0,0,.18), inset 0 1px 1px rgba(255,255,255,.7), inset 0 -1px 2px rgba(0,0,0,.08);
   touch-action: none; cursor: grab;
-  transition: transform .15s;
+  transition: transform .18s cubic-bezier(.3,1.4,.5,1), box-shadow .18s;
 }
+.h::after {
+  content: ""; position: absolute; inset: 8px; border-radius: 50%; background: var(--c);
+  box-shadow: 0 0 0 1.5px rgba(255,255,255,.9), 0 1px 3px rgba(0,0,0,.25);
+}
+.h:hover { transform: scale(1.08); }
 .h:active { cursor: grabbing; }
-.h.sel { transform: scale(1.3); box-shadow: 0 1px 6px rgba(0,0,0,.4), 0 0 0 2px rgba(0,0,0,.6); }
-.h.center { background: transparent; width: 26px; height: 26px; margin: -13px 0 0 -13px; }
-.h.center::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: #fff; }
+.h.sel { transform: scale(1.18); border-color: rgba(255,255,255,.95); box-shadow: 0 6px 18px rgba(0,0,0,.26), 0 0 0 1px rgba(0,0,0,.12), inset 0 1px 1px rgba(255,255,255,.8); }
+.h.center::after { inset: 10px; background: #fff; }
 .meta {
   text-align: center; font: 12px var(--mono); color: var(--muted);
   padding: 0 16px 14px; font-variant-numeric: tabular-nums;
@@ -432,7 +440,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 <header class="top">
   <div class="brand">Gradient</div>
   <div class="top-actions">
-    <button class="btn" id="libBtn" type="button" title="Library (L) · save with S">Library <span class="count" id="libCount">0</span></button>
+    <button class="btn icon" id="libBtn" type="button" aria-label="Library" title="Library (L) · save with S"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="3" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     <div class="hist" role="group" aria-label="History">
       <button class="btn icon" id="undoBtn" type="button" aria-label="Undo" title="Undo (Ctrl+Z / ⌘Z)" disabled><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M7.5 4.5L4 8l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M4 8h7.5a4.5 4.5 0 0 1 0 9H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
       <button class="btn icon" id="redoBtn" type="button" aria-label="Redo" title="Redo (Shift+Ctrl+Z / ⇧⌘Z)" disabled><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M12.5 4.5L16 8l-3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M16 8H8.5a4.5 4.5 0 0 0 0 9H11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
@@ -916,7 +924,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     if (S.mode === 'mesh') {
       S.stops.forEach((s, i) => {
         const h = mkHandle(s.x, s.y, `Move ${s.c}`);
-        h.style.background = s.c;
+        h.style.setProperty('--c', s.c);
         if (i === sel) h.classList.add('sel');
         h.dataset.i = i;
       });
@@ -1456,7 +1464,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     : { id: Date.now() - i, savedAt: Date.now(), state: migrate(e) });
   library.forEach(e => { if (!e.name) e.name = funName(e.state, library.map(x => x.name)); });
   const persistLib = () => store.set('gb-saved', library);
-  const libCount = () => { $('libCount').textContent = library.length; };
+  const libCount = () => { $('libBtn').title = `Library · ${library.length} saved (L) · save with S`; };
 
   function saveToLibrary() {
     const name = funName(S, library.map(x => x.name));
