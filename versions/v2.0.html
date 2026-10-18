@@ -37,6 +37,7 @@
     --primary: #c4c3bd;
     --card: #222221; --card-edge: rgba(255,255,255,.07); --card-line: rgba(255,255,255,.08); --card-line-strong: rgba(255,255,255,.18);
     --card-hover: rgba(255,255,255,.04); --card-sel: rgba(255,255,255,.07); --dot: rgba(255,255,255,.07); color-scheme: dark;
+    --opt-track: #171716; --opt-on: #3b3b38;
   }
 }
 :root[data-theme="dark"] {
@@ -47,6 +48,7 @@
     --primary: #c4c3bd;
     --card: #222221; --card-edge: rgba(255,255,255,.07); --card-line: rgba(255,255,255,.08); --card-line-strong: rgba(255,255,255,.18);
     --card-hover: rgba(255,255,255,.04); --card-sel: rgba(255,255,255,.07); --dot: rgba(255,255,255,.07); color-scheme: dark;
+    --opt-track: #171716; --opt-on: #3b3b38;
 }
 
 * { box-sizing: border-box; }
@@ -165,7 +167,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
   box-shadow: 0 0 0 1px var(--card-edge), 0 18px 40px -24px rgba(0,0,0,.22);
 }
 .grp { padding: 6px 0; flex: 1 0 auto; display: flex; flex-direction: column; justify-content: center; border-top: 1px solid var(--card-line); }
-.grp:first-child { border-top: 0; }
+.grp:first-child { border-top: 0; flex: 0 0 auto; justify-content: flex-start; padding: 12px 0 10px; } /* type + size stay put when switching type */
 .card .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; padding: 0 20px; }
 .card .lbl { font-weight: 600; font-size: 14px; }
 .card .dims { justify-content: flex-start; gap: 0; font-variant-numeric: tabular-nums; }
@@ -203,9 +205,9 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .card .ib:hover { background: var(--card-hover); }
 .card .ib:disabled { opacity: .3; cursor: default; background: none; }
 
-.card .bar { margin: 2px 26px 16px; height: 14px; border-radius: 5px; }
+.card .bar { margin: 10px 26px 22px; height: 14px; border-radius: 5px; }
 .card .bar .k { width: 14px; height: 14px; margin-left: -7px; margin-top: -7px; border-radius: 4px; border-width: 2px; }
-.swrow { display: flex; flex-wrap: wrap; gap: 8px; padding: 2px 20px 6px; }
+.swrow { display: flex; flex-wrap: wrap; gap: 10px; padding: 6px 20px 12px; }
 .swi { position: relative; }
 .sw { position: relative; display: block; width: 28px; height: 28px; border-radius: 5px; overflow: hidden; cursor: pointer;
   box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); transition: box-shadow .15s; }
@@ -338,9 +340,10 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .vset { display: grid; gap: 12px; }
 .vrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .vrow > span { font-size: 14px; color: var(--muted); }
-.opts { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; }
+.opts { display: inline-flex; background: var(--opt-track, var(--chip)); border-radius: 9px; padding: 3px; gap: 2px; }
 .opts button { border: 0; background: none; height: 28px; padding: 0 12px; border-radius: 7px; font: 500 13px var(--sans); color: var(--muted); }
-.opts button[aria-pressed="true"] { background: var(--panel); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.14); }
+.opts button[aria-pressed="true"] { background: var(--opt-on, var(--panel)); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.14); }
+.opts button:not([aria-pressed="true"]):hover { color: var(--fg); }
 .vprev { position: relative; height: min(42vh, 380px); border-radius: 10px; overflow: hidden; background: #0d0d0c; }
 .sheet .vprev video { width: 100%; height: 100%; max-height: none; object-fit: contain; display: block; border-radius: 0; background: transparent; }
 .vprev.px video { object-fit: none; }
@@ -379,8 +382,9 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   animation: libin .28s cubic-bezier(.2,.7,.2,1);
 }
 @keyframes libin { from { opacity: 0; transform: translateY(14px); } }
-.libview-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 0 auto 20px; max-width: 1480px; }
+.libview-head { display: flex; justify-content: flex-start; align-items: center; gap: 14px; margin: 0 auto 20px; max-width: 1480px; }
 .libview-title { display: flex; align-items: baseline; gap: 12px; }
+.libview-head #libClose { width: 36px; height: 36px; border-radius: 50%; }
 .libview-title h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
 .libview-title span { font: 12px var(--mono); color: var(--muted); }
 .libgrid {
@@ -444,6 +448,68 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   .panel { padding: 8px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); }
   .top .label { display: none; }
 }
+/* ---------- Touch screens: bigger targets, no keyboard hints ---------- */
+button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+@media (hover: none), (pointer: coarse), (max-width: 480px) { kbd, .arow kbd { display: none; } }
+@media (pointer: coarse) {
+  .btn { height: 40px; }
+  .btn.icon { width: 40px; }
+  /* handles keep their look but get a finger-sized hit area */
+  .h::before, .bar .k::before { content: ""; position: absolute; inset: -13px; border-radius: 50%; }
+  .h.center::before { inset: -11px; }
+  .card .row { min-height: 44px; }
+  .card .ib { width: 40px; height: 40px; }
+  .card .seg button { height: 38px; }
+  .card input[type="range"] { height: 36px; }
+  .card input[type="range"]::-webkit-slider-thumb { width: 26px; height: 26px; margin-top: -11.5px; }
+  .card input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; }
+  .card .switch { width: 48px; height: 28px; }
+  .card .switch span::after { width: 22px; height: 22px; }
+  .card .switch input:checked + span::after { transform: translateX(20px); }
+  .swrow { gap: 12px; padding-top: 8px; }
+  .sw, .sw.base, .swi.add button { width: 36px; height: 36px; border-radius: 7px; }
+  .swi .x { width: 20px; height: 20px; top: -8px; right: -8px; font-size: 13px; }
+  .swi .x::before { content: ""; position: absolute; inset: -8px; }
+  .dd-btn { height: 40px; }
+  .dd-menu li { height: 46px; }
+  .arow { height: 48px; }
+  .opts button { height: 36px; padding: 0 14px; }
+  .tile > button:first-child { width: 72px; height: 46px; }
+  .sleeve .acts button { height: 34px; padding: 0 14px; font-size: 12px; }
+  .savepill { height: 36px; padding: 0 16px; font-size: 13px; }
+  /* iOS zooms into anything typed under 16px */
+  .sleeve .tl .nm[contenteditable="true"] { font-size: 16px; }
+  .hex { font-size: 16px; }
+}
+
+/* ---------- Small phones ---------- */
+@media (max-width: 480px) {
+  .top { padding-block: 8px; gap: 8px; }
+  .top-actions { gap: 6px; flex-wrap: nowrap; }
+  .top .btn { height: 38px; }
+  .top .btn.icon { width: 38px; }
+  .top #randomBtn { padding: 0 12px; }
+  .stage { padding: 14px 16px 10px; }
+  .frame, .frame canvas { border-radius: 18px; }
+  .lib-row { grid-template-columns: minmax(0, 1fr); gap: 6px; padding-left: 16px; }
+  .card .row { padding: 0 16px; }
+  .swrow { padding-left: 16px; padding-right: 16px; }
+  .card .row.slide { grid-template-columns: 84px minmax(0, 1fr); }
+  .libview { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .libview-title h2 { font-size: 20px; }
+  .overlay { padding: 12px; align-items: end; }
+  .sheet { padding: 16px; border-radius: 16px; }
+  .vrow { gap: 8px; }
+  .vrow .opts { width: 100%; }
+  .vrow .opts button { flex: 1; }
+  .vprev { height: min(36vh, 300px); }
+  .sheet-actions .btn { flex: 1; justify-content: center; }
+  .sheet-actions { position: sticky; bottom: -16px; z-index: 2; margin: 0 -16px -16px; padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--panel); border-top: 1px solid var(--line); }
+}
+@media (max-width: 350px) {
+  .brand { display: none; }
+  .top { justify-content: flex-end; }
+}
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -505,10 +571,6 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
         </div>
         <div class="bar" id="bar" title="Click to add a color"></div>
         <div class="swrow" id="colorList"></div>
-        <div class="row slide" id="posField">
-          <label for="selPos">Position</label>
-          <input type="range" id="selPos" min="0" max="100" step="1"><output id="posOut" hidden></output>
-        </div>
         <div class="row slide" id="sizeField">
           <label for="selSize">Spread</label>
           <input type="range" id="selSize" min="15" max="120" step="1"><output id="sizeOut" hidden></output>
@@ -590,11 +652,11 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 </div>
 <div class="libview" id="libView" hidden role="dialog" aria-modal="true" aria-labelledby="libTitle">
   <header class="libview-head">
+    <button class="btn icon" id="libClose" type="button" aria-label="Back" title="Back (Esc)"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M16 10H4M9 5l-5 5 5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     <div class="libview-title">
       <h2 id="libTitle">Library</h2>
       <span id="libSub"></span>
     </div>
-    <button class="btn" id="libClose" type="button">Close <kbd>Esc</kbd></button>
   </header>
   <div class="libgrid" id="libGrid"></div>
   <div class="libempty" id="libEmpty" hidden>
@@ -647,6 +709,12 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     { name: 'Sea', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#08585f', grain: 4, blur: 95,
       stops: [['#09606d', 0, 50, -6, 62], ['#075057', 15, 84, 34, 44], ['#003548', 30, 14, 46, 46],
               ['#227a86', 45, 52, 66, 26], ['#dde2e8', 60, 50, 112, 64], ['#d6e0e8', 70, 6, 104, 50], ['#d2ecf2', 85, 96, 104, 50], ['#efe2ea', 100, 32, 88, 22]] },
+    { name: 'Peach glow', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#f7dcae', grain: 16, blur: 95,
+      stops: [['#fbf1dc', 0, 104, 0, 50], ['#f8e08e', 16, 62, 6, 50], ['#f3a848', 32, 30, 40, 74], ['#f4a256', 48, 50, 62, 50],
+              ['#f2849a', 64, -6, 74, 36], ['#f4683f', 82, 24, 100, 58], ['#f6c6cc', 100, 106, 92, 46]] },
+    { name: 'Lavender moons', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#f6f4f5', grain: 4, blur: 100,
+      stops: [['#f3dff3', 0, 0, 0, 42], ['#bcc5f2', 16, 104, -2, 50], ['#dcd7f5', 32, 50, 22, 32], ['#cec6f6', 48, 50, 40, 34],
+              ['#93a5f7', 64, 50, 60, 36], ['#f3cdee', 80, 50, 79, 30], ['#d0e0f4', 100, 30, 108, 50]] },
   ];
   const fromPreset = p => ({
     mode: p.mode, angle: p.angle, cx: p.cx, cy: p.cy, base: p.base, grain: p.grain,
@@ -919,9 +987,8 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     // colors
     renderColors();
     const canRemove = S.stops.length > minStops();
-    $('selPos').value = cur.p; $('posOut').textContent = Math.round(cur.p) + '%';
     $('selSize').value = cur.s; $('sizeOut').textContent = Math.round(cur.s) + '%';
-    $('posField').hidden = mesh; $('sizeField').hidden = !mesh;
+    $('sizeField').hidden = !mesh;
     $('baseRow').hidden = !mesh;
     $('baseColor').value = S.base;
     $('baseColor').parentElement.style.background = S.base;
@@ -1142,7 +1209,6 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     draw();
   };
   $('baseColor').addEventListener('input', e => { S.base = e.target.value.toLowerCase(); draw(); });
-  $('selPos').addEventListener('input', e => { S.stops[sel].p = +e.target.value; draw(); });
   $('selSize').addEventListener('input', e => { S.stops[sel].s = +e.target.value; draw(); });
   // Mesh works with a single color over the background; line types need two.
   function minStops() { return S.mode === 'mesh' ? 1 : 2; }
@@ -1750,7 +1816,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
       card.type = 'button'; card.className = 'sleeve savecard';
       card.setAttribute('aria-label', 'Save the current gradient to the library');
       card.innerHTML = `
-        <div class="tl"><span class="nm">Save this gradient</span><br>— ${MODE_NAME[S.mode]} · ${S.stops.length} colors<small>${S.motion.on ? `${S.motion.speed}s loop` : 'Still'} · press S anytime</small></div>
+        <div class="tl"><span class="nm">Save this gradient</span><br>— ${MODE_NAME[S.mode]} · ${S.stops.length} colors<small>${S.motion.on ? `${S.motion.speed}s loop` : 'Still'}${matchMedia('(hover: none), (pointer: coarse)').matches ? '' : ' · press S anytime'}</small></div>
         <div class="tr">New</div>
         <div class="bl">${dateStr(Date.now())}</div>
         <div class="br">Gradient</div>
