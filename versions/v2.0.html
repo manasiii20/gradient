@@ -23,21 +23,30 @@
   --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --r: 10px;
   --frame-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 20px 50px -28px rgba(0,0,0,.28);
+  --primary: #171716;
+  --card: #ffffff; --card-edge: rgba(0,0,0,.06); --card-line: rgba(0,0,0,.08); --card-line-strong: rgba(0,0,0,.16);
+  --card-hover: rgba(0,0,0,.035); --card-sel: rgba(0,0,0,.06); --dot: rgba(0,0,0,.09);
   --art-shadow: 0 0 0 .5px rgba(0,0,0,.06), 0 10px 24px -14px rgba(0,0,0,.28);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #111110; --panel: #191918; --line: #2c2c2a; --fg: #ecebe7; --muted: #99988f;
+    --bg: #191918; --panel: #222221; --line: #2c2c2a; --fg: #ecebe7; --muted: #99988f;
     --chip: #242422; --focus: #7c9fff; --on-fg: #141413;
-    --frame-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 24px 60px -28px rgba(0,0,0,.45);
-    --art-shadow: 0 0 0 .5px rgba(255,255,255,.08), 0 12px 28px -14px rgba(0,0,0,.7); color-scheme: dark;
+    --frame-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 26px 60px -24px rgba(0,0,0,.95), 0 10px 24px -12px rgba(0,0,0,.6);
+    --art-shadow: 0 0 0 .5px rgba(255,255,255,.08), 0 12px 28px -14px rgba(0,0,0,.7);
+    --primary: #c4c3bd;
+    --card: #222221; --card-edge: rgba(255,255,255,.07); --card-line: rgba(255,255,255,.08); --card-line-strong: rgba(255,255,255,.18);
+    --card-hover: rgba(255,255,255,.04); --card-sel: rgba(255,255,255,.07); --dot: rgba(255,255,255,.07); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #111110; --panel: #191918; --line: #2c2c2a; --fg: #ecebe7; --muted: #99988f;
+  --bg: #191918; --panel: #222221; --line: #2c2c2a; --fg: #ecebe7; --muted: #99988f;
   --chip: #242422; --focus: #7c9fff; --on-fg: #141413;
-    --frame-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 24px 60px -28px rgba(0,0,0,.45);
-    --art-shadow: 0 0 0 .5px rgba(255,255,255,.08), 0 12px 28px -14px rgba(0,0,0,.7); color-scheme: dark;
+    --frame-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 26px 60px -24px rgba(0,0,0,.95), 0 10px 24px -12px rgba(0,0,0,.6);
+    --art-shadow: 0 0 0 .5px rgba(255,255,255,.08), 0 12px 28px -14px rgba(0,0,0,.7);
+    --primary: #c4c3bd;
+    --card: #222221; --card-edge: rgba(255,255,255,.07); --card-line: rgba(255,255,255,.08); --card-line-strong: rgba(255,255,255,.18);
+    --card-hover: rgba(255,255,255,.04); --card-sel: rgba(255,255,255,.07); --dot: rgba(255,255,255,.07); color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -57,41 +66,43 @@ button { cursor: pointer; }
 
 /* ---------- Top bar ---------- */
 .top {
+  background: var(--card);
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding-block: 12px;
+  padding-block: 9px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   border-bottom: 1px solid var(--line);
 }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; font-size: 15px; }
-.brand i { width: 18px; height: 18px; border-radius: 5px; display: block; background: var(--logo, linear-gradient(135deg, #ff7a59, #ffd36e)); box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
 .top-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
-  height: 34px; padding: 0 14px;
+  height: 32px; padding: 0 12px; font-size: 13px;
   border-radius: 8px; border: 1px solid var(--line);
   background: var(--panel); font-weight: 500; white-space: nowrap;
 }
 .btn:hover { border-color: var(--muted); }
 .btn.primary { background: var(--fg); color: var(--on-fg); border-color: var(--fg); }
 .btn.primary:hover { opacity: .88; }
-.btn.icon { width: 34px; padding: 0; justify-content: center; }
-.btn.icon .moon { display: none; }
+.btn.icon { width: 32px; padding: 0; justify-content: center; }
+.btn.theme .sun { display: none; }
+.btn.theme.is-dark .sun { display: block; }
+.btn.theme.is-dark .moon { display: none; }
 .btn:disabled { opacity: .4; cursor: default; }
 .btn:disabled:hover { border-color: var(--line); }
 .hist { display: flex; }
 .hist .btn:first-child { border-radius: 8px 0 0 8px; }
 .hist .btn:last-child { border-radius: 0 8px 8px 0; margin-left: -1px; }
-.btn.icon.to-dark .moon { display: block; }
-.btn.icon.to-dark .sun { display: none; }
 kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 1px solid currentColor; opacity: .55; }
 
 /* ---------- Main ---------- */
 .app {
   flex: 1; min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-columns: minmax(0, 1fr) 356px;
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.2px);
+  background-size: 22px 22px;
 }
 .work { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .stage {
@@ -102,23 +113,25 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 }
 .frame {
   position: relative;
-  border-radius: 6px;
+  border-radius: 24px;
   box-shadow: var(--frame-shadow);
   max-width: 100%;
 }
-.frame canvas { display: block; width: 100%; height: 100%; border-radius: 6px; }
+.frame.circle, .frame.circle canvas, .sleeve .art.circle, .sleeve .art.circle canvas { border-radius: 50%; }
+.frame canvas { display: block; width: 100%; height: 100%; border-radius: 24px; }
 .handles { position: absolute; inset: 0; }
 .h {
-  position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px;
-  border-radius: 50%; border: 2.5px solid #fff; padding: 0;
+  --c: #fff;
+  position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px;
+  border-radius: 50%; border: 2px solid #fff; padding: 0; background: var(--c);
   box-shadow: 0 1px 4px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.15);
   touch-action: none; cursor: grab;
   transition: transform .15s;
 }
 .h:active { cursor: grabbing; }
-.h.sel { transform: scale(1.3); box-shadow: 0 1px 6px rgba(0,0,0,.4), 0 0 0 2px rgba(0,0,0,.6); }
-.h.center { background: transparent; width: 26px; height: 26px; margin: -13px 0 0 -13px; }
-.h.center::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: #fff; }
+.h.sel { transform: scale(1.25); box-shadow: 0 1px 5px rgba(0,0,0,.35), 0 0 0 .75px rgba(120,120,118,.9); }
+.h.center { background: transparent; width: 22px; height: 22px; margin: -11px 0 0 -11px; }
+.h.center::after { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: #fff; }
 .meta {
   text-align: center; font: 12px var(--mono); color: var(--muted);
   padding: 0 16px 14px; font-variant-numeric: tabular-nums;
@@ -143,13 +156,122 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .tile:hover .del, .tile .del:focus-visible { display: block; }
 .empty { color: var(--muted); font-size: 12px; padding: 10px 0; }
 
-/* ---------- Panel ---------- */
-.panel {
-  min-height: 0; overflow-y: auto;
-  background: var(--panel);
-  border-left: 1px solid var(--line);
-  padding: 4px 18px 24px;
+/* ---------- Panel: one floating card ---------- */
+.panel { min-height: 0; overflow-y: auto; padding: 12px 20px 20px 0; scrollbar-width: none; }
+.panel::-webkit-scrollbar { display: none; }
+.card {
+  min-height: 100%; display: flex; flex-direction: column; box-sizing: border-box;
+  background: var(--card); border-radius: 18px;
+  box-shadow: 0 0 0 1px var(--card-edge), 0 18px 40px -24px rgba(0,0,0,.22);
 }
+.grp { padding: 6px 0; flex: 1 0 auto; display: flex; flex-direction: column; justify-content: center; border-top: 1px solid var(--card-line); }
+.grp:first-child { border-top: 0; }
+.card .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; padding: 0 20px; }
+.card .lbl { font-weight: 600; font-size: 14px; }
+.card .dims { justify-content: flex-start; gap: 0; font-variant-numeric: tabular-nums; }
+.card .dims > span { width: 50%; display: flex; gap: 14px; }
+.card .dims b { font-weight: 600; }
+.card .row.slide { display: grid; grid-template-columns: 92px minmax(0, 1fr); }
+.card .row.slide label { font-size: 14px; }
+.card select.pick {
+  -webkit-appearance: none; appearance: none; border: 0; background-color: transparent; width: auto; max-width: 220px;
+  height: 32px; padding: 0 20px 0 6px; font: 14px var(--sans); color: var(--fg); text-align: right; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' fill='none' stroke='%238a8984' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 2px center;
+}
+.card select.pick option { color: initial; }
+.card select.pick:hover { opacity: .75; }
+
+.card input[type="range"] { -webkit-appearance: none; appearance: none; height: 24px; margin: 0; background: transparent; cursor: pointer; }
+.card input[type="range"]::-webkit-slider-runnable-track {
+  height: 3px; border-radius: 2px;
+  background: linear-gradient(to right, var(--fg) var(--p, 50%), var(--card-line-strong) var(--p, 50%));
+}
+.card input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 20px; height: 20px; margin-top: -8.5px; border-radius: 50%; background: #fff;
+  box-shadow: 0 0 0 .5px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.2);
+}
+.card input[type="range"]::-moz-range-track { height: 3px; border-radius: 2px; background: var(--card-line-strong); }
+.card input[type="range"]::-moz-range-progress { height: 3px; border-radius: 2px; background: var(--fg); }
+.card input[type="range"]::-moz-range-thumb {
+  width: 20px; height: 20px; border: 0; border-radius: 50%; background: #fff;
+  box-shadow: 0 0 0 .5px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.2);
+}
+
+.card .icons { display: flex; gap: 2px; margin-right: -6px; }
+.card .ib { width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 8px; background: none; color: var(--fg); padding: 0; }
+.card .ib:hover { background: var(--card-hover); }
+.card .ib:disabled { opacity: .3; cursor: default; background: none; }
+
+.card .bar { margin: 2px 26px 16px; height: 14px; border-radius: 5px; }
+.card .bar .k { width: 14px; height: 14px; margin-left: -7px; margin-top: -7px; border-radius: 4px; border-width: 2px; }
+.swrow { display: flex; flex-wrap: wrap; gap: 8px; padding: 2px 20px 6px; }
+.swi { position: relative; }
+.sw { position: relative; display: block; width: 28px; height: 28px; border-radius: 5px; overflow: hidden; cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); transition: box-shadow .15s; }
+.sw input { position: absolute; inset: -8px; width: calc(100% + 16px); height: calc(100% + 16px); border: 0; padding: 0; opacity: 0; cursor: pointer; }
+.swi.sel .sw { box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 0 0 2px var(--card), 0 0 0 3.5px var(--fg); }
+.sw:focus-within { outline: 2px solid var(--focus); outline-offset: 3px; }
+.swi .x {
+  position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; padding: 0; border-radius: 50%;
+  border: 1px solid var(--card-line-strong); background: var(--card); color: var(--muted);
+  font-size: 12px; line-height: 1; display: grid; place-items: center; opacity: 0; transition: opacity .15s;
+}
+.swi:hover .x, .swi .x:focus-visible { opacity: 1; }
+.swi .x:hover { color: var(--fg); }
+@media (hover: none) { .swi .x { opacity: 1; } }
+.swi.add button {
+  width: 28px; height: 28px; border-radius: 5px; padding: 0; display: grid; place-items: center;
+  border: 1px dashed var(--card-line-strong); background: none; color: var(--muted);
+}
+.swi.add button:hover { color: var(--fg); border-color: var(--muted); }
+.swi.add button:disabled { opacity: .35; cursor: default; }
+.card .rl { font-size: 14px; }
+.sw.base { width: 28px; height: 28px; border-radius: 5px; }
+
+/* segmented type control */
+.card .grp:first-child .row:first-child { padding-top: 8px; padding-bottom: 4px; }
+.card .seg { flex: 1; background: var(--card-sel); border-radius: 10px; padding: 3px; }
+.card .seg button { height: 32px; border-radius: 8px; font-size: 14px; }
+.card .seg button[aria-pressed="true"] { background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 0 0 .5px rgba(0,0,0,.06); }
+
+/* size dropdown */
+.dd { position: relative; }
+.dd-btn { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px; margin-right: -8px; border: 0; border-radius: 8px; background: none; color: var(--fg); font: 14px var(--sans); }
+.dd-btn:hover, .dd-btn[aria-expanded="true"] { background: var(--card-hover); }
+.dd-btn svg { color: var(--muted); transition: transform .15s; }
+.dd-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+.dd-menu {
+  position: absolute; right: -8px; top: calc(100% + 6px); z-index: 20; min-width: 250px; margin: 0; padding: 6px; list-style: none;
+  background: var(--card); border-radius: 12px; box-shadow: 0 0 0 1px var(--card-edge), 0 16px 40px -12px rgba(0,0,0,.28);
+}
+.dd-menu:focus { outline: none; }
+.dd-menu li {
+  display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: center; gap: 10px;
+  height: 36px; padding: 0 10px; border-radius: 8px; font-size: 14px; cursor: pointer;
+}
+.dd-menu li:hover, .dd-menu li:focus { background: var(--card-hover); outline: none; }
+.dd-menu li .ck { visibility: hidden; color: var(--fg); }
+.dd-menu li[aria-selected="true"] .ck { visibility: visible; }
+.dd-menu li .dim { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+
+.acts { padding: 4px 0; border-radius: 0 0 18px 18px; overflow: hidden; }
+.arow {
+  display: flex; align-items: center; gap: 12px; width: 100%; height: 38px; padding: 0 20px;
+  border: 0; background: none; color: var(--fg); font: 14px var(--sans); text-align: left;
+}
+.arow:hover:not(:disabled) { background: var(--card-hover); }
+.arow:disabled { opacity: .38; cursor: default; }
+.card .row.off { opacity: .38; }
+.card .switch { width: 40px; height: 24px; }
+.card .switch span { background: var(--card-line-strong); }
+.card .switch span::after { top: 3px; left: 3px; width: 18px; height: 18px; }
+.card .switch input:checked + span { background: var(--fg); }
+.card .switch input:checked + span::after { transform: translateX(16px); background: var(--card); box-shadow: none; }
+.card .row.off input { cursor: default; }
+.arow svg { flex: none; }
+.arow kbd { margin-left: auto; }
+
 .sec { padding: 16px 0; border-bottom: 1px solid var(--line); display: grid; gap: 12px; }
 .sec:last-child { border-bottom: 0; }
 .sec > h2 { margin: 0; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
@@ -213,6 +335,20 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .switch input:checked + span { background: var(--fg); }
 .switch input:checked + span::after { transform: translateX(16px); }
 .switch input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 2px; }
+.vset { display: grid; gap: 12px; }
+.vrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.vrow > span { font-size: 14px; color: var(--muted); }
+.opts { display: inline-flex; background: var(--chip); border-radius: 9px; padding: 3px; gap: 2px; }
+.opts button { border: 0; background: none; height: 28px; padding: 0 12px; border-radius: 7px; font: 500 13px var(--sans); color: var(--muted); }
+.opts button[aria-pressed="true"] { background: var(--panel); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.14); }
+.vprev { position: relative; height: min(42vh, 380px); border-radius: 10px; overflow: hidden; background: #0d0d0c; }
+.sheet .vprev video { width: 100%; height: 100%; max-height: none; object-fit: contain; display: block; border-radius: 0; background: transparent; }
+.vprev.px video { object-fit: none; }
+.vprev.checker { background-color: #e9e9e7; background-image: conic-gradient(#d4d4d1 25%, transparent 0 50%, #d4d4d1 0 75%, transparent 0); background-size: 18px 18px; }
+.vprev-status { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 12px 9px; font-size: 12px; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,.55)); font-variant-numeric: tabular-nums; }
+.vzoom { position: absolute; top: 10px; right: 10px; height: 28px; font-size: 12px; }
+.vzoom[aria-pressed="true"] { background: var(--fg); color: var(--on-fg); border-color: var(--fg); }
+.vinfo { margin: 0; font: 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
 .sheet video { width: 100%; max-height: 52vh; border-radius: 8px; background: #000; }
 .progress { display: grid; gap: 8px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .pbar { height: 6px; border-radius: 3px; background: var(--chip); overflow: hidden; }
@@ -282,6 +418,14 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 @keyframes fresh { 0% { box-shadow: inset 0 0 0 2px var(--focus); } 100% { box-shadow: inset 0 0 0 2px transparent; } }
 .sleeve .acts button.danger.armed { background: #d64545; border-color: #d64545; color: #fff; }
 @media (hover: none) { .sleeve .acts { opacity: 1; transform: translate(-50%, 0); } }
+.sleeve.savecard { border: 0; padding: 0; text-align: left; box-shadow: inset 0 0 0 1.5px var(--card-line-strong); }
+.sleeve.savecard .tr { color: var(--muted); }
+.savepill {
+  position: absolute; left: 50%; bottom: 46px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 6px;
+  height: 28px; padding: 0 13px; border-radius: 999px; background: var(--fg); color: var(--on-fg);
+  font: 500 12px var(--sans); letter-spacing: 0; text-transform: none;
+}
+.sleeve.savecard:hover .savepill { transform: translateX(-50%) translateY(-1px); }
 .libempty { max-width: 420px; margin: 18vh auto 0; text-align: center; color: var(--muted); }
 .libempty p:first-child { font-size: 18px; color: var(--fg); margin-bottom: 6px; }
 
@@ -297,7 +441,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   html, body { height: auto; }
   .app { grid-template-columns: minmax(0, 1fr); }
   .stage { min-height: 0; padding: 16px; }
-  .panel { border-left: 0; border-top: 1px solid var(--line); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .panel { padding: 8px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); }
   .top .label { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -306,21 +450,14 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 <body>
 
 <header class="top">
-  <div class="brand"><i id="logo"></i>Gradient</div>
+  <div class="brand">Gradient</div>
   <div class="top-actions">
-    <button class="btn" id="libBtn" type="button" title="Open library (L)">Library <span class="count" id="libCount">0</span></button>
     <div class="hist" role="group" aria-label="History">
-      <button class="btn icon" id="undoBtn" type="button" aria-label="Undo" title="Undo (Ctrl+Z / ⌘Z)" disabled>
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 14L4 9l5-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
-      </button>
-      <button class="btn icon" id="redoBtn" type="button" aria-label="Redo" title="Redo (Shift+Ctrl+Z / ⇧⌘Z)" disabled>
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 14l5-5-5-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
-      </button>
+      <button class="btn icon" id="undoBtn" type="button" aria-label="Undo" title="Undo (Ctrl+Z / ⌘Z)" disabled><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M7.5 4.5L4 8l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M4 8h7.5a4.5 4.5 0 0 1 0 9H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
+      <button class="btn icon" id="redoBtn" type="button" aria-label="Redo" title="Redo (Shift+Ctrl+Z / ⇧⌘Z)" disabled><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M12.5 4.5L16 8l-3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M16 8H8.5a4.5 4.5 0 0 0 0 9H11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     </div>
-    <button class="btn icon" id="themeBtn" type="button" aria-label="Switch to light mode" title="Switch to light mode">
-      <svg class="sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></g></svg>
-      <svg class="moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="currentColor"/></svg>
-    </button>
+    <button class="btn icon theme" id="themeBtn" type="button" aria-label="Switch to dark mode" title="Switch to dark mode"><svg class="sun" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M10 2.5v1.6M10 15.9v1.6M2.5 10h1.6M15.9 10h1.6M4.7 4.7l1.1 1.1M14.2 14.2l1.1 1.1M4.7 15.3l1.1-1.1M14.2 5.8l1.1-1.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><svg class="moon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M16.5 12.2A6.6 6.6 0 0 1 7.8 3.5a6.6 6.6 0 1 0 8.7 8.7z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
+    <button class="btn icon" id="libBtn" type="button" aria-label="Library" title="Library (L) · save with S"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="3" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     <button class="btn primary" id="randomBtn" type="button">Randomize <kbd>R</kbd></button>
   </div>
 </header>
@@ -340,82 +477,86 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   </div>
 
   <aside class="panel" aria-label="Controls">
-    <section class="sec">
-      <h2>Type</h2>
-      <div class="seg" id="modes" role="group" aria-label="Gradient type">
-        <button type="button" data-mode="linear">Linear</button>
-        <button type="button" data-mode="radial">Radial</button>
-        <button type="button" data-mode="mesh">Mesh</button>
-      </div>
-    </section>
-
-    <section class="sec">
-      <h2>Colors <button class="icon-btn" id="reverseBtn" type="button" title="Reverse color order">Reverse</button></h2>
-      <div class="bar" id="bar" title="Click to add a color"></div>
-      <div class="chips" id="chips"></div>
-      <div class="editor">
-        <div class="color-row">
-          <input type="color" id="selColor" aria-label="Selected color">
-          <input class="hex" id="selHex" spellcheck="false" maxlength="7" aria-label="Hex value">
-          <button class="icon-btn" id="removeBtn" type="button">Remove</button>
+    <div class="card">
+      <div class="grp">
+        <div class="row">
+          <div class="seg" id="modes" role="group" aria-label="Gradient type">
+            <button type="button" data-mode="linear">Linear</button>
+            <button type="button" data-mode="radial">Radial</button>
+            <button type="button" data-mode="mesh">Mesh</button>
+          </div>
         </div>
-        <div class="field" id="posField">
-          <label for="selPos">Position</label><input type="range" id="selPos" min="0" max="100" step="1"><output id="posOut"></output>
-        </div>
-        <div class="field" id="sizeField">
-          <label for="selSize">Spread</label><input type="range" id="selSize" min="15" max="120" step="1"><output id="sizeOut"></output>
+        <div class="row">
+          <span class="lbl" id="sizeLbl">Size</span>
+          <div class="dd" id="sizeDD">
+            <button class="dd-btn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="sizeLbl sizeVal"><span id="sizeVal"></span><svg viewBox="0 0 11 7" width="11" height="7" aria-hidden="true"><path d="M1 1l4.5 4.5L10 1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <ul class="dd-menu" role="listbox" aria-labelledby="sizeLbl" tabindex="-1" hidden></ul>
+          </div>
         </div>
       </div>
-      <div class="field" id="baseRow" style="grid-template-columns: 70px 40px minmax(0,1fr)">
-        <label for="baseHex">Background</label>
-        <input type="color" id="baseColor" aria-label="Background color">
-        <input class="hex" id="baseHex" spellcheck="false" maxlength="7">
-      </div>
-      <p class="note" id="hint"></p>
-    </section>
 
-    <section class="sec">
-      <h2>Shape</h2>
-      <div class="field" id="angleField">
-        <label for="angle">Angle</label><input type="range" id="angle" min="0" max="360" step="1"><output id="angleOut"></output>
+      <div class="grp">
+        <div class="row">
+          <span class="lbl">Colors</span>
+          <span class="icons">
+            <button class="ib" id="reverseBtn" type="button" title="Reverse order" aria-label="Reverse color order"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M5 7h11M13 4l3 3-3 3M15 13H4M7 10l-3 3 3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="ib" id="shuffleBtn" type="button" title="New colors" aria-label="Pick new colors"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M16 10a6 6 0 1 1-1.8-4.3M16 3.5v3.2h-3.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </span>
+        </div>
+        <div class="bar" id="bar" title="Click to add a color"></div>
+        <div class="swrow" id="colorList"></div>
+        <div class="row slide" id="posField">
+          <label for="selPos">Position</label>
+          <input type="range" id="selPos" min="0" max="100" step="1"><output id="posOut" hidden></output>
+        </div>
+        <div class="row slide" id="sizeField">
+          <label for="selSize">Spread</label>
+          <input type="range" id="selSize" min="15" max="120" step="1"><output id="sizeOut" hidden></output>
+        </div>
+        <div class="row" id="baseRow">
+          <span class="rl">Background</span>
+          <label class="sw base"><input type="color" id="baseColor" aria-label="Background color"></label>
+        </div>
       </div>
-      <div class="field">
-        <label for="blur">Blur</label><input type="range" id="blur" min="0" max="200" step="1"><output id="blurOut"></output>
-      </div>
-      <div class="field">
-        <label for="grain">Grain</label><input type="range" id="grain" min="0" max="40" step="1"><output id="grainOut"></output>
-      </div>
-      <div class="field" style="grid-template-columns: 70px minmax(0,1fr)">
-        <label for="format">Size</label>
-        <select id="format"></select>
-      </div>
-    </section>
 
-    <section class="sec">
-      <h2>Motion
-        <label class="switch" title="Animate the gradient">
-          <input type="checkbox" id="motionOn" aria-label="Animate the gradient"><span aria-hidden="true"></span>
-        </label>
-      </h2>
-      <div class="field" id="speedField">
-        <label for="speed">Loop</label><input type="range" id="speed" min="3" max="20" step="1"><output id="speedOut"></output>
+      <div class="grp">
+        <div class="row slide" id="angleField">
+          <label for="angle">Angle</label>
+          <input type="range" id="angle" min="0" max="360" step="1"><output id="angleOut" hidden></output>
+        </div>
+        <div class="row slide">
+          <label for="blur">Blur</label>
+          <input type="range" id="blur" min="0" max="200" step="1"><output id="blurOut" hidden></output>
+        </div>
+        <div class="row slide">
+          <label for="grain">Noise</label>
+          <input type="range" id="grain" min="0" max="40" step="1"><output id="grainOut" hidden></output>
+        </div>
       </div>
-      <div class="field" id="amountField">
-        <label for="amount">Movement</label><input type="range" id="amount" min="5" max="100" step="1"><output id="amountOut"></output>
-      </div>
-      <p class="note" id="motionNote"></p>
-    </section>
 
-    <section class="sec">
-      <h2>Export</h2>
-      <div class="actions">
-        <button class="btn wide" id="saveBtn" type="button">Save to library <kbd>S</kbd></button>
-        <button class="btn" id="copyBtn" type="button">Copy CSS</button>
-        <button class="btn primary" id="pngBtn" type="button">Export PNG</button>
-        <button class="btn primary wide" id="mp4Btn" type="button" hidden>Export MP4</button>
+      <div class="grp">
+        <div class="row">
+          <span class="lbl">Motion</span>
+          <label class="switch" title="Animate the gradient">
+            <input type="checkbox" id="motionOn" aria-label="Animate the gradient"><span aria-hidden="true"></span>
+          </label>
+        </div>
+        <div class="row slide" id="speedField">
+          <label for="speed">Loop</label>
+          <input type="range" id="speed" min="3" max="20" step="1"><output id="speedOut" hidden></output>
+        </div>
+        <div class="row slide" id="amountField">
+          <label for="amount">Movement</label>
+          <input type="range" id="amount" min="5" max="100" step="1"><output id="amountOut" hidden></output>
+        </div>
       </div>
-      <p class="note" id="cssNote" hidden></p>
-    </section>
+
+      <div class="grp acts">
+        <button class="arow" id="copyBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M7 6l-4 4 4 4M13 6l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Copy CSS</button>
+        <button class="arow" id="pngBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 3.5v9M6 9l4 4 4-4M4 16.5h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Download PNG</button>
+        <button class="arow" id="mp4Btn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="3" y="4.5" width="14" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8.5 8v4l3.5-2z" fill="currentColor"/></svg>Download video</button>
+      </div>
+    </div>
   </aside>
 </main>
 
@@ -424,6 +565,18 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     <h2 id="exTitle">PNG</h2>
     <img id="exImg" alt="Exported gradient">
     <video id="exVid" loop muted playsinline controls hidden></video>
+    <div class="vset" id="exSettings" hidden>
+      <div class="vrow"><span>Resolution</span><div class="opts" id="optRes" role="group" aria-label="Resolution"></div></div>
+      <div class="vrow"><span>Quality</span><div class="opts" id="optQ" role="group" aria-label="Quality"></div></div>
+      <div class="vrow"><span>Frame rate</span><div class="opts" id="optFps" role="group" aria-label="Frame rate"></div></div>
+      <div class="vrow" id="bgRow"><span>Background</span><div class="opts" id="optBg" role="group" aria-label="Background"></div></div>
+      <div class="vprev" id="vprev">
+        <video id="exPrev" loop muted playsinline></video>
+        <div class="vprev-status" id="prevStatus"></div>
+        <button class="btn vzoom" id="prevZoom" type="button" aria-pressed="false">Actual pixels</button>
+      </div>
+      <p class="vinfo" id="exInfo"></p>
+    </div>
     <div class="progress" id="exProgress" hidden>
       <div class="pbar"><i id="pFill"></i></div>
       <span id="pText">Rendering…</span>
@@ -462,8 +615,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     '16:9': [1920, 1080, 'Desktop 16:9'],
     '9:16': [1080, 1920, 'Phone 9:16'],
     '1:1':  [2048, 2048, 'Square 1:1'],
-    '4:5':  [1080, 1350, 'Portrait 4:5'],
-    '4k':   [3840, 2160, '4K 16:9'],
+    'circle': [2048, 2048, 'Circle'],
   };
 
   // ---------- Presets ----------
@@ -483,6 +635,18 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     { name: 'Morning mist', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#fbf8f4', grain: 4,
       stops: [['#d0d8ee', 0, 18, 72, 50], ['#d2d9ee', 25, 56, 100, 42], ['#e3ddf0', 50, 55, 48, 34],
               ['#9d99d6', 75, 14, -4, 55], ['#eeacae', 100, 24, 28, 34]] },
+    { name: 'Cherry pop', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#da2222', grain: 6, blur: 90,
+      stops: [['#b81d1c', 0, 40, 58, 30], ['#f2bddb', 15, 12, -4, 62], ['#f4cfe0', 30, 44, -8, 40],
+              ['#f3b6c8', 45, 50, 114, 66], ['#f2b8cb', 60, 10, 108, 52], ['#ea93d4', 80, 108, 84, 46], ['#f4c4d6', 100, 80, 112, 48]] },
+    { name: 'Midnight bloom', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#1a3354', grain: 6, blur: 95,
+      stops: [['#2a3e5c', 0, 10, -8, 50], ['#123f61', 20, 50, 52, 48], ['#1a5274', 35, 84, 46, 34],
+              ['#b38ad8', 50, -4, 84, 46], ['#f0c4e6', 65, 30, 112, 58], ['#c792e2', 80, 66, 108, 54], ['#c681c4', 100, 108, 82, 42]] },
+    { name: 'Lemon sky', mode: 'radial', angle: 0, cx: 96, cy: 96, base: '#1f80f4', grain: 4, blur: 100,
+      stops: [['#1474ee', 0, 50, 50, 50], ['#3a98f8', 38, 50, 50, 50], ['#8cc8f2', 50, 50, 50, 50],
+              ['#f8f3aa', 59, 50, 50, 50], ['#f4f1b8', 66, 50, 50, 50], ['#bcdcd8', 80, 50, 50, 50], ['#a3cfe4', 100, 50, 50, 50]] },
+    { name: 'Sea', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#08585f', grain: 4, blur: 95,
+      stops: [['#09606d', 0, 50, -6, 62], ['#075057', 15, 84, 34, 44], ['#003548', 30, 14, 46, 46],
+              ['#227a86', 45, 52, 66, 26], ['#dde2e8', 60, 50, 112, 64], ['#d6e0e8', 70, 6, 104, 50], ['#d2ecf2', 85, 96, 104, 50], ['#efe2ea', 100, 32, 88, 22]] },
   ];
   const fromPreset = p => ({
     mode: p.mode, angle: p.angle, cx: p.cx, cy: p.cy, base: p.base, grain: p.grain,
@@ -562,7 +726,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
           .concat(st.base).join(nl);
     }
   }
-  const cssText = st => `background: ${st.mode === 'mesh' ? '\n    ' : ''}${gradient(st, true)};`;
+  const cssText = st => `background: ${st.mode === 'mesh' ? '\n    ' : ''}${gradient(st, true)};${st.format === 'circle' ? '\nborder-radius: 50%;' : ''}`;
 
   // ---------- Canvas rendering (matches the CSS geometry) ----------
   const NOISE = new Int8Array(1 << 21);
@@ -605,6 +769,13 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
       shape(ctx, w, h, st, 0);
     }
     addGrain(ctx, w, h, st, frame);
+    if (st.format === 'circle') {
+      // globe: keep only the circle, transparent outside
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-in';
+      ctx.beginPath(); ctx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
   }
   function shape(ctx, w, h, st, m) {
     if (st.mode === 'mesh') {
@@ -656,6 +827,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     const sc = Math.min(aw / W, ah / H);
     const fw = Math.max(40, Math.floor(W * sc)), fh = Math.max(40, Math.floor(H * sc));
     frame.style.width = fw + 'px'; frame.style.height = fh + 'px';
+    frame.classList.toggle('circle', S.format === 'circle');
     const dpr = Math.min(2, devicePixelRatio || 1);
     const k = Math.min(dpr, 1400 / Math.max(fw, fh));
     cv.width = Math.round(fw * k); cv.height = Math.round(fh * k);
@@ -744,44 +916,15 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
       bar.appendChild(k);
     });
 
-    // chips
-    const chips = $('chips'); chips.innerHTML = '';
+    // colors
+    renderColors();
     const canRemove = S.stops.length > minStops();
-    S.stops.forEach((s, i) => {
-      const w = document.createElement('div'); w.className = 'chipw';
-      const c = document.createElement('button');
-      c.type = 'button'; c.className = 'chip' + (i === sel ? ' sel' : '');
-      c.style.background = s.c; c.setAttribute('aria-label', `Select ${s.c}`);
-      c.onclick = () => { sel = i; draw(); };
-      w.appendChild(c);
-      if (canRemove) {
-        const x = document.createElement('button');
-        x.type = 'button'; x.className = 'x'; x.textContent = '×';
-        x.setAttribute('aria-label', `Remove ${s.c}`);
-        x.onclick = () => removeStop(i);
-        w.appendChild(x);
-      }
-      chips.appendChild(w);
-    });
-    const add = document.createElement('button');
-    add.type = 'button'; add.className = 'chip add'; add.textContent = '+'; add.setAttribute('aria-label', 'Add color');
-    add.onclick = addStop; add.disabled = S.stops.length >= 8;
-    chips.appendChild(add);
-
-    // editor
-    $('selColor').value = cur.c;
-    if (document.activeElement !== $('selHex')) { $('selHex').value = cur.c; $('selHex').removeAttribute('aria-invalid'); }
     $('selPos').value = cur.p; $('posOut').textContent = Math.round(cur.p) + '%';
     $('selSize').value = cur.s; $('sizeOut').textContent = Math.round(cur.s) + '%';
     $('posField').hidden = mesh; $('sizeField').hidden = !mesh;
-    $('removeBtn').disabled = !canRemove;
     $('baseRow').hidden = !mesh;
     $('baseColor').value = S.base;
-    if (document.activeElement !== $('baseHex')) $('baseHex').value = S.base;
-    $('hint').textContent = mesh
-      ? 'Drag the dots on the canvas to move colors. Spread sets how far each color reaches.'
-      : S.mode === 'linear' ? 'Click the bar to add a color. Drag the markers to move them.'
-      : 'Drag the white dot on the canvas to move the center.';
+    $('baseColor').parentElement.style.background = S.base;
     $('reverseBtn').hidden = mesh;
 
     // shape
@@ -789,27 +932,31 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     $('angle').value = S.angle; $('angleOut').textContent = S.angle + '°';
     $('blur').value = S.blur; $('blurOut').textContent = S.blur + '%';
     $('grain').value = S.grain; $('grainOut').textContent = S.grain;
-    $('format').value = S.format;
+    $('sizeVal').textContent = FORMATS[S.format][2];
+    ddMenu.querySelectorAll('li').forEach(li => li.setAttribute('aria-selected', String(li.dataset.k === S.format)));
 
     // output
     const mo = S.motion;
     $('motionOn').checked = mo.on;
-    $('speedField').hidden = $('amountField').hidden = !mo.on;
+    ['speedField', 'amountField'].forEach(id => {
+      $(id).classList.toggle('off', !mo.on);
+      $(id).querySelector('input').disabled = !mo.on;
+    });
     $('speed').value = mo.speed; $('speedOut').textContent = mo.speed + 's';
     $('amount').value = mo.amount; $('amountOut').textContent = mo.amount + '%';
-    $('motionNote').textContent = mo.on
-      ? 'Loop is how long one full cycle takes. The MP4 is one seamless loop.'
-      : 'Turn on to make the gradient drift, then export it as an MP4.';
-    $('mp4Btn').hidden = !mo.on;
+    $('mp4Btn').disabled = !mo.on;
+    $('mp4Btn').title = mo.on ? '' : 'Turn on Motion to export a video';
     const notes = [];
     if (S.grain || S.blur > 100) notes.push('Copied CSS leaves out grain and blur above 100%.');
     if (mo.on) notes.push('Copied CSS and the PNG are a still frame.');
-    $('cssNote').textContent = notes.join(' ');
-    $('cssNote').hidden = !notes.length;
+    $('copyBtn').title = notes.join(' ');
+    document.querySelectorAll('.card input[type="range"]').forEach(r => {
+      r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%');
+      r.title = r.nextElementSibling ? r.nextElementSibling.textContent : '';
+    });
     const [W, H, label] = FORMATS[S.format];
     const modeLabel = { linear: `Linear ${S.angle}°`, radial: 'Radial', mesh: 'Mesh' }[S.mode];
-    $('meta').textContent = `${W} × ${H} px · ${label} · ${modeLabel} · ${S.stops.length} colors${mo.on ? ` · ${mo.speed}s loop` : ''}`;
-    $('logo').style.setProperty('--logo', gradient(S, false));
+    $('meta').textContent = `${W} × ${H} px${S.format === 'circle' ? ' · Circle' : ''} · ${modeLabel} · ${S.stops.length} colors${mo.on ? ` · ${mo.speed}s loop` : ''}`;
 
     renderHandles();
   }
@@ -821,7 +968,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     if (S.mode === 'mesh') {
       S.stops.forEach((s, i) => {
         const h = mkHandle(s.x, s.y, `Move ${s.c}`);
-        h.style.background = s.c;
+        h.style.setProperty('--c', s.c);
         if (i === sel) h.classList.add('sel');
         h.dataset.i = i;
       });
@@ -940,20 +1087,61 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     }
     draw();
   });
-  $('selColor').addEventListener('input', e => { S.stops[sel].c = e.target.value.toLowerCase(); draw(); });
-  $('selHex').addEventListener('input', e => {
-    const v = normHex(e.target.value);
-    e.target.toggleAttribute('aria-invalid', !v);
-    if (v) { S.stops[sel].c = v; draw(); }
+  // Color list: rebuilt only when the set of colors or the selection changes, so typing and the
+  // native color picker are never interrupted; otherwise values are updated in place.
+  let colorKey = '';
+  function renderColors() {
+    const list = $('colorList');
+    const canRemove = S.stops.length > minStops();
+    const key = `${S.stops.length}|${canRemove}`;
+    if (key !== colorKey) {
+      colorKey = key;
+      list.innerHTML = '';
+      S.stops.forEach((s, i) => {
+        const item = document.createElement('div');
+        item.className = 'swi';
+        item.dataset.i = i;
+        item.innerHTML = `<label class="sw" title="Click to change"><input type="color" aria-label="Color ${i + 1}"></label>` +
+          (canRemove ? `<button class="x" type="button" aria-label="Remove color ${i + 1}" title="Remove">×</button>` : '');
+        list.appendChild(item);
+      });
+      const add = document.createElement('div');
+      add.className = 'swi add';
+      add.innerHTML = `<button type="button" id="addBtn" aria-label="Add color" title="Add color"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 4v12M4 10h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>`;
+      list.appendChild(add);
+    }
+    list.querySelectorAll('.swi:not(.add)').forEach((item, i) => {
+      const c = S.stops[i].c;
+      item.classList.toggle('sel', i === sel);
+      item.querySelector('.sw').style.background = c;
+      const ci = item.querySelector('input'); if (ci.value !== c) ci.value = c;
+    });
+    $('addBtn').disabled = S.stops.length >= 8;
+  }
+  const colorList = $('colorList');
+  colorList.addEventListener('click', e => {
+    if (e.target.closest('#addBtn')) { addStop(); return; }
+    const item = e.target.closest('.swi'); if (!item || item.classList.contains('add')) return;
+    const i = +item.dataset.i;
+    if (e.target.closest('.x')) { e.preventDefault(); removeStop(i); return; }
+    if (sel !== i) { sel = i; draw(); }
   });
-  $('selHex').addEventListener('blur', () => draw());
+  colorList.addEventListener('focusin', e => {
+    const item = e.target.closest('.swi'); if (!item || item.classList.contains('add') || e.target.closest('.x')) return;
+    const i = +item.dataset.i;
+    if (sel !== i) { sel = i; draw(); }
+  });
+  colorList.addEventListener('input', e => {
+    const item = e.target.closest('.swi'); if (!item) return;
+    S.stops[+item.dataset.i].c = e.target.value.toLowerCase(); draw();
+  });
+  $('shuffleBtn').onclick = () => {
+    // new colors only; positions, spreads and everything else stay put
+    const h0 = Math.random() * 360, step = 18 + Math.random() * 40;
+    S.stops.forEach((s, i) => { s.c = oklch(0.6 + Math.random() * 0.3, 0.07 + Math.random() * 0.13, (h0 + i * step) % 360); });
+    draw();
+  };
   $('baseColor').addEventListener('input', e => { S.base = e.target.value.toLowerCase(); draw(); });
-  $('baseHex').addEventListener('input', e => {
-    const v = normHex(e.target.value);
-    e.target.toggleAttribute('aria-invalid', !v);
-    if (v) { S.base = v; draw(); }
-  });
-  $('baseHex').addEventListener('blur', () => draw());
   $('selPos').addEventListener('input', e => { S.stops[sel].p = +e.target.value; draw(); });
   $('selSize').addEventListener('input', e => { S.stops[sel].s = +e.target.value; draw(); });
   // Mesh works with a single color over the background; line types need two.
@@ -964,7 +1152,6 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     if (sel >= i) sel = Math.max(0, sel - 1);
     draw();
   }
-  $('removeBtn').onclick = () => removeStop(sel);
   $('reverseBtn').onclick = () => { S.stops.forEach(s => s.p = r1(100 - s.p)); draw(); };
   $('angle').addEventListener('input', e => { S.angle = +e.target.value; draw(); });
   $('motionOn').addEventListener('change', e => { S.motion.on = e.target.checked; draw(); });
@@ -972,9 +1159,41 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   $('amount').addEventListener('input', e => { S.motion.amount = +e.target.value; draw(); });
   $('blur').addEventListener('input', e => { S.blur = +e.target.value; draw(); });
   $('grain').addEventListener('input', e => { S.grain = +e.target.value; draw(); });
-  const fmt = $('format');
-  Object.entries(FORMATS).forEach(([k, [w, h, label]]) => fmt.add(new Option(`${label} · ${w} × ${h}`, k)));
-  fmt.addEventListener('change', () => { S.format = fmt.value; fit(); draw(); });
+  // Size dropdown: a small listbox menu instead of the browser's native one.
+  const ddBtn = $('sizeDD').querySelector('.dd-btn'), ddMenu = $('sizeDD').querySelector('.dd-menu');
+  Object.entries(FORMATS).forEach(([k, [w, h, label]]) => {
+    const li = document.createElement('li');
+    li.role = 'option'; li.tabIndex = -1; li.dataset.k = k;
+    li.innerHTML = `<svg class="ck" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${label}</span><span class="dim">${w} × ${h}</span>`;
+    ddMenu.appendChild(li);
+  });
+  const ddItems = () => [...ddMenu.querySelectorAll('li')];
+  function openDD() {
+    ddMenu.hidden = false; ddBtn.setAttribute('aria-expanded', 'true');
+    (ddItems().find(li => li.dataset.k === S.format) || ddItems()[0]).focus();
+  }
+  function closeDD(refocus) {
+    if (ddMenu.hidden) return;
+    ddMenu.hidden = true; ddBtn.setAttribute('aria-expanded', 'false');
+    if (refocus) ddBtn.focus();
+  }
+  function chooseSize(k) { S.format = k; fit(); draw(); closeDD(true); }
+  ddBtn.addEventListener('click', () => ddMenu.hidden ? openDD() : closeDD(false));
+  ddBtn.addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); openDD(); } });
+  ddMenu.addEventListener('click', e => { const li = e.target.closest('li'); if (li) chooseSize(li.dataset.k); });
+  ddMenu.addEventListener('keydown', e => {
+    const items = ddItems(), i = items.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') items[(i + 1) % items.length].focus();
+    else if (e.key === 'ArrowUp') items[(i - 1 + items.length) % items.length].focus();
+    else if (e.key === 'Home') items[0].focus();
+    else if (e.key === 'End') items[items.length - 1].focus();
+    else if (e.key === 'Enter' || e.key === ' ') { if (i >= 0) chooseSize(items[i].dataset.k); }
+    else if (e.key === 'Escape') closeDD(true);
+    else if (e.key === 'Tab') { closeDD(false); return; }
+    else return;
+    e.preventDefault(); e.stopPropagation();
+  });
+  document.addEventListener('pointerdown', e => { if (!$('sizeDD').contains(e.target)) closeDD(false); });
 
   // ---------- Randomize ----------
   function randomize() {
@@ -1082,20 +1301,25 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     }, 'image/png');
   };
   $('dlBtn').onclick = () => {
+    if (sheetMode === 'settings') { runFullExport(); return; }
     const a = document.createElement('a');
     a.href = blobUrl; a.download = fileName;
     document.body.appendChild(a); a.click(); a.remove();
   };
+  let sheetMode = '';
   function openSheet(kind, title) {
     if ($('overlay').hidden) lastFocus = document.activeElement;
+    sheetMode = kind;
+    $('exSettings').hidden = kind !== 'settings';
     $('exTitle').textContent = title;
     $('exImg').hidden = kind !== 'image';
     $('exVid').hidden = kind !== 'video';
     $('exProgress').hidden = kind !== 'progress';
     $('dlBtn').hidden = kind === 'progress';
-    $('dlBtn').textContent = kind === 'video' ? 'Download video' : 'Download PNG';
-    $('closeEx').textContent = kind === 'progress' ? 'Cancel' : 'Close';
+    $('dlBtn').textContent = kind === 'video' ? 'Download video' : kind === 'settings' ? 'Export video' : 'Download PNG';
+    $('closeEx').textContent = kind === 'progress' || kind === 'settings' ? 'Cancel' : 'Close';
     $('exNote').textContent = kind === 'progress' ? 'Rendering every frame at full size. Bigger sizes and grain take longer.'
+      : kind === 'settings' ? "The preview is a real 2-second clip made with these settings, so it shows the quality you'll get. Use Actual pixels to see it at full size."
       : kind === 'video' ? "If the download doesn't start, right-click the video and choose Save Video As."
       : "If the download doesn't start, right-click the image (or long-press on a phone) and choose Save Image.";
     $('overlay').hidden = false;
@@ -1107,28 +1331,227 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   const tick = () => new Promise(r => setTimeout(r, 0));
 
   let cancelEnc = false;
-  $('mp4Btn').onclick = async () => {
-    if (encoding) return;
-    const [W, H] = FORMATS[S.format];
-    const fps = 30, total = Math.round(fps * S.motion.speed);
-    const snap = JSON.parse(JSON.stringify(S));
+
+  // ---------- Video export: settings, live preview, full render ----------
+  const RES = [['720p', 720], ['1080p', 1080], ['1440p', 1440], ['4K', 2160]];
+  const QUAL = [['Standard', 0.25], ['High', 0.5], ['Max', 0.9]];
+  const FPSS = [['30 fps', 30], ['60 fps', 60]];
+  let vset = { res: 1080, q: 0.5, fps: 30, bg: 'alpha', ...store.get('gb-video', {}) };
+  const BGS = [['Transparent', 'alpha'], ['White', 'white']];
+  const even = n => Math.max(2, Math.round(n / 2) * 2);
+  function videoDims() {
+    const [W0, H0] = FORMATS[S.format], k = vset.res / Math.min(W0, H0);
+    return [even(W0 * k), even(H0 * k)];
+  }
+  const videoBitrate = (W, H) => Math.min(120e6, Math.round(W * H * vset.fps * vset.q));
+  function makeFrames(snap, W, H, fps, transparent = false) {
+    const total = Math.round(fps * snap.motion.speed);
     const c = document.createElement('canvas'); c.width = W; c.height = H;
     const cx = c.getContext('2d', { willReadFrequently: true });
-    const drawFrame = i => paint(cx, W, H, animated(snap, i / total), i);
-    const bitrate = Math.round(W * H * fps * 0.2);
+    if (transparent) {
+      // color plane: the full square gradient (no dark fringe at the edge); alpha plane: the circle
+      const vsnapT = { ...snap, grain: Math.max(snap.grain, 3), format: '1:1' };
+      const cAlpha = document.createElement('canvas'); cAlpha.width = W; cAlpha.height = H;
+      const ax = cAlpha.getContext('2d');
+      ax.fillStyle = '#000'; ax.fillRect(0, 0, W, H);
+      ax.fillStyle = '#fff'; ax.beginPath(); ax.ellipse(W / 2, H / 2, W / 2, H / 2, 0, 0, Math.PI * 2); ax.fill();
+      return { c, cAlpha, total, drawFrame: i => paint(cx, W, H, animated(vsnapT, i / total), 0) };
+    }
+    // Grain stays still from frame to frame (changing noise every frame is what wrecks
+    // compression), and a faint still dither keeps smooth gradients from banding.
+    const vsnap = { ...snap, grain: Math.max(snap.grain, 3) };
+    const drawFrame = i => {
+      paint(cx, W, H, animated(vsnap, i / total), 0);
+      if (snap.format === 'circle') {
+        // video has no transparency, so the globe sits on white
+        cx.save(); cx.globalCompositeOperation = 'destination-over'; cx.fillStyle = '#ffffff'; cx.fillRect(0, 0, W, H); cx.restore();
+      }
+    };
+    return { c, drawFrame, total };
+  }
+  // ---------- Transparent video: VP9 + alpha in WebM ----------
+  // MP4 can't carry transparency, so circles can export as WebM with an alpha channel. The color
+  // and the alpha mask are encoded as two VP9 streams and written into one WebM (the alpha rides
+  // along as BlockAdditions, which is how WebM stores transparency).
+  const transparentVideo = () => S.format === 'circle' && vset.bg === 'alpha';
+  async function encodeWebmAlpha(cColor, cAlpha, drawFrame, W, H, fps, total, bitrate, onProg = progress, cancelled = () => cancelEnc) {
+    let codec = null;
+    for (const c of ['vp09.00.10.08', 'vp09.00.41.08', 'vp09.00.51.08', 'vp8']) {
+      const cfg = { codec: c, width: W, height: H, bitrate, framerate: fps };
+      try { if ((await VideoEncoder.isConfigSupported(cfg)).supported) { codec = c; break; } } catch {}
+    }
+    if (!codec) throw new Error('this browser cannot encode WebM video');
+    const color = [], alpha = [];
+    let err = null;
+    const make = arr => new VideoEncoder({
+      output: ch => { const d = new Uint8Array(ch.byteLength); ch.copyTo(d); arr.push({ d, key: ch.type === 'key' }); },
+      error: e => { err = e; },
+    });
+    const ec = make(color), ea = make(alpha);
+    ec.configure({ codec, width: W, height: H, bitrate, framerate: fps });
+    ea.configure({ codec, width: W, height: H, bitrate: Math.max(2e6, Math.round(bitrate * 0.2)), framerate: fps });
+    const close = () => { try { ec.close(); } catch {} try { ea.close(); } catch {} };
+    // The alpha plane goes in as raw YUV (Y = alpha, chroma neutral). Going through RGB would squeeze
+    // it into video range (16-235) and leave the outside slightly visible and the inside slightly see-through.
+    const mask = cAlpha.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, W, H).data;
+    const cw = W / 2, chh = H / 2;
+    const yuv = new Uint8Array(W * H + 2 * cw * chh);
+    for (let i = 0, j = 0; j < W * H; i += 4, j++) yuv[j] = mask[i];
+    yuv.fill(128, W * H);
+    for (let i = 0; i < total; i++) {
+      if (cancelled()) { close(); return null; }
+      if (err) { close(); throw err; }
+      drawFrame(i);
+      const ts = Math.round(i * 1e6 / fps), du = Math.round(1e6 / fps), keyFrame = i % (fps * 2) === 0;
+      const f1 = new VideoFrame(cColor, { timestamp: ts, duration: du }); ec.encode(f1, { keyFrame }); f1.close();
+      const f2 = new VideoFrame(yuv, { format: 'I420', codedWidth: W, codedHeight: H, timestamp: ts, duration: du }); ea.encode(f2, { keyFrame }); f2.close();
+      while (ec.encodeQueueSize > 3 || ea.encodeQueueSize > 3) await new Promise(r => setTimeout(r, 4));
+      onProg(i + 1, total);
+      await tick();
+    }
+    await Promise.all([ec.flush(), ea.flush()]);
+    close();
+    if (err) throw err;
+    return { blob: buildAlphaWebm(color, alpha, W, H, fps, codec === 'vp8' ? 'V_VP8' : 'V_VP9'), ext: 'webm', codec: 'alpha' };
+  }
+
+  function buildAlphaWebm(color, alpha, W, H, fps, codecId) {
+    const cat = parts => { let n = 0; parts.forEach(p => n += p.length); const o = new Uint8Array(n); let k = 0; parts.forEach(p => { o.set(p, k); k += p.length; }); return o; };
+    const idBytes = id => { const b = []; while (id > 0) { b.unshift(id & 255); id = Math.floor(id / 256); } return Uint8Array.from(b); };
+    const size = n => { const b = [0x01]; for (let i = 6; i >= 0; i--) b.push(Math.floor(n / 2 ** (8 * i)) & 255); return Uint8Array.from(b); };
+    const uint = n => { const b = []; do { b.unshift(n & 255); n = Math.floor(n / 256); } while (n > 0); return Uint8Array.from(b); };
+    const str = s => new TextEncoder().encode(s);
+    const f64 = v => { const b = new Uint8Array(8); new DataView(b.buffer).setFloat64(0, v); return b; };
+    const el = (id, ...kids) => { const data = cat(kids); return cat([idBytes(id), size(data.length), data]); };
+    const ms = i => Math.round(i * 1000 / fps);
+
+    const header = el(0x1A45DFA3,
+      el(0x4286, uint(1)), el(0x42F7, uint(1)), el(0x42F2, uint(4)), el(0x42F3, uint(8)),
+      el(0x4282, str('webm')), el(0x4287, uint(4)), el(0x4285, uint(2)));
+    const info = el(0x1549A966,
+      el(0x2AD7B1, uint(1000000)), el(0x4D80, str('Gradient')), el(0x5741, str('Gradient')),
+      el(0x4489, f64(color.length * 1000 / fps)));
+    const tracks = el(0x1654AE6B, el(0xAE,
+      el(0xD7, uint(1)), el(0x73C5, uint(1)), el(0x83, uint(1)), el(0x86, str(codecId)),
+      el(0x55EE, uint(1)),
+      el(0xE0, el(0xB0, uint(W)), el(0xBA, uint(H)), el(0x53C0, uint(1)))));
+
+    const clusters = [];
+    let blocks = [], clusterStart = 0;
+    const flush = () => { if (blocks.length) clusters.push(el(0x1F43B675, el(0xE7, uint(clusterStart)), ...blocks)); blocks = []; };
+    color.forEach((c, i) => {
+      const t = ms(i);
+      if (c.key || i === 0 || t - clusterStart > 30000) { flush(); clusterStart = t; }
+      const rel = t - clusterStart;
+      const block = cat([Uint8Array.from([0x81, (rel >> 8) & 255, rel & 255, 0x00]), c.d]);
+      const kids = [el(0xA1, block)];
+      if (!c.key && i > 0) { const r = (ms(i - 1) - t) & 0xffff; kids.push(el(0xFB, Uint8Array.from([r >> 8, r & 255]))); }
+      if (alpha[i]) kids.push(el(0x75A1, el(0xA6, el(0xEE, uint(1)), el(0xA5, alpha[i].d))));
+      blocks.push(el(0xA0, ...kids));
+    });
+    flush();
+    const segment = el(0x18538067, info, tracks, ...clusters);
+    return new Blob([header, segment], { type: 'video/webm' });
+  }
+
+  function buildOpts(id, list, key) {
+    const box = $(id); box.innerHTML = '';
+    list.forEach(([label, val]) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = label; b.setAttribute('aria-pressed', String(vset[key] === val));
+      b.onclick = () => { vset[key] = val; store.set('gb-video', vset); syncVideoSettings(); schedulePreview(); };
+      box.appendChild(b);
+    });
+  }
+  function syncVideoSettings() {
+    buildOpts('optRes', RES, 'res'); buildOpts('optQ', QUAL, 'q'); buildOpts('optFps', FPSS, 'fps'); buildOpts('optBg', BGS, 'bg');
+    $('bgRow').hidden = S.format !== 'circle';
+    $('vprev').classList.toggle('checker', transparentVideo());
+    const [W, H] = videoDims(), br = videoBitrate(W, H), secs = S.motion.speed, mb = br * secs / 8 / 1e6;
+    $('exInfo').textContent = `${transparentVideo() ? 'WebM, transparent' : 'MP4'} · ${W} × ${H} · ${vset.fps} fps · up to ${Math.round(br / 1e6)} Mbps · file up to ${mb < 10 ? mb.toFixed(1) : Math.round(mb)} MB for the ${secs}s loop`;
+  }
+  function stillOfCurrent() {
+    const [W0, H0] = FORMATS[S.format], k = 720 / Math.max(W0, H0);
+    const w = even(W0 * k), h = even(H0 * k);
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const x = c.getContext('2d', { willReadFrequently: true });
+    paint(x, w, h, animated(S, 0));
+    if (S.format === 'circle' && !transparentVideo()) { x.save(); x.globalCompositeOperation = 'destination-over'; x.fillStyle = '#ffffff'; x.fillRect(0, 0, w, h); x.restore(); }
+    return c.toDataURL('image/png');
+  }
+  let prevJob = 0, prevTimer = 0, prevUrl = null;
+  function schedulePreview() { clearTimeout(prevTimer); prevTimer = setTimeout(makePreview, 300); }
+  async function makePreview() {
+    const job = ++prevJob;
+    const cancelled = () => job !== prevJob || sheetMode !== 'settings';
+    const status = $('prevStatus');
+    if (!(window.VideoEncoder && window.VideoFrame && (window.Mp4Muxer || transparentVideo()))) {
+      status.textContent = "This browser can't make a preview. You can still export the video.";
+      return;
+    }
+    const [W, H] = videoDims(), fps = vset.fps;
+    const snap = JSON.parse(JSON.stringify(S));
+    const alphaOut = transparentVideo();
+    const { c, cAlpha, drawFrame, total } = makeFrames(snap, W, H, fps, alphaOut);
+    const count = Math.min(total, fps * 2);
+    const label = `${W} × ${H} · ${fps} fps · ${QUAL.find(q => q[1] === vset.q)[0]}`;
+    status.textContent = `Making a preview at ${label}…`;
+    try {
+      const onP = (i, n) => { if (!cancelled()) status.textContent = `Making a preview at ${label} · ${Math.round(i / n * 100)}%`; };
+      const out = alphaOut
+        ? await encodeWebmAlpha(c, cAlpha, drawFrame, W, H, fps, count, videoBitrate(W, H), onP, cancelled)
+        : await encodeMp4(c, drawFrame, W, H, fps, count, videoBitrate(W, H), onP, cancelled);
+      if (!out || cancelled()) return;
+      if (prevUrl) URL.revokeObjectURL(prevUrl);
+      if (alphaOut) $('exPrev').removeAttribute('poster');
+      prevUrl = URL.createObjectURL(out.blob);
+      const v = $('exPrev'); v.src = prevUrl; v.play().catch(() => {});
+      status.textContent = `Preview · ${label}`;
+    } catch (err) {
+      if (!cancelled()) status.textContent = `Preview failed (${err && err.message ? err.message : err}). Try a lower resolution.`;
+    }
+  }
+  $('prevZoom').onclick = () => {
+    const on = !$('vprev').classList.contains('px');
+    $('vprev').classList.toggle('px', on);
+    $('prevZoom').setAttribute('aria-pressed', String(on));
+  };
+  $('mp4Btn').onclick = () => {
+    if (encoding || !S.motion.on) return;
+    openSheet('settings', 'Export video');
+    syncVideoSettings();
+    // drop any clip from an earlier export and show the current gradient straight away
+    const v = $('exPrev');
+    v.pause(); v.removeAttribute('src'); v.load();
+    v.poster = stillOfCurrent();
+    makePreview();
+  };
+
+  async function runFullExport() {
+    if (encoding) return;
+    prevJob++; $('exPrev').pause();
+    const [W, H] = videoDims(), fps = vset.fps;
+    const snap = JSON.parse(JSON.stringify(S));
+    const alphaOut = transparentVideo();
+    const { c, cAlpha, drawFrame, total } = makeFrames(snap, W, H, fps, alphaOut);
+    const bitrate = videoBitrate(W, H);
     encoding = true; cancelEnc = false;
     openSheet('progress', 'Making your video'); progress(0, total);
     $('exVid').pause();
     try {
       let out = null;
-      if (window.VideoEncoder && window.VideoFrame && window.Mp4Muxer) out = await encodeMp4(c, drawFrame, W, H, fps, total, bitrate);
+      if (alphaOut) {
+        if (!(window.VideoEncoder && window.VideoFrame)) throw new Error('transparent video needs Chrome, Edge or Firefox');
+        out = await encodeWebmAlpha(c, cAlpha, drawFrame, W, H, fps, total, bitrate);
+      } else if (window.VideoEncoder && window.VideoFrame && window.Mp4Muxer) out = await encodeMp4(c, drawFrame, W, H, fps, total, bitrate);
       if (!out && !cancelEnc) out = await recordVideo(c, drawFrame, fps, total, bitrate);
       if (!out) { encoding = false; ensureLoop(); return; }
       if (blobUrl) URL.revokeObjectURL(blobUrl);
       blobUrl = URL.createObjectURL(out.blob);
-      fileName = `gradient-${snap.mode}-${W}x${H}-${snap.motion.speed}s.${out.ext}`;
+      fileName = `gradient-${snap.mode}-${W}x${H}-${fps}fps-${snap.motion.speed}s.${out.ext}`;
       openSheet('video', fileName);
-      if (out.ext !== 'mp4') $('exNote').textContent = "This browser can't make MP4 files, so this is a WebM video. Chrome, Edge and Safari can export MP4.";
+      if (out.codec === 'alpha') $('exNote').textContent = "Transparent WebM: everything outside the circle is see-through in Chrome, Edge and Firefox, and in editors that read WebM transparency. Safari and QuickTime show it on black.";
+      else if (out.ext !== 'mp4') $('exNote').textContent = "This browser can't make MP4 files, so this is a WebM video. Chrome, Edge and Safari can export MP4.";
       else if (out.codec && out.codec !== 'avc') $('exNote').textContent = "This browser has no H.264 encoder, so the MP4 uses VP9/AV1. Browsers play it, but some apps (like QuickTime) may not. Chrome, Edge or Safari give a standard H.264 MP4.";
       else if (out.realtime) $('exNote').textContent = "Recorded in real time, so the length can run a little long if your computer is busy.";
       $('exVid').src = blobUrl; $('exVid').play().catch(() => {});
@@ -1136,21 +1559,26 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     } catch (err) {
       openSheet('image', 'Video export failed');
       $('exImg').hidden = true; $('dlBtn').hidden = true;
-      $('exNote').textContent = `The video couldn't be made in this browser (${err && err.message ? err.message : err}). Try a smaller size, or Chrome.`;
+      $('exNote').textContent = `The video couldn't be made in this browser (${err && err.message ? err.message : err}). Try a lower resolution, or Chrome.`;
     }
     encoding = false; ensureLoop();
-  };
+  }
 
   // Frame-by-frame H.264 encoding: exact timing and a perfect loop, faster than real time.
-  async function encodeMp4(c, drawFrame, W, H, fps, total, bitrate) {
+  async function encodeMp4(c, drawFrame, W, H, fps, total, bitrate, onProg = progress, cancelled = () => cancelEnc) {
     // H.264 first (plays everywhere); VP9 / AV1 in MP4 if the browser has no H.264 encoder.
     const CODECS = [
       ['avc1.640033', 'avc'], ['avc1.4d0033', 'avc'], ['avc1.42e033', 'avc'], ['avc1.640028', 'avc'],
       ['vp09.00.51.08', 'vp9'], ['vp09.00.41.08', 'vp9'], ['av01.0.12M.08', 'av1'], ['av01.0.08M.08', 'av1'],
     ];
     let config = null, muxCodec = null;
-    for (const [codec, mc] of CODECS) {
-      const cfg = { codec, width: W, height: H, bitrate, framerate: fps };
+    // Try for the best quality first, then step down if the browser's encoder refuses it.
+    const tries = [];
+    for (const [codec, mc] of CODECS)
+      for (const br of [bitrate, Math.round(bitrate * 0.6), Math.round(bitrate * 0.35)])
+        for (const extra of [{ bitrateMode: 'variable', latencyMode: 'quality' }, {}])
+          tries.push([{ codec, width: W, height: H, bitrate: br, framerate: fps, ...extra }, mc]);
+    for (const [cfg, mc] of tries) {
       try { const r = await VideoEncoder.isConfigSupported(cfg); if (r.supported) { config = cfg; muxCodec = mc; break; } } catch {}
     }
     if (!config) return null;
@@ -1163,14 +1591,14 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     const enc = new VideoEncoder({ output: (chunk, meta) => muxer.addVideoChunk(chunk, meta), error: e => { encErr = e; } });
     enc.configure(config);
     for (let i = 0; i < total; i++) {
-      if (cancelEnc) { try { enc.close(); } catch {} return null; }
+      if (cancelled()) { try { enc.close(); } catch {} return null; }
       if (encErr) throw encErr;
       drawFrame(i);
       const vf = new VideoFrame(c, { timestamp: Math.round(i * 1e6 / fps), duration: Math.round(1e6 / fps) });
       enc.encode(vf, { keyFrame: i % (fps * 2) === 0 });
       vf.close();
       while (enc.encodeQueueSize > 4) await new Promise(r => setTimeout(r, 4));
-      progress(i + 1, total);
+      onProg(i + 1, total);
       await tick();
     }
     await enc.flush();
@@ -1205,6 +1633,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 
   function closeExport() {
     if (encoding) { cancelEnc = true; }
+    prevJob++; clearTimeout(prevTimer); $('exPrev').pause(); sheetMode = '';
     $('exVid').pause();
     $('overlay').hidden = true; lastFocus && lastFocus.focus();
   }
@@ -1219,7 +1648,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   };
   function syncTheme() {
     const dark = isDark();
-    themeBtn.classList.toggle('to-dark', !dark);
+    themeBtn.classList.toggle('is-dark', dark);
     const label = dark ? 'Switch to light mode' : 'Switch to dark mode';
     themeBtn.setAttribute('aria-label', label); themeBtn.title = label;
   }
@@ -1289,16 +1718,19 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     : { id: Date.now() - i, savedAt: Date.now(), state: migrate(e) });
   library.forEach(e => { if (!e.name) e.name = funName(e.state, library.map(x => x.name)); });
   const persistLib = () => store.set('gb-saved', library);
-  const libCount = () => { $('libCount').textContent = library.length; };
+  const libCount = () => { $('libBtn').title = `Library · ${library.length} saved (L) · save with S`; };
 
   function saveToLibrary() {
     const name = funName(S, library.map(x => x.name));
     library.unshift({ id: Date.now(), savedAt: Date.now(), name, state: JSON.parse(JSON.stringify(S)) });
     persistLib(); libCount();
     toast(`Saved as “${name}”`);
-    if (!$('libView').hidden) renderLibView();
+    if (!$('libView').hidden) {
+      renderLibView();
+      const fresh = $('libGrid').children[1];
+      if (fresh) fresh.classList.add('fresh');
+    }
   }
-  $('saveBtn').onclick = saveToLibrary;
 
   const pad = (n, w = 2) => String(n).padStart(w, '0');
   const dateStr = t => { const d = new Date(t); return `${pad(d.getMonth() + 1)} — ${pad(d.getDate())} — ${d.getFullYear()}`; };
@@ -1308,7 +1740,33 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   function renderLibView() {
     libAnims.forEach(a => cancelAnimationFrame(a.raf)); libAnims = [];
     const grid = $('libGrid'); grid.innerHTML = '';
-    $('libEmpty').hidden = library.length > 0;
+    $('libEmpty').hidden = true;
+
+    // First card: save what's in the editor right now
+    {
+      const [W, H] = FORMATS[S.format];
+      const st = S;
+      const card = document.createElement('button');
+      card.type = 'button'; card.className = 'sleeve savecard';
+      card.setAttribute('aria-label', 'Save the current gradient to the library');
+      card.innerHTML = `
+        <div class="tl"><span class="nm">Save this gradient</span><br>— ${MODE_NAME[S.mode]} · ${S.stops.length} colors<small>${S.motion.on ? `${S.motion.speed}s loop` : 'Still'} · press S anytime</small></div>
+        <div class="tr">New</div>
+        <div class="bl">${dateStr(Date.now())}</div>
+        <div class="br">Gradient</div>
+        <div class="art"><canvas class="main"></canvas></div>
+        <span class="savepill"><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M10 4v12M4 10h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Save</span>`;
+      grid.appendChild(card);
+      const box = card.getBoundingClientRect();
+      const sc = Math.min(box.width * 0.5 / W, box.height * 0.52 / H);
+      const art = card.querySelector('.art'), cv2 = card.querySelector('canvas');
+      const aw = Math.round(W * sc), ah = Math.round(H * sc), dpr = Math.min(2, devicePixelRatio || 1);
+      art.style.width = aw + 'px'; art.style.height = ah + 'px';
+      art.classList.toggle('circle', st.format === 'circle');
+      cv2.width = Math.round(aw * dpr); cv2.height = Math.round(ah * dpr);
+      paint(cv2.getContext('2d', { willReadFrequently: true }), cv2.width, cv2.height, { ...S, grain: S.grain * 0.45 });
+      card.addEventListener('click', saveToLibrary);
+    }
     $('libSub').textContent = library.length ? `${library.length} saved` : '';
     library.forEach((entry, idx) => {
       const st = entry.state, [W, H, label] = FORMATS[st.format];
@@ -1338,6 +1796,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
       const sc = Math.min(box.width * 0.5 / W, box.height * 0.52 / H);
       const aw = Math.round(W * sc), ah = Math.round(H * sc);
       art.style.width = aw + 'px'; art.style.height = ah + 'px';
+      art.classList.toggle('circle', st.format === 'circle');
       const dpr = Math.min(2, devicePixelRatio || 1);
       const main = card.querySelector('.main');
       main.width = Math.round(aw * dpr); main.height = Math.round(ah * dpr);
