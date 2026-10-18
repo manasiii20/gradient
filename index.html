@@ -158,7 +158,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
   background: var(--card); border-radius: 18px;
   box-shadow: 0 0 0 1px var(--card-edge), 0 18px 40px -24px rgba(0,0,0,.22);
 }
-.grp { padding: 6px 0; border-top: 1px solid var(--card-line); }
+.grp { padding: 6px 0; flex: 1 0 auto; display: flex; flex-direction: column; justify-content: center; border-top: 1px solid var(--card-line); }
 .grp:first-child { border-top: 0; }
 .card .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; padding: 0 20px; }
 .card .lbl { font-weight: 600; font-size: 14px; }
@@ -249,7 +249,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .dd-menu li[aria-selected="true"] .ck { visibility: visible; }
 .dd-menu li .dim { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
 
-.acts { margin-top: auto; padding: 4px 0; border-radius: 0 0 18px 18px; overflow: hidden; }
+.acts { padding: 4px 0; border-radius: 0 0 18px 18px; overflow: hidden; }
 .arow {
   display: flex; align-items: center; gap: 12px; width: 100%; height: 38px; padding: 0 20px;
   border: 0; background: none; color: var(--fg); font: 14px var(--sans); text-align: left;
