@@ -24,7 +24,7 @@
   --r: 10px;
   --frame-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 20px 50px -28px rgba(0,0,0,.28);
   --card: #ffffff; --card-edge: rgba(0,0,0,.06); --card-line: rgba(0,0,0,.08); --card-line-strong: rgba(0,0,0,.16);
-  --card-hover: rgba(0,0,0,.035); --card-sel: rgba(0,0,0,.06); --dot: rgba(0,0,0,.09);
+  --card-hover: rgba(0,0,0,.035); --card-sel: rgba(0,0,0,.06); --dot: rgba(0,0,0,.055);
   --art-shadow: 0 0 0 .5px rgba(0,0,0,.06), 0 10px 24px -14px rgba(0,0,0,.28);
 }
 @media (prefers-color-scheme: dark) {
@@ -34,7 +34,7 @@
     --frame-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 26px 60px -24px rgba(0,0,0,.95), 0 10px 24px -12px rgba(0,0,0,.6);
     --art-shadow: 0 0 0 .5px rgba(255,255,255,.08), 0 12px 28px -14px rgba(0,0,0,.7);
     --card: #222221; --card-edge: rgba(255,255,255,.07); --card-line: rgba(255,255,255,.08); --card-line-strong: rgba(255,255,255,.18);
-    --card-hover: rgba(255,255,255,.04); --card-sel: rgba(255,255,255,.07); --dot: rgba(255,255,255,.07); color-scheme: dark;
+    --card-hover: rgba(255,255,255,.04); --card-sel: rgba(255,255,255,.07); --dot: rgba(255,255,255,.045); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
@@ -43,7 +43,7 @@
     --frame-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 26px 60px -24px rgba(0,0,0,.95), 0 10px 24px -12px rgba(0,0,0,.6);
     --art-shadow: 0 0 0 .5px rgba(255,255,255,.08), 0 12px 28px -14px rgba(0,0,0,.7);
     --card: #222221; --card-edge: rgba(255,255,255,.07); --card-line: rgba(255,255,255,.08); --card-line-strong: rgba(255,255,255,.18);
-    --card-hover: rgba(255,255,255,.04); --card-sel: rgba(255,255,255,.07); --dot: rgba(255,255,255,.07); color-scheme: dark;
+    --card-hover: rgba(255,255,255,.04); --card-sel: rgba(255,255,255,.07); --dot: rgba(255,255,255,.045); color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -63,6 +63,7 @@ button { cursor: pointer; }
 
 /* ---------- Top bar ---------- */
 .top {
+  background: var(--card);
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding-block: 9px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
@@ -97,8 +98,11 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
   flex: 1; min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 356px;
-  background-image: radial-gradient(var(--dot) 1px, transparent 1.2px);
-  background-size: 22px 22px;
+  background-image:
+    linear-gradient(to right, var(--dot) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--dot) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: -1px -1px;
 }
 .work { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .stage {
@@ -133,7 +137,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 }
 
 /* ---------- Library ---------- */
-.library { border-top: 1px solid var(--line); padding: 12px 0 14px; display: grid; gap: 10px; }
+.library { background: var(--card); border-top: 1px solid var(--line); padding: 12px 0 14px; display: grid; gap: 10px; }
 .lib-row { display: grid; grid-template-columns: 70px minmax(0, 1fr); align-items: center; gap: 8px; padding-left: 16px; }
 .lib-row h3 { margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 500; }
 .tiles { display: flex; gap: 8px; overflow-x: auto; padding: 3px 16px 3px 3px; scrollbar-width: thin; }
