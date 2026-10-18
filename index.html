@@ -70,7 +70,6 @@ button { cursor: pointer; }
   border-bottom: 1px solid var(--line);
 }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; font-size: 15px; }
-.brand i { width: 18px; height: 18px; border-radius: 5px; display: block; background: var(--logo, linear-gradient(135deg, #ff7a59, #ffd36e)); box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
 .top-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
 .btn {
@@ -83,14 +82,14 @@ button { cursor: pointer; }
 .btn.primary { background: var(--fg); color: var(--on-fg); border-color: var(--fg); }
 .btn.primary:hover { opacity: .88; }
 .btn.icon { width: 32px; padding: 0; justify-content: center; }
-.btn.icon .moon { display: none; }
+.btn.theme .sun { display: none; }
+.btn.theme.is-dark .sun { display: block; }
+.btn.theme.is-dark .moon { display: none; }
 .btn:disabled { opacity: .4; cursor: default; }
 .btn:disabled:hover { border-color: var(--line); }
 .hist { display: flex; }
 .hist .btn:first-child { border-radius: 8px 0 0 8px; }
 .hist .btn:last-child { border-radius: 0 8px 8px 0; margin-left: -1px; }
-.btn.icon.to-dark .moon { display: block; }
-.btn.icon.to-dark .sun { display: none; }
 kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 1px solid currentColor; opacity: .55; }
 
 /* ---------- Main ---------- */
@@ -117,16 +116,17 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .frame canvas { display: block; width: 100%; height: 100%; border-radius: 24px; }
 .handles { position: absolute; inset: 0; }
 .h {
-  position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px;
-  border-radius: 50%; border: 2.5px solid #fff; padding: 0;
+  --c: #fff;
+  position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px;
+  border-radius: 50%; border: 2px solid #fff; padding: 0; background: var(--c);
   box-shadow: 0 1px 4px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.15);
   touch-action: none; cursor: grab;
   transition: transform .15s;
 }
 .h:active { cursor: grabbing; }
-.h.sel { transform: scale(1.3); box-shadow: 0 1px 6px rgba(0,0,0,.4), 0 0 0 2px rgba(0,0,0,.6); }
-.h.center { background: transparent; width: 26px; height: 26px; margin: -13px 0 0 -13px; }
-.h.center::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: #fff; }
+.h.sel { transform: scale(1.25); box-shadow: 0 1px 5px rgba(0,0,0,.35), 0 0 0 .75px rgba(120,120,118,.9); }
+.h.center { background: transparent; width: 22px; height: 22px; margin: -11px 0 0 -11px; }
+.h.center::after { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: #fff; }
 .meta {
   text-align: center; font: 12px var(--mono); color: var(--muted);
   padding: 0 16px 14px; font-variant-numeric: tabular-nums;
@@ -159,7 +159,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
   background: var(--card); border-radius: 18px;
   box-shadow: 0 0 0 1px var(--card-edge), 0 18px 40px -24px rgba(0,0,0,.22);
 }
-.grp { padding: 6px 0; border-top: 1px solid var(--card-line); }
+.grp { padding: 6px 0; flex: 1 0 auto; display: flex; flex-direction: column; justify-content: center; border-top: 1px solid var(--card-line); }
 .grp:first-child { border-top: 0; }
 .card .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; padding: 0 20px; }
 .card .lbl { font-weight: 600; font-size: 14px; }
@@ -202,7 +202,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .card .bar .k { width: 14px; height: 14px; margin-left: -7px; margin-top: -7px; border-radius: 4px; border-width: 2px; }
 .swrow { display: flex; flex-wrap: wrap; gap: 8px; padding: 2px 20px 6px; }
 .swi { position: relative; }
-.sw { position: relative; display: block; width: 28px; height: 28px; border-radius: 8px; overflow: hidden; cursor: pointer;
+.sw { position: relative; display: block; width: 28px; height: 28px; border-radius: 5px; overflow: hidden; cursor: pointer;
   box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); transition: box-shadow .15s; }
 .sw input { position: absolute; inset: -8px; width: calc(100% + 16px); height: calc(100% + 16px); border: 0; padding: 0; opacity: 0; cursor: pointer; }
 .swi.sel .sw { box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 0 0 2px var(--card), 0 0 0 3.5px var(--fg); }
@@ -216,13 +216,13 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .swi .x:hover { color: var(--fg); }
 @media (hover: none) { .swi .x { opacity: 1; } }
 .swi.add button {
-  width: 28px; height: 28px; border-radius: 8px; padding: 0; display: grid; place-items: center;
+  width: 28px; height: 28px; border-radius: 5px; padding: 0; display: grid; place-items: center;
   border: 1px dashed var(--card-line-strong); background: none; color: var(--muted);
 }
 .swi.add button:hover { color: var(--fg); border-color: var(--muted); }
 .swi.add button:disabled { opacity: .35; cursor: default; }
 .card .rl { font-size: 14px; }
-.sw.base { width: 28px; height: 28px; border-radius: 7px; }
+.sw.base { width: 28px; height: 28px; border-radius: 5px; }
 
 /* segmented type control */
 .card .grp:first-child .row:first-child { padding-top: 8px; padding-bottom: 4px; }
@@ -250,7 +250,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .dd-menu li[aria-selected="true"] .ck { visibility: visible; }
 .dd-menu li .dim { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
 
-.acts { margin-top: auto; padding: 4px 0; border-radius: 0 0 18px 18px; overflow: hidden; }
+.acts { padding: 4px 0; border-radius: 0 0 18px 18px; overflow: hidden; }
 .arow {
   display: flex; align-items: center; gap: 12px; width: 100%; height: 38px; padding: 0 20px;
   border: 0; background: none; color: var(--fg); font: 14px var(--sans); text-align: left;
@@ -258,6 +258,11 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .arow:hover:not(:disabled) { background: var(--card-hover); }
 .arow:disabled { opacity: .38; cursor: default; }
 .card .row.off { opacity: .38; }
+.card .switch { width: 40px; height: 24px; }
+.card .switch span { background: var(--card-line-strong); }
+.card .switch span::after { top: 3px; left: 3px; width: 18px; height: 18px; }
+.card .switch input:checked + span { background: var(--fg); }
+.card .switch input:checked + span::after { transform: translateX(16px); background: var(--card); box-shadow: none; }
 .card .row.off input { cursor: default; }
 .arow svg { flex: none; }
 .arow kbd { margin-left: auto; }
@@ -426,21 +431,14 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 <body>
 
 <header class="top">
-  <div class="brand"><i id="logo"></i>Gradient</div>
+  <div class="brand">Gradient</div>
   <div class="top-actions">
-    <button class="btn" id="libBtn" type="button" title="Library (L) · save with S">Library <span class="count" id="libCount">0</span></button>
+    <button class="btn icon" id="libBtn" type="button" aria-label="Library" title="Library (L) · save with S"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="3" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     <div class="hist" role="group" aria-label="History">
-      <button class="btn icon" id="undoBtn" type="button" aria-label="Undo" title="Undo (Ctrl+Z / ⌘Z)" disabled>
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 14L4 9l5-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
-      </button>
-      <button class="btn icon" id="redoBtn" type="button" aria-label="Redo" title="Redo (Shift+Ctrl+Z / ⇧⌘Z)" disabled>
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 14l5-5-5-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
-      </button>
+      <button class="btn icon" id="undoBtn" type="button" aria-label="Undo" title="Undo (Ctrl+Z / ⌘Z)" disabled><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M7.5 4.5L4 8l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M4 8h7.5a4.5 4.5 0 0 1 0 9H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
+      <button class="btn icon" id="redoBtn" type="button" aria-label="Redo" title="Redo (Shift+Ctrl+Z / ⇧⌘Z)" disabled><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M12.5 4.5L16 8l-3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M16 8H8.5a4.5 4.5 0 0 0 0 9H11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     </div>
-    <button class="btn icon" id="themeBtn" type="button" aria-label="Switch to light mode" title="Switch to light mode">
-      <svg class="sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></g></svg>
-      <svg class="moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="currentColor"/></svg>
-    </button>
+    <button class="btn icon theme" id="themeBtn" type="button" aria-label="Switch to dark mode" title="Switch to dark mode"><svg class="sun" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M10 2.5v1.6M10 15.9v1.6M2.5 10h1.6M15.9 10h1.6M4.7 4.7l1.1 1.1M14.2 14.2l1.1 1.1M4.7 15.3l1.1-1.1M14.2 5.8l1.1-1.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><svg class="moon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M16.5 12.2A6.6 6.6 0 0 1 7.8 3.5a6.6 6.6 0 1 0 8.7 8.7z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     <button class="btn primary" id="randomBtn" type="button">Randomize <kbd>R</kbd></button>
   </div>
 </header>
@@ -908,7 +906,6 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     const [W, H, label] = FORMATS[S.format];
     const modeLabel = { linear: `Linear ${S.angle}°`, radial: 'Radial', mesh: 'Mesh' }[S.mode];
     $('meta').textContent = `${W} × ${H} px · ${label} · ${modeLabel} · ${S.stops.length} colors${mo.on ? ` · ${mo.speed}s loop` : ''}`;
-    $('logo').style.setProperty('--logo', gradient(S, false));
 
     renderHandles();
   }
@@ -920,7 +917,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     if (S.mode === 'mesh') {
       S.stops.forEach((s, i) => {
         const h = mkHandle(s.x, s.y, `Move ${s.c}`);
-        h.style.background = s.c;
+        h.style.setProperty('--c', s.c);
         if (i === sel) h.classList.add('sel');
         h.dataset.i = i;
       });
@@ -1390,7 +1387,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   };
   function syncTheme() {
     const dark = isDark();
-    themeBtn.classList.toggle('to-dark', !dark);
+    themeBtn.classList.toggle('is-dark', dark);
     const label = dark ? 'Switch to light mode' : 'Switch to dark mode';
     themeBtn.setAttribute('aria-label', label); themeBtn.title = label;
   }
@@ -1460,7 +1457,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     : { id: Date.now() - i, savedAt: Date.now(), state: migrate(e) });
   library.forEach(e => { if (!e.name) e.name = funName(e.state, library.map(x => x.name)); });
   const persistLib = () => store.set('gb-saved', library);
-  const libCount = () => { $('libCount').textContent = library.length; };
+  const libCount = () => { $('libBtn').title = `Library · ${library.length} saved (L) · save with S`; };
 
   function saveToLibrary() {
     const name = funName(S, library.map(x => x.name));
