@@ -78,6 +78,10 @@ button { cursor: pointer; }
 }
 .top .btn { box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 6px 16px -10px rgba(0,0,0,.25); }
 .top .btn.primary { box-shadow: 0 6px 16px -8px rgba(0,0,0,.45); }
+.menu-wrap { position: relative; }
+#exportBtn svg { color: var(--muted); transition: transform .15s; }
+#exportBtn[aria-expanded="true"] svg { transform: rotate(180deg); }
+#exportBtn .exi { display: none; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; font-size: 15px; }
 .top-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
@@ -172,8 +176,17 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .dlabel.name { color: var(--fg); font-size: 13px; text-transform: none; letter-spacing: 0; }
 .dock .tiles { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px; }
 .dock .tiles::-webkit-scrollbar { display: none; }
-.dock .tile > button:first-child { width: 72px; height: 46px; border-radius: 10px; transition: transform .15s, box-shadow .15s; }
-.dock .tile > button:first-child:hover, .dock .tile > button:first-child:focus-visible { box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 0 0 2px var(--card), 0 0 0 3.5px var(--fg); }
+.dock .tiles { padding-top: 6px; margin-top: -4px; }
+.dock .tile > button:first-child {
+  width: 72px; height: 46px; border-radius: 10px;
+  transition: transform .28s cubic-bezier(.3,1.6,.5,1), box-shadow .28s ease;
+}
+/* hover: the card rises a touch and settles with a small bounce, a soft shadow opening up beneath it */
+.dock .tile > button:first-child:hover, .dock .tile > button:first-child:focus-visible {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 8px 14px -8px rgba(0,0,0,.45);
+}
+.dock .tile > button:first-child:active { transform: translateY(-1px) scale(1.01); transition-duration: .1s; }
 .dtools { display: none; gap: 2px; }
 .dbtn {
   display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 11px;
@@ -189,7 +202,12 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
   animation: popin .16s ease-out;
 }
 .psep { height: 1px; margin: 6px 0; background: var(--card-line); }
+.menu { top: calc(100% + 8px); bottom: auto; left: auto; right: 0; width: 230px; padding: 6px 0; }
+.menu .arow { height: 40px; }
 @keyframes popin { from { opacity: 0; transform: translateY(6px); } }
+
+.menu { animation-name: menuin; }
+@keyframes menuin { from { opacity: 0; transform: translateY(-6px); } }
 
 /* right column: size, shape and motion settings */
 .side {
@@ -199,26 +217,16 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
   margin: 10px max(20px, env(safe-area-inset-right, 0px)) 0 0;
 }
 .side-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding: 8px 0 8px; }
-.side .seg { flex: 1; }
+.side .seg { flex: 1; margin: 4px 0; }
 .side .seg.tex { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .side .seg.tex button { font-size: 13px; }
-/* export lives at the foot of the column, always in view */
-.side-foot { flex: none; display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 6px; padding: 10px 12px 12px; border-top: 1px solid var(--card-line); }
-.fbtn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 8px;
-  border: 0; border-radius: 10px; background: var(--card-sel); color: var(--fg); font: 500 13px var(--sans); white-space: nowrap;
-}
-.fbtn svg { width: 16px; height: 16px; flex: none; }
-.fbtn:hover:not(:disabled) { background: var(--card-line-strong); }
-.fbtn:disabled { opacity: .38; cursor: default; }
 .side .row { padding: 0 18px; }
 .side .bar { margin: 2px 24px 22px; }
 .side .swrow { padding: 2px 18px 14px; }
-.rv { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
-.sizes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 2px 14px 10px; }
+.sizes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 2px 12px 8px; }
 .sizes button {
-  display: grid; justify-items: center; gap: 5px; padding: 9px 0 7px; border: 0; border-radius: 10px;
-  background: none; color: var(--muted); font: 500 11.5px var(--sans); transition: background .15s, color .15s;
+  display: grid; place-items: center; height: 36px; padding: 0; border: 0; border-radius: 10px;
+  background: none; color: var(--muted); transition: background .15s, color .15s;
 }
 .sizes button svg { height: 22px; }
 .sizes button:hover { background: var(--card-hover); color: var(--fg); }
@@ -227,24 +235,30 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .sidebtn { display: none; }
 .card .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; padding: 0 20px; }
 .card .lbl { font-weight: 600; font-size: 14px; }
-.card .row.slide { display: grid; grid-template-columns: 92px minmax(0, 1fr); }
-.card .row.slide label { font-size: 14px; }
-
-.card input[type="range"] { -webkit-appearance: none; appearance: none; height: 24px; margin: 0; background: transparent; cursor: pointer; }
+/* Sliders are filled bars: the name sits inside on the left, the value on the right, and a thin
+   marker rides the edge of the fill. */
+.card .row.slide { display: block; position: relative; min-height: 0; padding-block: 3px; }
+.card .row.slide label, .card .row.slide output {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 1; pointer-events: none; font-size: 13px;
+}
+.card .row.slide label { left: 32px; color: var(--fg); }
+.card .row.slide output { right: 32px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.card input[type="range"] {
+  -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 34px; margin: 0;
+  background: transparent; border-radius: 10px; cursor: ew-resize;
+}
 .card input[type="range"]::-webkit-slider-runnable-track {
-  height: 3px; border-radius: 2px;
-  background: linear-gradient(to right, var(--fg) var(--p, 50%), var(--card-line-strong) var(--p, 50%));
+  height: 34px; border-radius: 10px;
+  background: linear-gradient(to right, var(--card-line-strong) var(--p, 50%), var(--card-sel) var(--p, 50%));
 }
 .card input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 20px; height: 20px; margin-top: -8.5px; border-radius: 50%; background: #fff;
-  box-shadow: 0 0 0 .5px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.2);
+  -webkit-appearance: none; width: 2px; height: 16px; margin-top: 9px; border-radius: 1px; background: var(--fg); opacity: .5;
 }
-.card input[type="range"]::-moz-range-track { height: 3px; border-radius: 2px; background: var(--card-line-strong); }
-.card input[type="range"]::-moz-range-progress { height: 3px; border-radius: 2px; background: var(--fg); }
-.card input[type="range"]::-moz-range-thumb {
-  width: 20px; height: 20px; border: 0; border-radius: 50%; background: #fff;
-  box-shadow: 0 0 0 .5px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.2);
-}
+.card input[type="range"]:hover::-webkit-slider-thumb, .card input[type="range"]:active::-webkit-slider-thumb { opacity: .9; }
+.card input[type="range"]::-moz-range-track { height: 34px; border-radius: 10px; background: var(--card-sel); }
+.card input[type="range"]::-moz-range-progress { height: 34px; border-radius: 10px 0 0 10px; background: var(--card-line-strong); }
+.card input[type="range"]::-moz-range-thumb { width: 2px; height: 16px; border: 0; border-radius: 1px; background: var(--fg); opacity: .5; }
+.card input[type="range"]:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 .card .icons { display: flex; gap: 2px; margin-right: -6px; }
 .card .ib { width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 8px; background: none; color: var(--fg); padding: 0; }
@@ -493,9 +507,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   .card .row { min-height: 44px; }
   .card .ib { width: 40px; height: 40px; }
   .card .seg button { height: 38px; }
-  .card input[type="range"] { height: 36px; }
-  .card input[type="range"]::-webkit-slider-thumb { width: 26px; height: 26px; margin-top: -11.5px; }
-  .card input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; }
+  .card input[type="range"], .card input[type="range"]::-webkit-slider-runnable-track, .card input[type="range"]::-moz-range-track, .card input[type="range"]::-moz-range-progress { height: 40px; }
+  .card input[type="range"]::-webkit-slider-thumb { height: 18px; margin-top: 11px; }
   .card .switch { width: 48px; height: 28px; }
   .card .switch span::after { width: 22px; height: 22px; }
   .card .switch input:checked + span::after { transform: translateX(20px); }
@@ -517,6 +530,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 @media (max-width: 480px) {
   .top { padding-top: calc(env(safe-area-inset-top, 0px) + 10px); gap: 8px; padding-left: 12px; padding-right: 12px; }
   .brand { display: none; }
+  #exportBtn { width: 38px; padding: 0; justify-content: center; }
+  #exportBtn .exl, #exportBtn > svg:last-child { display: none; }
+  #exportBtn .exi { display: block; }
   .top { justify-content: flex-end; }
   .top-actions { gap: 6px; flex-wrap: nowrap; }
   .top .btn { height: 38px; }
@@ -525,7 +541,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   .stage { padding: 14px 16px 10px; }
   .frame, .frame canvas { border-radius: 18px; }
   .card .row { padding: 0 16px; }
-  .card .row.slide { grid-template-columns: 84px minmax(0, 1fr); }
   .libview { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
   .libview-title h2 { font-size: 20px; }
   .overlay { padding: 12px; align-items: end; }
@@ -540,7 +555,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 @media (max-width: 400px) {
   .top-actions { gap: 4px; }
   .top .btn { height: 36px; }
-  .top .btn.icon { width: 36px; }
+  .top .btn.icon, #exportBtn { width: 36px; }
   .top #randomBtn { padding: 0 10px; }
 }
 @media (max-width: 340px) { .top-actions { flex-wrap: wrap; } }
@@ -558,6 +573,14 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     </div>
     <button class="btn icon theme" id="themeBtn" type="button" aria-label="Switch to dark mode" title="Switch to dark mode"><svg class="sun" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M10 2.5v1.6M10 15.9v1.6M2.5 10h1.6M15.9 10h1.6M4.7 4.7l1.1 1.1M14.2 14.2l1.1 1.1M4.7 15.3l1.1-1.1M14.2 5.8l1.1-1.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><svg class="moon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M16.5 12.2A6.6 6.6 0 0 1 7.8 3.5a6.6 6.6 0 1 0 8.7 8.7z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     <button class="btn icon" id="libBtn" type="button" aria-label="Library" title="Library (L) · save with S"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="3" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
+    <div class="menu-wrap" id="exportWrap">
+      <button class="btn" id="exportBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="exportMenu" aria-label="Export"><svg class="exi" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 3.5v9M6 9l4 4 4-4M4 16.5h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="exl">Export</span> <svg viewBox="0 0 11 7" width="11" height="7" aria-hidden="true"><path d="M1 1l4.5 4.5L10 1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="pop card menu" id="exportMenu" role="menu" aria-label="Export" hidden>
+        <button class="arow" role="menuitem" id="copyBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M7 6l-4 4 4 4M13 6l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Copy CSS</button>
+        <button class="arow" role="menuitem" id="pngBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 3.5v9M6 9l4 4 4-4M4 16.5h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Download PNG</button>
+        <button class="arow" role="menuitem" id="mp4Btn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="3" y="4.5" width="14" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8.5 8v4l3.5-2z" fill="currentColor"/></svg>Download video</button>
+      </div>
+    </div>
     <button class="btn primary" id="randomBtn" type="button">Randomize <kbd>R</kbd></button>
   </div>
 </header>
@@ -573,7 +596,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
   <aside class="side card" id="side" aria-label="Settings">
     <div class="side-scroll">
-      <div class="row"><span class="lbl">Size</span><span class="rv" id="sizeVal"></span></div>
       <div class="sizes" id="sizes" role="radiogroup" aria-label="Size"></div>
       <div class="psep"></div>
       <div class="row">
@@ -592,7 +614,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       <div class="bar" id="bar" title="Click to add a color"></div>
       <div class="row slide" id="sizeField">
         <label for="selSize">Spread</label>
-        <input type="range" id="selSize" min="15" max="120" step="1"><output id="sizeOut" hidden></output>
+        <input type="range" id="selSize" min="15" max="120" step="1"><output id="sizeOut"></output>
       </div>
       <div class="row" id="baseRow">
         <span class="rl">Background</span>
@@ -601,11 +623,11 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       <div class="psep"></div>
       <div class="row slide" id="angleField">
         <label for="angle">Angle</label>
-        <input type="range" id="angle" min="0" max="360" step="1"><output id="angleOut" hidden></output>
+        <input type="range" id="angle" min="0" max="360" step="1"><output id="angleOut"></output>
       </div>
       <div class="row slide">
         <label for="blur">Blur</label>
-        <input type="range" id="blur" min="0" max="200" step="1"><output id="blurOut" hidden></output>
+        <input type="range" id="blur" min="0" max="200" step="1"><output id="blurOut"></output>
       </div>
       <div class="psep"></div>
       <div class="row"><span class="lbl">Texture</span></div>
@@ -619,15 +641,15 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       </div>
       <div class="row slide" id="texSizeField">
         <label for="texSize">Size</label>
-        <input type="range" id="texSize" min="0" max="100" step="1"><output id="texSizeOut" hidden></output>
+        <input type="range" id="texSize" min="0" max="100" step="1"><output id="texSizeOut"></output>
       </div>
       <div class="row slide" id="texDepthField">
         <label for="texDepth">Depth</label>
-        <input type="range" id="texDepth" min="0" max="100" step="1"><output id="texDepthOut" hidden></output>
+        <input type="range" id="texDepth" min="0" max="100" step="1"><output id="texDepthOut"></output>
       </div>
       <div class="row slide">
         <label for="grain">Noise</label>
-        <input type="range" id="grain" min="0" max="40" step="1"><output id="grainOut" hidden></output>
+        <input type="range" id="grain" min="0" max="40" step="1"><output id="grainOut"></output>
       </div>
       <div class="psep"></div>
       <div class="row">
@@ -638,17 +660,12 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       </div>
       <div class="row slide" id="speedField">
         <label for="speed">Loop</label>
-        <input type="range" id="speed" min="3" max="20" step="1"><output id="speedOut" hidden></output>
+        <input type="range" id="speed" min="3" max="20" step="1"><output id="speedOut"></output>
       </div>
       <div class="row slide" id="amountField">
         <label for="amount">Movement</label>
-        <input type="range" id="amount" min="5" max="100" step="1"><output id="amountOut" hidden></output>
+        <input type="range" id="amount" min="5" max="100" step="1"><output id="amountOut"></output>
       </div>
-    </div>
-    <div class="side-foot" role="group" aria-label="Export">
-      <button class="fbtn" id="copyBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M7 6l-4 4 4 4M13 6l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Copy CSS</span></button>
-      <button class="fbtn" id="pngBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 3.5v9M6 9l4 4 4-4M4 16.5h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>PNG</span></button>
-      <button class="fbtn" id="mp4Btn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="3" y="4.5" width="14" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8.5 8v4l3.5-2z" fill="currentColor"/></svg><span>Video</span></button>
     </div>
   </aside>
 
@@ -1130,7 +1147,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     $('texSizeField').hidden = $('texDepthField').hidden = tx.kind === 'none';
     $('texSize').value = tx.scale; $('texSizeOut').textContent = tx.scale + '%';
     $('texDepth').value = tx.depth; $('texDepthOut').textContent = tx.depth + '%';
-    $('sizeVal').textContent = `${FORMATS[S.format][0]} × ${FORMATS[S.format][1]}`;
     $('sizes').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === S.format)));
 
     // output
@@ -1368,9 +1384,36 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   Object.entries(FORMATS).forEach(([k, [w, h, label]]) => {
     const b = document.createElement('button');
     b.type = 'button'; b.dataset.k = k; b.title = `${label} · ${w} × ${h}`;
-    b.innerHTML = `${SIZE_ICONS[k]}<span>${k === 'circle' ? 'Circle' : k}</span>`;
+    b.innerHTML = SIZE_ICONS[k]; b.setAttribute('aria-label', label);
     b.onclick = () => { S.format = k; fit(); draw(); };
     $('sizes').appendChild(b);
+  });
+
+  // ---------- Export menu ----------
+  const exportBtn = $('exportBtn'), exportMenu = $('exportMenu');
+  function closeMenu(refocus) {
+    if (exportMenu.hidden) return;
+    exportMenu.hidden = true; exportBtn.setAttribute('aria-expanded', 'false');
+    if (refocus) exportBtn.focus();
+  }
+  exportBtn.addEventListener('click', () => {
+    if (!exportMenu.hidden) { closeMenu(false); return; }
+    closeSide();
+    exportMenu.hidden = false; exportBtn.setAttribute('aria-expanded', 'true');
+    exportMenu.querySelector('.arow:not(:disabled)').focus();
+  });
+  exportMenu.addEventListener('click', e => { if (e.target.closest('.arow')) closeMenu(false); });
+  exportMenu.addEventListener('keydown', e => {
+    const items = [...exportMenu.querySelectorAll('.arow:not(:disabled)')], i = items.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') items[(i + 1) % items.length].focus();
+    else if (e.key === 'ArrowUp') items[(i - 1 + items.length) % items.length].focus();
+    else if (e.key === 'Escape') closeMenu(true);
+    else if (e.key === 'Tab') { closeMenu(false); return; }
+    else return;
+    e.preventDefault(); e.stopPropagation();
+  });
+  document.addEventListener('pointerdown', e => {
+    if (!$('exportWrap').contains(e.target)) closeMenu(false);
   });
 
   // On phones the right column folds into a card that opens from the dock.
@@ -1378,7 +1421,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   function closeSide() { side.classList.remove('open'); sideBtn.setAttribute('aria-expanded', 'false'); }
   sideBtn.addEventListener('click', () => {
     const open = !side.classList.contains('open');
-    closeSide();
+    closeMenu(false); closeSide();
     if (!open) return;
     document.documentElement.style.setProperty('--dock-h', $('dockWrap').offsetHeight + 'px');
     side.classList.add('open'); sideBtn.setAttribute('aria-expanded', 'true');
