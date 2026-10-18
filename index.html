@@ -201,7 +201,8 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
   position: absolute; bottom: calc(100% + 4px); left: 50%; width: 320px; padding: 10px 0; z-index: 15;
   animation: popin .16s ease-out;
 }
-.psep { height: 1px; margin: 10px 0; background: var(--card-line); }
+.psep { height: 0; margin: 9px 0; }
+.side .row:has(> #modes) + .psep { margin: 3px 0; }
 .menu { top: calc(100% + 8px); bottom: auto; left: auto; right: 0; width: 230px; padding: 6px 0; }
 .menu .arow { height: 40px; }
 @keyframes popin { from { opacity: 0; transform: translateY(6px); } }
@@ -219,11 +220,20 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .side-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; padding: 12px 0; }
 .side-scroll::-webkit-scrollbar { display: none; }
 .side .seg { flex: 1; margin: 2px 0 6px; }
+.side #modes { margin-bottom: 0; }
+.side #modes button { height: 28px; font-size: 13.5px; }
 .side .seg.tex { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .side .seg.tex button { font-size: 13px; }
 .side .row { padding: 0 18px; }
 .side .bar { margin: 4px 24px 22px; }
-.side .swrow { padding: 4px 18px 12px; }
+.colorline { display: flex; align-items: center; gap: 9px; padding: 4px 18px 12px; }
+.side .colorline .swrow { padding: 0; gap: 7px; flex: 1; min-width: 0; }
+.side .colorline .sw, .side .colorline .swi.add button { width: 26px; height: 26px; }
+.baseswi { display: inline-flex; align-items: center; gap: 9px; flex: none; }
+.baseswi[hidden] { display: none !important; }
+/* the background reads as a round swatch, apart from the square colours that sit on it */
+.sw.base { border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12), 0 0 0 2px var(--card), 0 0 0 3px var(--card-line-strong); }
+.cdiv { width: 1px; height: 22px; background: var(--card-line-strong); }
 .sizes { display: flex; gap: 2px; }
 .sizes button {
   display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px 0 8px; border: 0; border-radius: 9px;
@@ -253,12 +263,12 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
   background: linear-gradient(to right, var(--card-line-strong) var(--p, 50%), var(--card-sel) var(--p, 50%));
 }
 .card input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 2px; height: 14px; margin-top: 7px; border-radius: 1px; background: var(--fg); opacity: .5;
+  -webkit-appearance: none; width: 3px; height: 14px; margin-top: 7px; border-radius: 1.5px; background: var(--fg); opacity: .5;
 }
 .card input[type="range"]:hover::-webkit-slider-thumb, .card input[type="range"]:active::-webkit-slider-thumb { opacity: .9; }
 .card input[type="range"]::-moz-range-track { height: 28px; border-radius: 9px; background: var(--card-sel); }
 .card input[type="range"]::-moz-range-progress { height: 28px; border-radius: 9px 0 0 9px; background: var(--card-line-strong); }
-.card input[type="range"]::-moz-range-thumb { width: 2px; height: 14px; border: 0; border-radius: 1px; background: var(--fg); opacity: .5; }
+.card input[type="range"]::-moz-range-thumb { width: 3px; height: 14px; border: 0; border-radius: 1.5px; background: var(--fg); opacity: .5; }
 .card input[type="range"]:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 .card .icons { display: flex; gap: 2px; margin-right: -6px; }
@@ -290,7 +300,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .swi.add button:hover { color: var(--fg); border-color: var(--muted); }
 .swi.add button:disabled { opacity: .35; cursor: default; }
 .card .rl { font-size: 14px; }
-.sw.base { width: 28px; height: 28px; border-radius: 5px; }
+.sw.base { width: 28px; height: 28px; }
 
 /* segmented type control */
 .card .seg { flex: 1; background: var(--card-sel); border-radius: 10px; padding: 3px; }
@@ -515,6 +525,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   .card .switch input:checked + span::after { transform: translateX(20px); }
   .swrow { gap: 12px; padding-top: 8px; }
   .sw, .sw.base, .swi.add button { width: 36px; height: 36px; border-radius: 7px; }
+  .side .colorline .sw, .side .colorline .swi.add button { width: 34px; height: 34px; }
+  .sw.base { border-radius: 50%; }
   .swi .x { width: 20px; height: 20px; top: -8px; right: -8px; font-size: 13px; }
   .swi .x::before { content: ""; position: absolute; inset: -8px; }
   .arow { height: 48px; }
@@ -613,15 +625,14 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
         <span class="lbl">Colors</span>
         <span class="icons"><button class="ib" id="reverseBtn" type="button" title="Reverse order" aria-label="Reverse color order"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M5 7h11M13 4l3 3-3 3M15 13H4M7 10l-3 3 3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="ib" id="shuffleBtn" type="button" title="New colors" aria-label="Pick new colors"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M16 10a6 6 0 1 1-1.8-4.3M16 3.5v3.2h-3.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span>
       </div>
-      <div class="swrow" id="colorList"></div>
+      <div class="colorline">
+        <span class="baseswi" id="baseRow"><label class="sw base" title="Background"><input type="color" id="baseColor" aria-label="Background color"></label><span class="cdiv" aria-hidden="true"></span></span>
+        <div class="swrow" id="colorList"></div>
+      </div>
       <div class="bar" id="bar" title="Click to add a color"></div>
       <div class="row slide" id="sizeField">
         <label for="selSize">Spread</label>
         <input type="range" id="selSize" min="15" max="120" step="1"><output id="sizeOut"></output>
-      </div>
-      <div class="row" id="baseRow">
-        <span class="rl">Background</span>
-        <label class="sw base"><input type="color" id="baseColor" aria-label="Background color"></label>
       </div>
       <div class="psep"></div>
       <div class="row slide" id="angleField">
@@ -1037,7 +1048,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const aw = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
     const ah = stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
     // breathing room so the canvas floats between the top controls and the dock (less on phones)
-    const room = matchMedia('(max-width: 860px)').matches ? 0.94 : 0.9;
+    const room = matchMedia('(max-width: 860px)').matches ? 0.94 : 0.82;
     const sc = Math.min(aw / W, ah / H) * room;
     const fw = Math.max(40, Math.floor(W * sc)), fh = Math.max(40, Math.floor(H * sc));
     frame.style.width = fw + 'px'; frame.style.height = fh + 'px';
