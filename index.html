@@ -79,9 +79,16 @@ button { cursor: pointer; }
 .top .btn { box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 6px 16px -10px rgba(0,0,0,.25); }
 .top .btn.primary { box-shadow: 0 6px 16px -8px rgba(0,0,0,.45); }
 .menu-wrap { position: relative; }
-#exportBtn svg { color: var(--muted); transition: transform .15s; }
-#exportBtn[aria-expanded="true"] svg { transform: rotate(180deg); }
-#exportBtn .exi { display: none; }
+#sizeBtn .chev { color: var(--muted); transition: transform .25s cubic-bezier(.22,1,.36,1); }
+#sizeBtn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.szi { display: grid; color: var(--muted); }
+.szi svg { width: 17px; height: 15px; }
+#sizeMenu { width: 252px; }
+#sizeMenu .arow { gap: 10px; white-space: nowrap; }
+#sizeMenu .arow svg { width: 19px; height: 16px; color: var(--muted); }
+#sizeMenu .arow .dim { margin-left: auto; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+#sizeMenu .arow[aria-checked="true"] { background: var(--card-hover); }
+#sizeMenu .arow[aria-checked="true"] svg { color: var(--fg); }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; font-size: 15px; }
 .top-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
@@ -216,6 +223,16 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 }
 .side-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; padding: 12px 0; }
 .side-scroll::-webkit-scrollbar { display: none; }
+/* export sits at the foot of the column, always in view */
+.side-foot { flex: none; display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 6px; padding: 10px 12px 12px; }
+.fbtn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; padding: 0 8px;
+  border: 0; border-radius: 10px; background: var(--card-sel); color: var(--fg); font: 500 13px var(--sans); white-space: nowrap;
+}
+.fbtn svg { width: 16px; height: 16px; flex: none; }
+.fbtn:hover:not(:disabled) { background: var(--card-line-strong); }
+.fbtn:active:not(:disabled) { transform: scale(.97); }
+.fbtn:disabled { opacity: .38; cursor: default; }
 .side .seg { flex: 1; margin: 2px 0 6px; }
 .side .seg.tex { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .side .row { padding: 0 18px; }
@@ -228,10 +245,6 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 /* the background reads as a round swatch, apart from the square colours that sit on it */
 .sw.base { border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12), 0 0 0 2px var(--card), 0 0 0 3px var(--card-line-strong); }
 .cdiv { width: 1px; height: 22px; background: var(--card-line-strong); }
-.side .seg.sizes { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 0; }
-.side .row:has(> #sizes) + .row > #modes { margin-top: 8px; }
-.seg.sizes button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; }
-.seg.sizes button svg { width: 14px; height: 13px; flex: none; }
 
 .sidebtn { display: none; }
 /* rows that appear (texture sliders, stop bar, background swatch) ease in instead of popping */
@@ -553,9 +566,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 @media (max-width: 480px) {
   .top { padding-top: calc(env(safe-area-inset-top, 0px) + 10px); gap: 8px; padding-left: 12px; padding-right: 12px; }
   .brand { display: none; }
-  #exportBtn { width: 38px; padding: 0; justify-content: center; }
-  #exportBtn .exl, #exportBtn > svg:last-child { display: none; }
-  #exportBtn .exi { display: block; }
+  #sizeBtn { width: 38px; padding: 0; justify-content: center; }
+  #sizeBtn .szl, #sizeBtn .chev { display: none; }
+  #sizeBtn .szi { color: var(--fg); }
   .top { justify-content: flex-end; }
   .top-actions { gap: 6px; flex-wrap: nowrap; }
   .top .btn { height: 38px; }
@@ -578,7 +591,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 @media (max-width: 400px) {
   .top-actions { gap: 4px; }
   .top .btn { height: 36px; }
-  .top .btn.icon, #exportBtn { width: 36px; }
+  .top .btn.icon, #sizeBtn { width: 36px; }
   .top #randomBtn { padding: 0 10px; }
 }
 @media (max-width: 340px) { .top-actions { flex-wrap: wrap; } }
@@ -596,13 +609,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     </div>
     <button class="btn icon theme" id="themeBtn" type="button" aria-label="Switch to dark mode" title="Switch to dark mode"><svg class="sun" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M10 2.5v1.6M10 15.9v1.6M2.5 10h1.6M15.9 10h1.6M4.7 4.7l1.1 1.1M14.2 14.2l1.1 1.1M4.7 15.3l1.1-1.1M14.2 5.8l1.1-1.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><svg class="moon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M16.5 12.2A6.6 6.6 0 0 1 7.8 3.5a6.6 6.6 0 1 0 8.7 8.7z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     <button class="btn icon" id="libBtn" type="button" aria-label="Library" title="Library (L) · save with S"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="3" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
-    <div class="menu-wrap" id="exportWrap">
-      <button class="btn" id="exportBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="exportMenu" aria-label="Export"><svg class="exi" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 3.5v9M6 9l4 4 4-4M4 16.5h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="exl">Export</span> <svg viewBox="0 0 11 7" width="11" height="7" aria-hidden="true"><path d="M1 1l4.5 4.5L10 1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      <div class="pop card menu" id="exportMenu" role="menu" aria-label="Export" hidden>
-        <button class="arow" role="menuitem" id="copyBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M7 6l-4 4 4 4M13 6l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Copy CSS</button>
-        <button class="arow" role="menuitem" id="pngBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 3.5v9M6 9l4 4 4-4M4 16.5h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Download PNG</button>
-        <button class="arow" role="menuitem" id="mp4Btn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="3" y="4.5" width="14" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8.5 8v4l3.5-2z" fill="currentColor"/></svg>Download video</button>
-      </div>
+    <div class="menu-wrap" id="sizeWrap">
+      <button class="btn" id="sizeBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sizeMenu" title="Size"><span class="szi" id="sizeIcon" aria-hidden="true"></span><span class="szl" id="sizeName"></span><svg class="chev" viewBox="0 0 11 7" width="11" height="7" aria-hidden="true"><path d="M1 1l4.5 4.5L10 1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="pop card menu" id="sizeMenu" role="menu" aria-label="Size" hidden></div>
     </div>
     <button class="btn primary" id="randomBtn" type="button">Randomize <kbd>R</kbd></button>
   </div>
@@ -618,9 +627,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
   <aside class="side card" id="side" aria-label="Settings">
     <div class="side-scroll">
-      <div class="row">
-        <div class="seg sizes" id="sizes" role="radiogroup" aria-label="Size"></div>
-      </div>
       <div class="row">
         <div class="seg" id="modes" role="group" aria-label="Gradient type">
           <button type="button" data-mode="linear">Linear</button>
@@ -692,6 +698,11 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
         <label for="amount">Movement</label>
         <input type="range" id="amount" min="5" max="100" step="1"><output id="amountOut"></output>
       </div>
+    </div>
+    <div class="side-foot" role="group" aria-label="Export">
+      <button class="fbtn" id="copyBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M7 6l-4 4 4 4M13 6l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Copy CSS</span></button>
+      <button class="fbtn" id="pngBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 3.5v9M6 9l4 4 4-4M4 16.5h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>PNG</span></button>
+      <button class="fbtn" id="mp4Btn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="3" y="4.5" width="14" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8.5 8v4l3.5-2z" fill="currentColor"/></svg><span>Video</span></button>
     </div>
   </aside>
 
@@ -1194,7 +1205,10 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     $('texSize').disabled = $('texDepth').disabled = !tx.on;
     $('texSize').value = tx.scale; $('texSizeOut').textContent = tx.scale + '%';
     $('texDepth').value = tx.depth; $('texDepthOut').textContent = tx.depth + '%';
-    $('sizes').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === S.format)));
+    $('sizeMenu').querySelectorAll('.arow').forEach(b => b.setAttribute('aria-checked', String(b.dataset.k === S.format)));
+    $('sizeIcon').innerHTML = SIZE_ICONS[S.format];
+    $('sizeName').textContent = S.format === 'circle' ? 'Circle' : S.format;
+    $('sizeBtn').title = `Size · ${FORMATS[S.format][2]}`;
     segs.forEach(placeInd);
 
     // output
@@ -1419,7 +1433,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   $('blur').addEventListener('input', e => { S.blur = +e.target.value; draw(); });
   $('grain').addEventListener('input', e => { S.grain = +e.target.value; draw(); });
 
-  // Size: four shape buttons in the right column.
+  // Size: a dropdown next to Randomize, one row per shape.
   const SIZE_ICONS = {
     '16:9': '<svg viewBox="0 0 26 22" width="26" height="22" aria-hidden="true"><rect x="2" y="5" width="22" height="12.5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
     '9:16': '<svg viewBox="0 0 26 22" width="26" height="22" aria-hidden="true"><rect x="7.5" y="1.5" width="11" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
@@ -1428,32 +1442,32 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   };
   Object.entries(FORMATS).forEach(([k, [w, h, label]]) => {
     const b = document.createElement('button');
-    b.type = 'button'; b.dataset.k = k; b.title = `${label} · ${w} × ${h}`;
-    b.innerHTML = `${SIZE_ICONS[k]}<span>${k === 'circle' ? 'Circle' : k}</span>`;
+    b.type = 'button'; b.className = 'arow'; b.setAttribute('role', 'menuitemradio'); b.dataset.k = k;
+    b.innerHTML = `${SIZE_ICONS[k]}<span>${label}</span><span class="dim">${w} × ${h}</span>`;
     b.onclick = () => {
+      closeMenu(true);
       if (S.format === k) return;
       S.format = k; fit(); draw();
       frame.classList.remove('reshape'); void frame.offsetWidth; frame.classList.add('reshape');
     };
-    $('sizes').appendChild(b);
+    $('sizeMenu').appendChild(b);
   });
 
-  // ---------- Export menu ----------
-  const exportBtn = $('exportBtn'), exportMenu = $('exportMenu');
+  // ---------- Size menu ----------
+  const sizeBtn = $('sizeBtn'), sizeMenu = $('sizeMenu');
   function closeMenu(refocus) {
-    if (exportMenu.hidden) return;
-    exportMenu.hidden = true; exportBtn.setAttribute('aria-expanded', 'false');
-    if (refocus) exportBtn.focus();
+    if (sizeMenu.hidden) return;
+    sizeMenu.hidden = true; sizeBtn.setAttribute('aria-expanded', 'false');
+    if (refocus) sizeBtn.focus();
   }
-  exportBtn.addEventListener('click', () => {
-    if (!exportMenu.hidden) { closeMenu(false); return; }
+  sizeBtn.addEventListener('click', () => {
+    if (!sizeMenu.hidden) { closeMenu(false); return; }
     closeSide();
-    exportMenu.hidden = false; exportBtn.setAttribute('aria-expanded', 'true');
-    exportMenu.querySelector('.arow:not(:disabled)').focus();
+    sizeMenu.hidden = false; sizeBtn.setAttribute('aria-expanded', 'true');
+    (sizeMenu.querySelector('[aria-checked="true"]') || sizeMenu.querySelector('.arow')).focus();
   });
-  exportMenu.addEventListener('click', e => { if (e.target.closest('.arow')) closeMenu(false); });
-  exportMenu.addEventListener('keydown', e => {
-    const items = [...exportMenu.querySelectorAll('.arow:not(:disabled)')], i = items.indexOf(document.activeElement);
+  sizeMenu.addEventListener('keydown', e => {
+    const items = [...sizeMenu.querySelectorAll('.arow:not(:disabled)')], i = items.indexOf(document.activeElement);
     if (e.key === 'ArrowDown') items[(i + 1) % items.length].focus();
     else if (e.key === 'ArrowUp') items[(i - 1 + items.length) % items.length].focus();
     else if (e.key === 'Escape') closeMenu(true);
@@ -1462,7 +1476,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     e.preventDefault(); e.stopPropagation();
   });
   document.addEventListener('pointerdown', e => {
-    if (!$('exportWrap').contains(e.target)) closeMenu(false);
+    if (!$('sizeWrap').contains(e.target)) closeMenu(false);
   });
 
   // On phones the right column folds into a card that opens from the dock.
