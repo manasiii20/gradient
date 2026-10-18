@@ -78,10 +78,6 @@ button { cursor: pointer; }
 }
 .top .btn { box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 6px 16px -10px rgba(0,0,0,.25); }
 .top .btn.primary { box-shadow: 0 6px 16px -8px rgba(0,0,0,.45); }
-.menu-wrap { position: relative; }
-#exportBtn svg { color: var(--muted); transition: transform .15s; }
-#exportBtn[aria-expanded="true"] svg { transform: rotate(180deg); }
-#exportBtn .exi { display: none; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; font-size: 15px; }
 .top-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
@@ -128,16 +124,17 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .handles { position: absolute; inset: 0; }
 .h {
   --c: #fff;
-  position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px;
+  position: absolute; width: 13px; height: 13px; margin: -6.5px 0 0 -6.5px;
   border-radius: 50%; border: 2px solid #fff; padding: 0; background: var(--c);
-  box-shadow: 0 1px 4px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.15);
+  box-shadow: 0 1px 3px rgba(0,0,0,.3), 0 0 0 .5px rgba(0,0,0,.2);
   touch-action: none; cursor: grab;
   transition: transform .15s;
 }
 .h:active { cursor: grabbing; }
-.h.sel { transform: scale(1.25); box-shadow: 0 1px 5px rgba(0,0,0,.35), 0 0 0 .75px rgba(120,120,118,.9); }
-.h.center { background: transparent; width: 22px; height: 22px; margin: -11px 0 0 -11px; }
-.h.center::after { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: #fff; }
+.h::before { content: ""; position: absolute; inset: -9px; border-radius: 50%; }
+.h.sel { transform: scale(1.35); box-shadow: 0 1px 5px rgba(0,0,0,.35), 0 0 0 .75px rgba(120,120,118,.9); }
+.h.center { background: transparent; width: 16px; height: 16px; margin: -8px 0 0 -8px; }
+.h.center::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: #fff; }
 .meta {
   text-align: center; font: 12px var(--mono); color: var(--muted);
   padding: 0 16px 14px; font-variant-numeric: tabular-nums;
@@ -168,9 +165,15 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
   padding: 6px max(16px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 18px) max(16px, env(safe-area-inset-left, 0px));
 }
 .dock { display: flex; align-items: center; gap: 10px; padding: 8px; max-width: 100%; }
+.dlabel {
+  flex: none; width: 104px; padding-left: 10px; color: var(--muted); font: 500 11px var(--sans);
+  text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dlabel.name { color: var(--fg); font-size: 13px; text-transform: none; letter-spacing: 0; }
 .dock .tiles { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px; }
 .dock .tiles::-webkit-scrollbar { display: none; }
-.dock .tile > button:first-child { width: 72px; height: 46px; border-radius: 10px; transition: transform .15s; }
+.dock .tile > button:first-child { width: 72px; height: 46px; border-radius: 10px; transition: transform .15s, box-shadow .15s; }
+.dock .tile > button:first-child:hover, .dock .tile > button:first-child:focus-visible { box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 0 0 2px var(--card), 0 0 0 3.5px var(--fg); }
 .dtools { display: none; gap: 2px; }
 .dbtn {
   display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 11px;
@@ -186,17 +189,28 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
   animation: popin .16s ease-out;
 }
 .psep { height: 1px; margin: 6px 0; background: var(--card-line); }
-.menu { top: calc(100% + 8px); bottom: auto; left: auto; right: 0; width: 230px; padding: 6px 0; }
-.menu .arow { height: 40px; }
 @keyframes popin { from { opacity: 0; transform: translateY(6px); } }
 
 /* right column: size, shape and motion settings */
 .side {
   grid-column: 2; grid-row: 1 / -1; align-self: start;
-  width: 288px; max-height: calc(100% - 22px); overflow-y: auto; scrollbar-width: none;
-  margin: 10px max(20px, env(safe-area-inset-right, 0px)) 0 0; padding: 8px 0 10px;
+  display: flex; flex-direction: column; overflow: hidden;
+  width: 288px; max-height: calc(100% - 22px);
+  margin: 10px max(20px, env(safe-area-inset-right, 0px)) 0 0;
 }
-.side::-webkit-scrollbar { display: none; }
+.side-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding: 8px 0 8px; }
+.side .seg { flex: 1; }
+.side .seg.tex { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.side .seg.tex button { font-size: 13px; }
+/* export lives at the foot of the column, always in view */
+.side-foot { flex: none; display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 6px; padding: 10px 12px 12px; border-top: 1px solid var(--card-line); }
+.fbtn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 8px;
+  border: 0; border-radius: 10px; background: var(--card-sel); color: var(--fg); font: 500 13px var(--sans); white-space: nowrap;
+}
+.fbtn svg { width: 16px; height: 16px; flex: none; }
+.fbtn:hover:not(:disabled) { background: var(--card-line-strong); }
+.fbtn:disabled { opacity: .38; cursor: default; }
 .side .row { padding: 0 18px; }
 .side .bar { margin: 2px 24px 22px; }
 .side .swrow { padding: 2px 18px 14px; }
@@ -210,44 +224,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .sizes button:hover { background: var(--card-hover); color: var(--fg); }
 .sizes button[aria-pressed="true"] { background: var(--card-sel); color: var(--fg); }
 
-/* type picker: one button that opens a short list */
-.typewrap { position: relative; flex: none; }
-.side .row:first-child { min-height: 48px; }
-.typebtn {
-  display: inline-flex; align-items: center; gap: 8px; height: 36px; margin-right: -6px; padding: 0 10px;
-  border: 0; border-radius: 11px; background: var(--card-sel); color: var(--fg); font: 500 14px var(--sans);
-}
-.typebtn:hover { background: var(--card-line-strong); }
-.typebtn .ti { display: grid; }
-.typebtn .tn { min-width: 46px; text-align: left; }
-.typebtn .chev { color: var(--muted); transition: transform .25s cubic-bezier(.2,.8,.2,1); }
-.typewrap.open .typebtn .chev { transform: rotate(180deg); }
-.typebtn.swap .ti, .typebtn.swap .tn { animation: swapin .3s cubic-bezier(.2,.8,.2,1); }
-@keyframes swapin { from { opacity: 0; transform: translateY(5px); } }
-.typemenu {
-  position: fixed; top: 0; left: 0; width: 210px; padding: 6px; z-index: 40;
-  display: grid; gap: 2px; border-radius: 16px;
-  opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-10px) scale(.96); transform-origin: calc(100% - 20px) 0;
-  transition: opacity .16s ease, transform .26s cubic-bezier(.2,.8,.2,1), visibility 0s linear .26s;
-}
-.typemenu.up { transform: translateY(10px) scale(.96); transform-origin: calc(100% - 20px) 100%; }
-.typewrap.open .typemenu { opacity: 1; visibility: visible; pointer-events: auto; transform: none; transition-delay: 0s; }
-.typemenu button {
-  display: grid; grid-template-columns: 20px minmax(0, 1fr); align-items: center; gap: 12px;
-  height: 42px; padding: 0 12px; border: 0; border-radius: 11px; background: none; color: var(--fg);
-  font: 500 14px var(--sans); text-align: left; transition: background .15s;
-}
-.typemenu button svg { color: var(--muted); transition: color .15s; }
-.typemenu button:hover, .typemenu button:focus-visible { background: var(--card-sel); outline: none; }
-.typemenu button[aria-checked="true"] { background: var(--card-sel); }
-.typemenu button[aria-checked="true"] svg { color: var(--fg); }
-/* only the row under the pointer is greyed; the current type lets go while you move around */
-.typemenu:hover button:not(:hover) { background: none; }
-.typewrap.open .typemenu button { animation: itemin .32s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i) * 40ms + 40ms); }
-@keyframes itemin { from { opacity: 0; transform: translateY(6px); } }
 .sidebtn { display: none; }
-.menu { animation-name: menuin; }
-@keyframes menuin { from { opacity: 0; transform: translateY(-6px); } }
 .card .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; padding: 0 20px; }
 .card .lbl { font-weight: 600; font-size: 14px; }
 .card .row.slide { display: grid; grid-template-columns: 92px minmax(0, 1fr); }
@@ -499,9 +476,10 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   /* the right column becomes a card that opens above the dock */
   .side {
     position: fixed; z-index: 15; left: 16px; right: 16px; bottom: calc(var(--dock-h, 150px) + 4px);
-    width: auto; max-height: 58vh; margin: 0; display: none; animation: popin .16s ease-out;
+    width: auto; max-height: 62vh; margin: 0; display: none; animation: popin .16s ease-out;
   }
-  .side.open { display: block; }
+  .side.open { display: flex; }
+  .dlabel { display: none; }
 }
 /* ---------- Touch screens: bigger targets, no keyboard hints ---------- */
 button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -526,8 +504,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   .swi .x { width: 20px; height: 20px; top: -8px; right: -8px; font-size: 13px; }
   .swi .x::before { content: ""; position: absolute; inset: -8px; }
   .arow { height: 48px; }
-  .typebtn { height: 42px; }
-  .typemenu button { height: 48px; }
   .opts button { height: 36px; padding: 0 14px; }
   .tile > button:first-child { width: 72px; height: 46px; }
   .sleeve .acts button { height: 34px; padding: 0 14px; font-size: 12px; }
@@ -542,9 +518,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   .top { padding-top: calc(env(safe-area-inset-top, 0px) + 10px); gap: 8px; padding-left: 12px; padding-right: 12px; }
   .brand { display: none; }
   .top { justify-content: flex-end; }
-  #exportBtn { width: 38px; padding: 0; justify-content: center; }
-  #exportBtn .exl, #exportBtn > svg:last-child { display: none; }
-  #exportBtn .exi { display: block; }
   .top-actions { gap: 6px; flex-wrap: nowrap; }
   .top .btn { height: 38px; }
   .top .btn.icon { width: 38px; }
@@ -567,7 +540,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 @media (max-width: 400px) {
   .top-actions { gap: 4px; }
   .top .btn { height: 36px; }
-  .top .btn.icon, #exportBtn { width: 36px; }
+  .top .btn.icon { width: 36px; }
   .top #randomBtn { padding: 0 10px; }
 }
 @media (max-width: 340px) { .top-actions { flex-wrap: wrap; } }
@@ -585,14 +558,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     </div>
     <button class="btn icon theme" id="themeBtn" type="button" aria-label="Switch to dark mode" title="Switch to dark mode"><svg class="sun" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M10 2.5v1.6M10 15.9v1.6M2.5 10h1.6M15.9 10h1.6M4.7 4.7l1.1 1.1M14.2 14.2l1.1 1.1M4.7 15.3l1.1-1.1M14.2 5.8l1.1-1.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><svg class="moon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M16.5 12.2A6.6 6.6 0 0 1 7.8 3.5a6.6 6.6 0 1 0 8.7 8.7z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     <button class="btn icon" id="libBtn" type="button" aria-label="Library" title="Library (L) · save with S"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="3" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
-    <div class="menu-wrap" id="exportWrap">
-      <button class="btn" id="exportBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="exportMenu" aria-label="Export"><svg class="exi" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 3.5v9M6 9l4 4 4-4M4 16.5h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="exl">Export</span> <svg viewBox="0 0 11 7" width="11" height="7" aria-hidden="true"><path d="M1 1l4.5 4.5L10 1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      <div class="pop card menu" id="exportMenu" role="menu" aria-label="Export" hidden>
-        <button class="arow" role="menuitem" id="copyBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M7 6l-4 4 4 4M13 6l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Copy CSS</button>
-        <button class="arow" role="menuitem" id="pngBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 3.5v9M6 9l4 4 4-4M4 16.5h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Download PNG</button>
-        <button class="arow" role="menuitem" id="mp4Btn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="3" y="4.5" width="14" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8.5 8v4l3.5-2z" fill="currentColor"/></svg>Download video</button>
-      </div>
-    </div>
     <button class="btn primary" id="randomBtn" type="button">Randomize <kbd>R</kbd></button>
   </div>
 </header>
@@ -607,68 +572,90 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   <div class="meta" id="meta"></div>
 
   <aside class="side card" id="side" aria-label="Settings">
-    <div class="row">
-      <span class="lbl">Type</span>
-      <div class="typewrap" id="typeWrap">
-        <button class="typebtn" id="typeBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="modes" title="Gradient type (1, 2, 3)"><span class="ti" id="typeIcon"></span><span class="tn" id="typeName"></span><svg class="chev" viewBox="0 0 11 7" width="11" height="7" aria-hidden="true"><path d="M1 6l4.5-4.5L10 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-        <div class="typemenu card" id="modes" role="menu" aria-label="Gradient type">
-          <button type="button" role="menuitemradio" data-mode="linear" style="--i:0"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 13.5l7-7M3.8 9.7l5.9-5.9M10.3 16.2l5.9-5.9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Linear</span></button>
-          <button type="button" role="menuitemradio" data-mode="radial" style="--i:1"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="1" fill="currentColor"/></svg><span>Radial</span></button>
-          <button type="button" role="menuitemradio" data-mode="mesh" style="--i:2"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3.5 8.2c2.4-1.6 4.4 1.6 6.5 0s4.1-1.6 6.5 0M3.5 12.8c2.4-1.6 4.4 1.6 6.5 0s4.1-1.6 6.5 0M8.2 3.5c-1.6 2.4 1.6 4.4 0 6.5s-1.6 4.1 0 6.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span>Mesh</span></button>
+    <div class="side-scroll">
+      <div class="row"><span class="lbl">Size</span><span class="rv" id="sizeVal"></span></div>
+      <div class="sizes" id="sizes" role="radiogroup" aria-label="Size"></div>
+      <div class="psep"></div>
+      <div class="row">
+        <div class="seg" id="modes" role="group" aria-label="Gradient type">
+          <button type="button" data-mode="linear">Linear</button>
+          <button type="button" data-mode="radial">Radial</button>
+          <button type="button" data-mode="mesh">Mesh</button>
         </div>
       </div>
+      <div class="psep"></div>
+      <div class="row">
+        <span class="lbl">Colors</span>
+        <span class="icons"><button class="ib" id="reverseBtn" type="button" title="Reverse order" aria-label="Reverse color order"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M5 7h11M13 4l3 3-3 3M15 13H4M7 10l-3 3 3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="ib" id="shuffleBtn" type="button" title="New colors" aria-label="Pick new colors"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M16 10a6 6 0 1 1-1.8-4.3M16 3.5v3.2h-3.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span>
+      </div>
+      <div class="swrow" id="colorList"></div>
+      <div class="bar" id="bar" title="Click to add a color"></div>
+      <div class="row slide" id="sizeField">
+        <label for="selSize">Spread</label>
+        <input type="range" id="selSize" min="15" max="120" step="1"><output id="sizeOut" hidden></output>
+      </div>
+      <div class="row" id="baseRow">
+        <span class="rl">Background</span>
+        <label class="sw base"><input type="color" id="baseColor" aria-label="Background color"></label>
+      </div>
+      <div class="psep"></div>
+      <div class="row slide" id="angleField">
+        <label for="angle">Angle</label>
+        <input type="range" id="angle" min="0" max="360" step="1"><output id="angleOut" hidden></output>
+      </div>
+      <div class="row slide">
+        <label for="blur">Blur</label>
+        <input type="range" id="blur" min="0" max="200" step="1"><output id="blurOut" hidden></output>
+      </div>
+      <div class="psep"></div>
+      <div class="row"><span class="lbl">Texture</span></div>
+      <div class="row">
+        <div class="seg tex" id="texKinds" role="group" aria-label="Texture">
+          <button type="button" data-tex="none">None</button>
+          <button type="button" data-tex="fluted">Fluted</button>
+          <button type="button" data-tex="ripple">Ripple</button>
+          <button type="button" data-tex="grid">Grid</button>
+        </div>
+      </div>
+      <div class="row slide" id="texSizeField">
+        <label for="texSize">Size</label>
+        <input type="range" id="texSize" min="0" max="100" step="1"><output id="texSizeOut" hidden></output>
+      </div>
+      <div class="row slide" id="texDepthField">
+        <label for="texDepth">Depth</label>
+        <input type="range" id="texDepth" min="0" max="100" step="1"><output id="texDepthOut" hidden></output>
+      </div>
+      <div class="row slide">
+        <label for="grain">Noise</label>
+        <input type="range" id="grain" min="0" max="40" step="1"><output id="grainOut" hidden></output>
+      </div>
+      <div class="psep"></div>
+      <div class="row">
+        <span class="lbl">Motion</span>
+        <label class="switch" title="Animate the gradient">
+          <input type="checkbox" id="motionOn" aria-label="Animate the gradient"><span aria-hidden="true"></span>
+        </label>
+      </div>
+      <div class="row slide" id="speedField">
+        <label for="speed">Loop</label>
+        <input type="range" id="speed" min="3" max="20" step="1"><output id="speedOut" hidden></output>
+      </div>
+      <div class="row slide" id="amountField">
+        <label for="amount">Movement</label>
+        <input type="range" id="amount" min="5" max="100" step="1"><output id="amountOut" hidden></output>
+      </div>
     </div>
-    <div class="psep"></div>
-    <div class="row"><span class="lbl">Size</span><span class="rv" id="sizeVal"></span></div>
-    <div class="sizes" id="sizes" role="radiogroup" aria-label="Size"></div>
-    <div class="psep"></div>
-    <div class="row">
-      <span class="lbl">Colors</span>
-      <span class="icons"><button class="ib" id="reverseBtn" type="button" title="Reverse order" aria-label="Reverse color order"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M5 7h11M13 4l3 3-3 3M15 13H4M7 10l-3 3 3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="ib" id="shuffleBtn" type="button" title="New colors" aria-label="Pick new colors"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M16 10a6 6 0 1 1-1.8-4.3M16 3.5v3.2h-3.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span>
-    </div>
-    <div class="swrow" id="colorList"></div>
-    <div class="bar" id="bar" title="Click to add a color"></div>
-    <div class="row slide" id="sizeField">
-      <label for="selSize">Spread</label>
-      <input type="range" id="selSize" min="15" max="120" step="1"><output id="sizeOut" hidden></output>
-    </div>
-    <div class="row" id="baseRow">
-      <span class="rl">Background</span>
-      <label class="sw base"><input type="color" id="baseColor" aria-label="Background color"></label>
-    </div>
-    <div class="psep"></div>
-    <div class="row slide" id="angleField">
-      <label for="angle">Angle</label>
-      <input type="range" id="angle" min="0" max="360" step="1"><output id="angleOut" hidden></output>
-    </div>
-    <div class="row slide">
-      <label for="blur">Blur</label>
-      <input type="range" id="blur" min="0" max="200" step="1"><output id="blurOut" hidden></output>
-    </div>
-    <div class="row slide">
-      <label for="grain">Noise</label>
-      <input type="range" id="grain" min="0" max="40" step="1"><output id="grainOut" hidden></output>
-    </div>
-    <div class="psep"></div>
-    <div class="row">
-      <span class="lbl">Motion</span>
-      <label class="switch" title="Animate the gradient">
-        <input type="checkbox" id="motionOn" aria-label="Animate the gradient"><span aria-hidden="true"></span>
-      </label>
-    </div>
-    <div class="row slide" id="speedField">
-      <label for="speed">Loop</label>
-      <input type="range" id="speed" min="3" max="20" step="1"><output id="speedOut" hidden></output>
-    </div>
-    <div class="row slide" id="amountField">
-      <label for="amount">Movement</label>
-      <input type="range" id="amount" min="5" max="100" step="1"><output id="amountOut" hidden></output>
+    <div class="side-foot" role="group" aria-label="Export">
+      <button class="fbtn" id="copyBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M7 6l-4 4 4 4M13 6l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Copy CSS</span></button>
+      <button class="fbtn" id="pngBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 3.5v9M6 9l4 4 4-4M4 16.5h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>PNG</span></button>
+      <button class="fbtn" id="mp4Btn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="3" y="4.5" width="14" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8.5 8v4l3.5-2z" fill="currentColor"/></svg><span>Video</span></button>
     </div>
   </aside>
 
   <div class="dock-wrap" id="dockWrap">
     <div class="dock card" id="dock" role="toolbar" aria-label="Presets">
-      <div class="tiles" id="presets" aria-label="Presets"></div>
+      <span class="dlabel" aria-hidden="true">Presets</span>
+      <div class="tiles" id="presets" role="group" aria-label="Presets"></div>
       <div class="dtools">
         <button class="dbtn sidebtn" type="button" id="sideBtn" aria-expanded="false" aria-controls="side" title="Settings"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4 6h7M15 6h1M4 14h1M9 14h7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="13" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="7" cy="14" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span>Settings</span></button>
       </div>
@@ -727,6 +714,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const r1 = v => Math.round(v * 10) / 10;
 
+  const TEXTURES = { none: 'None', fluted: 'Fluted', ripple: 'Ripple', grid: 'Grid' };
   const FORMATS = {
     '16:9': [1920, 1080, 'Desktop 16:9'],
     '9:16': [1080, 1920, 'Phone 9:16'],
@@ -774,6 +762,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     mode: p.mode, angle: p.angle, cx: p.cx, cy: p.cy, base: p.base, grain: p.grain,
     format: S ? S.format : '16:9', blur: p.blur ?? 100,
     motion: S ? { ...S.motion } : { on: false, speed: 8, amount: 50 },
+    texture: S ? { ...S.texture } : { kind: 'none', scale: 50, depth: 50 },
     stops: p.stops.map(([c, pos, x, y, s]) => ({ c, p: pos, x, y, s })),
   });
 
@@ -789,6 +778,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (typeof st.blur !== 'number') st.blur = 100;
     if (!FORMATS[st.format]) st.format = '16:9';
     if (!st.motion) st.motion = { on: false, speed: 8, amount: 50 };
+    if (!st.texture || !TEXTURES[st.texture.kind]) st.texture = { kind: 'none', scale: 50, depth: 50 };
     return st;
   };
   let S = null;
@@ -890,6 +880,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     } else {
       shape(ctx, w, h, st, 0);
     }
+    applyTexture(ctx, w, h, st);
     addGrain(ctx, w, h, st, frame);
     if (st.format === 'circle') {
       // globe: keep only the circle, transparent outside
@@ -898,6 +889,86 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       ctx.beginPath(); ctx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
     }
+  }
+  // ---------- Textures: glass laid over the gradient ----------
+  // Each texture re-samples the finished gradient through a piece of glass: fluted glass squeezes
+  // it into vertical ribs, ripple glass into rings, and the grid refracts it through frosted tiles.
+  // Sizes follow the shorter side, so the preview and every export size look the same.
+  let texSrc = null, texTiles = null;
+  function applyTexture(ctx, w, h, st) {
+    const tx = st.texture;
+    if (!tx || tx.kind === 'none' || w < 8 || h < 8) return;
+    if (!texSrc) texSrc = document.createElement('canvas');
+    if (texSrc.width !== w || texSrc.height !== h) { texSrc.width = w; texSrc.height = h; }
+    const src = texSrc.getContext('2d', { willReadFrequently: true });
+    src.clearRect(0, 0, w, h); src.drawImage(ctx.canvas, 0, 0);
+    const min = Math.min(w, h), d = tx.depth / 100, k = tx.scale / 100;
+    ctx.save();
+    if (tx.kind === 'fluted') {
+      // each rib is drawn in thin slices: a wider strip squeezed in sideways and tilted up and down
+      // across the rib, so the ribs show on any gradient, whichever way it runs
+      const n = Math.max(3, Math.round(w / ((0.025 + k * 0.11) * min))), rw = w / n;
+      const m = 1 + d * 1.8, tilt = min * 0.14 * d, SL = Math.max(2, Math.min(12, Math.round(rw / 3)));
+      for (let i = 0; i < n; i++) {
+        const x = i * rw, cx = x + rw / 2;
+        for (let j = 0; j < SL; j++) {
+          const t = (j + 0.5) / SL, slw = rw / SL, ssw = slw * m;
+          const sx = clamp(cx + (t - 0.5) * rw * m - ssw / 2, 0, w - ssw);
+          const dy = (t - 0.5) * tilt, sy = clamp(dy, 0, h) , sh = h - Math.abs(dy);
+          ctx.drawImage(texSrc, sx, dy > 0 ? sy : 0, ssw, sh, x + j * slw, dy > 0 ? 0 : -dy, slw + 0.6, sh);
+          if (dy > 0) ctx.drawImage(texSrc, sx, h - 1, ssw, 1, x + j * slw, sh, slw + 0.6, dy);
+          else if (dy < 0) ctx.drawImage(texSrc, sx, 0, ssw, 1, x + j * slw, 0, slw + 0.6, -dy);
+        }
+        const g = ctx.createLinearGradient(x, 0, x + rw, 0);
+        g.addColorStop(0, `rgba(255,255,255,${0.26 * d})`); g.addColorStop(0.3, 'rgba(255,255,255,0)');
+        g.addColorStop(0.72, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(0,0,0,${0.14 * d})`);
+        ctx.fillStyle = g; ctx.fillRect(x, 0, rw + 0.6, h);
+      }
+    } else if (tx.kind === 'ripple') {
+      // rings centred off the bottom right corner, like light through a ribbed lens
+      const img = src.getImageData(0, 0, w, h).data, out = ctx.createImageData(w, h), o = out.data;
+      const ox = w * 0.8, oy = h * 1.1, rw = (0.03 + k * 0.12) * min, m = 1 + d * 1.8, shade = 70 * d;
+      for (let y = 0; y < h; y++) {
+        const dy = y - oy;
+        for (let x = 0; x < w; x++) {
+          const dx = x - ox, r = Math.sqrt(dx * dx + dy * dy) || 1;
+          const f = r / rw, ring = Math.floor(f), t = f - ring;
+          const q = ((ring + 0.5) * rw + (t - 0.5) * rw * m) / r;
+          const sx = clamp(Math.round(ox + dx * q), 0, w - 1), sy = clamp(Math.round(oy + dy * q), 0, h - 1);
+          const si = (sy * w + sx) * 4, di = (y * w + x) * 4, lift = (0.5 - t) * shade;
+          o[di] = img[si] + lift; o[di + 1] = img[si + 1] + lift; o[di + 2] = img[si + 2] + lift; o[di + 3] = img[si + 3];
+        }
+      }
+      ctx.putImageData(out, 0, 0);
+    } else if (tx.kind === 'grid') {
+      const cols = Math.max(2, Math.round(w / ((0.07 + k * 0.17) * min))), cw = w / cols;
+      const rows = Math.max(2, Math.round(h / cw)), ch = h / rows, mag = 1 + d * 0.35;
+      const r = Math.min(cw, ch) * 0.12, lw = Math.max(1, Math.min(cw, ch) * 0.012);
+      // tiles are laid into a second buffer, then frosted with one blur pass (blurring each tile on
+      // its own is far too slow for motion)
+      if (!texTiles) texTiles = document.createElement('canvas');
+      if (texTiles.width !== w || texTiles.height !== h) { texTiles.width = w; texTiles.height = h; }
+      const tt = texTiles.getContext('2d');
+      tt.clearRect(0, 0, w, h);
+      for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+        const x = i * cw, y = j * ch, sw = Math.min(w, cw * mag), sh = Math.min(h, ch * mag);
+        tt.drawImage(texSrc, clamp(x + cw / 2 - sw / 2, 0, w - sw), clamp(y + ch / 2 - sh / 2, 0, h - sh), sw, sh, x, y, cw + 0.5, ch + 0.5);
+      }
+      ctx.drawImage(texTiles, 0, 0);
+      const fb = Math.min(cw, ch) * 0.035 * d;
+      if (fb > 0.3 && 'filter' in ctx) { ctx.filter = `blur(${fb.toFixed(2)}px)`; ctx.drawImage(texTiles, 0, 0); ctx.filter = 'none'; }
+      ctx.lineWidth = lw;
+      for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+        const x = i * cw + lw, y = j * ch + lw, bw = cw - lw * 2, bh = ch - lw * 2;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(x, y, bw, bh, r); else ctx.rect(x, y, bw, bh);
+        const g = ctx.createLinearGradient(0, y, 0, y + bh);
+        g.addColorStop(0, `rgba(255,255,255,${0.2 * d})`); g.addColorStop(0.5, 'rgba(255,255,255,0)'); g.addColorStop(1, `rgba(0,0,0,${0.07 * d})`);
+        ctx.fillStyle = g; ctx.fill();
+        ctx.strokeStyle = `rgba(255,255,255,${0.12 + 0.3 * d})`; ctx.stroke();
+      }
+    }
+    ctx.restore();
   }
   function shape(ctx, w, h, st, m) {
     if (st.mode === 'mesh') {
@@ -1023,14 +1094,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const mesh = S.mode === 'mesh';
     sel = clamp(sel, 0, S.stops.length - 1);
     const cur = S.stops[sel];
-    modeBtns.forEach(b => b.setAttribute('aria-checked', String(b.dataset.mode === S.mode)));
-    if (typeBtn.dataset.mode !== S.mode) {
-      const cur = modeBtns.find(b => b.dataset.mode === S.mode);
-      $('typeIcon').innerHTML = cur.querySelector('svg').outerHTML;
-      $('typeName').textContent = cur.querySelector('span').textContent;
-      if (typeBtn.dataset.mode) { typeBtn.classList.remove('swap'); void typeBtn.offsetWidth; typeBtn.classList.add('swap'); }
-      typeBtn.dataset.mode = S.mode;
-    }
+    modeBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === S.mode)));
 
     // bar
     const bar = $('bar');
@@ -1061,6 +1125,11 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     $('angle').value = S.angle; $('angleOut').textContent = S.angle + '°';
     $('blur').value = S.blur; $('blurOut').textContent = S.blur + '%';
     $('grain').value = S.grain; $('grainOut').textContent = S.grain;
+    const tx = S.texture;
+    texBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tex === tx.kind)));
+    $('texSizeField').hidden = $('texDepthField').hidden = tx.kind === 'none';
+    $('texSize').value = tx.scale; $('texSizeOut').textContent = tx.scale + '%';
+    $('texDepth').value = tx.depth; $('texDepthOut').textContent = tx.depth + '%';
     $('sizeVal').textContent = `${FORMATS[S.format][0]} × ${FORMATS[S.format][1]}`;
     $('sizes').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === S.format)));
 
@@ -1077,6 +1146,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     $('mp4Btn').title = mo.on ? '' : 'Turn on Motion to export a video';
     const notes = [];
     if (S.grain || S.blur > 100) notes.push('Copied CSS leaves out grain and blur above 100%.');
+    if (S.texture.kind !== 'none') notes.push('Textures are only in the PNG and video.');
     if (mo.on) notes.push('Copied CSS and the PNG are a still frame.');
     $('copyBtn').title = notes.join(' ');
     document.querySelectorAll('.card input[type="range"]').forEach(r => {
@@ -1214,7 +1284,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       S.stops[0].p = 0;
       S.stops.push({ c: S.base, p: 100, x: 80, y: 80, s: 55 });
     }
-    closeType(true);
     draw();
   });
   // Color list: rebuilt only when the set of colors or the selection changes, so typing and the
@@ -1288,36 +1357,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   $('amount').addEventListener('input', e => { S.motion.amount = +e.target.value; draw(); });
   $('blur').addEventListener('input', e => { S.blur = +e.target.value; draw(); });
   $('grain').addEventListener('input', e => { S.grain = +e.target.value; draw(); });
-  // ---------- Export menu ----------
-  const dockWrap = $('dockWrap');
-  const exportBtn = $('exportBtn'), exportMenu = $('exportMenu');
-  function closeMenu(refocus) {
-    if (exportMenu.hidden) return;
-    exportMenu.hidden = true; exportBtn.setAttribute('aria-expanded', 'false');
-    if (refocus) exportBtn.focus();
-  }
-  exportBtn.addEventListener('click', () => {
-    if (!exportMenu.hidden) { closeMenu(false); return; }
-    closeType(false); closeSide();
-    exportMenu.hidden = false; exportBtn.setAttribute('aria-expanded', 'true');
-    exportMenu.querySelector('.arow:not(:disabled)').focus();
-  });
-  exportMenu.addEventListener('click', e => { if (e.target.closest('.arow')) closeMenu(false); });
-  exportMenu.addEventListener('keydown', e => {
-    const items = [...exportMenu.querySelectorAll('.arow:not(:disabled)')], i = items.indexOf(document.activeElement);
-    if (e.key === 'ArrowDown') items[(i + 1) % items.length].focus();
-    else if (e.key === 'ArrowUp') items[(i - 1 + items.length) % items.length].focus();
-    else if (e.key === 'Escape') closeMenu(true);
-    else if (e.key === 'Tab') { closeMenu(false); return; }
-    else return;
-    e.preventDefault(); e.stopPropagation();
-  });
-  document.addEventListener('pointerdown', e => {
-    if (!$('exportWrap').contains(e.target)) closeMenu(false);
-  });
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && side.classList.contains('open') && !typeWrap.classList.contains('open')) { e.stopPropagation(); closeSide(); sideBtn.focus(); }
-  }, true);
 
   // Size: four shape buttons in the right column.
   const SIZE_ICONS = {
@@ -1339,49 +1378,23 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   function closeSide() { side.classList.remove('open'); sideBtn.setAttribute('aria-expanded', 'false'); }
   sideBtn.addEventListener('click', () => {
     const open = !side.classList.contains('open');
-    closeMenu(false); closeType(false); closeSide();
+    closeSide();
     if (!open) return;
-    document.documentElement.style.setProperty('--dock-h', dockWrap.offsetHeight + 'px');
+    document.documentElement.style.setProperty('--dock-h', $('dockWrap').offsetHeight + 'px');
     side.classList.add('open'); sideBtn.setAttribute('aria-expanded', 'true');
   });
   document.addEventListener('pointerdown', e => { if (!side.contains(e.target) && !sideBtn.contains(e.target)) closeSide(); });
   addEventListener('resize', () => { if (!matchMedia('(max-width: 860px)').matches) closeSide(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && side.classList.contains('open')) { e.stopPropagation(); closeSide(); sideBtn.focus(); }
+  }, true);
 
-  // Type picker: one button at the top of the right column opens a short list. The list is
-  // fixed to the viewport so the column's scrolling never clips it; it drops below the button,
-  // or rises above it when there is no room.
-  const typeWrap = $('typeWrap'), typeBtn = $('typeBtn'), typeMenu = $('modes');
-  function placeType() {
-    const r = typeBtn.getBoundingClientRect(), h = typeMenu.offsetHeight, w = typeMenu.offsetWidth;
-    const up = r.bottom + 8 + h > innerHeight - 8;
-    typeMenu.classList.toggle('up', up);
-    typeMenu.style.top = (up ? r.top - 8 - h : r.bottom + 8) + 'px';
-    typeMenu.style.left = clamp(r.right - w, 8, innerWidth - w - 8) + 'px';
-  }
-  function openType() {
-    closeMenu(false);
-    placeType();
-    typeWrap.classList.add('open'); typeBtn.setAttribute('aria-expanded', 'true');
-    (modeBtns.find(b => b.dataset.mode === S.mode) || modeBtns[0]).focus();
-  }
-  function closeType(refocus) {
-    if (!typeWrap.classList.contains('open')) return;
-    typeWrap.classList.remove('open'); typeBtn.setAttribute('aria-expanded', 'false');
-    if (refocus) typeBtn.focus();
-  }
-  typeBtn.addEventListener('click', () => typeWrap.classList.contains('open') ? closeType(false) : openType());
-  $('modes').addEventListener('keydown', e => {
-    const i = modeBtns.indexOf(document.activeElement);
-    if (e.key === 'ArrowDown') modeBtns[(i + 1) % modeBtns.length].focus();
-    else if (e.key === 'ArrowUp') modeBtns[(i - 1 + modeBtns.length) % modeBtns.length].focus();
-    else if (e.key === 'Escape') closeType(true);
-    else if (e.key === 'Tab') { closeType(false); return; }
-    else return;
-    e.preventDefault(); e.stopPropagation();
-  });
-  document.addEventListener('pointerdown', e => { if (!typeWrap.contains(e.target)) closeType(false); });
-  addEventListener('resize', () => closeType(false));
-  side.addEventListener('scroll', () => closeType(false));
+  // Texture: the kind of glass, how big its ribs or tiles are, and how strongly it bends.
+  const texBtns = [...document.querySelectorAll('#texKinds button')];
+  texBtns.forEach(b => b.onclick = () => { S.texture.kind = b.dataset.tex; draw(); });
+  $('texSize').addEventListener('input', e => { S.texture.scale = +e.target.value; draw(); });
+  $('texDepth').addEventListener('input', e => { S.texture.depth = +e.target.value; draw(); });
+
 
 
   // ---------- Randomize ----------
@@ -1439,7 +1452,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
   // ---------- Library ----------
   function tile(st, title, onLoad, onDelete) {
-    const wrap = document.createElement('div'); wrap.className = 'tile';
+    const wrap = document.createElement('div'); wrap.className = 'tile'; wrap.dataset.name = title;
     const b = document.createElement('button');
     b.type = 'button'; b.title = title; b.setAttribute('aria-label', `Load ${title}`);
     b.style.background = gradient(st, false);
@@ -1453,6 +1466,15 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     }
     return wrap;
   }
+  // The dock label reads "Presets" and turns into the name of whichever preset is under the pointer.
+  const dlabel = document.querySelector('.dlabel');
+  function showPresetName(e) {
+    const t = e.target && e.target.closest('.tile');
+    dlabel.textContent = t ? t.dataset.name : 'Presets';
+    dlabel.classList.toggle('name', !!t);
+  }
+  ['pointerover', 'focusin'].forEach(ev => $('presets').addEventListener(ev, showPresetName));
+  ['pointerleave', 'focusout'].forEach(ev => $('presets').addEventListener(ev, () => showPresetName({ target: null })));
   function renderLibrary() {
     const p = $('presets'); p.innerHTML = '';
     PRESETS.forEach(pr => p.appendChild(tile(fromPreset(pr), pr.name, () => { S = fromPreset(pr); sel = 0; draw(); })));
