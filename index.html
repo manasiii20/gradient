@@ -108,8 +108,9 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 /* ---------- Main: canvas in the middle, dock floating at the bottom ---------- */
 .app {
   flex: 1; min-height: 0;
-  display: grid; grid-template-rows: minmax(0, 1fr) auto auto;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: minmax(0, 1fr) auto auto;
 }
+.stage, .meta, .dock-wrap { grid-column: 1; }
 .stage {
   min-height: 0;
   display: grid; place-items: center;
@@ -168,11 +169,8 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 }
 .dock { display: flex; align-items: center; gap: 10px; padding: 8px 10px; max-width: 100%; }
 .dsep { flex: none; width: 1px; height: 26px; background: var(--card-line); }
-.dock .seg { flex: none; width: 236px; }
 .dcolors { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .dock .swrow { flex-wrap: nowrap; padding: 4px 2px; gap: 8px; }
-.dock .dd-btn { margin-right: 0; }
-.dock .dd-menu { top: auto; bottom: calc(100% + 18px); right: auto; left: 50%; transform: translateX(-50%); }
 .dtools { display: flex; gap: 2px; }
 .dbtn {
   display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 11px;
@@ -196,6 +194,59 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .menu { top: calc(100% + 8px); bottom: auto; left: auto; right: 0; width: 230px; padding: 6px 0; }
 .menu .arow { height: 40px; }
 @keyframes popin { from { opacity: 0; transform: translateY(6px); } }
+
+/* right column: size, shape and motion settings */
+.side {
+  grid-column: 2; grid-row: 1 / -1; align-self: start;
+  width: 288px; max-height: calc(100% - 22px); overflow-y: auto; scrollbar-width: none;
+  margin: 10px max(20px, env(safe-area-inset-right, 0px)) 0 0; padding: 8px 0 10px;
+}
+.side::-webkit-scrollbar { display: none; }
+.side .row { padding: 0 18px; }
+.side .bar { margin: 8px 24px 22px; }
+.rv { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.sizes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 2px 14px 10px; }
+.sizes button {
+  display: grid; justify-items: center; gap: 5px; padding: 9px 0 7px; border: 0; border-radius: 10px;
+  background: none; color: var(--muted); font: 500 11.5px var(--sans); transition: background .15s, color .15s;
+}
+.sizes button svg { height: 22px; }
+.sizes button:hover { background: var(--card-hover); color: var(--fg); }
+.sizes button[aria-pressed="true"] { background: var(--card-sel); color: var(--fg); }
+
+/* type picker: one button that opens a short list */
+.typewrap { position: relative; flex: none; }
+.typebtn {
+  display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px 0 10px;
+  border: 0; border-radius: 11px; background: var(--card-sel); color: var(--fg); font: 500 14px var(--sans);
+}
+.typebtn:hover { background: var(--card-line-strong); }
+.typebtn .ti { display: grid; }
+.typebtn .tn { min-width: 46px; text-align: left; }
+.typebtn .chev { color: var(--muted); transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+.typewrap.open .typebtn .chev { transform: rotate(180deg); }
+.typebtn.swap .ti, .typebtn.swap .tn { animation: swapin .3s cubic-bezier(.2,.8,.2,1); }
+@keyframes swapin { from { opacity: 0; transform: translateY(5px); } }
+.typemenu {
+  position: absolute; left: -4px; bottom: calc(100% + 16px); width: 210px; padding: 6px; z-index: 16;
+  display: grid; gap: 2px; border-radius: 16px;
+  opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(10px) scale(.96); transform-origin: 20px 100%;
+  transition: opacity .16s ease, transform .26s cubic-bezier(.2,.8,.2,1), visibility 0s linear .26s;
+}
+.typewrap.open .typemenu { opacity: 1; visibility: visible; pointer-events: auto; transform: none; transition-delay: 0s; }
+.typemenu button {
+  display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  height: 42px; padding: 0 12px; border: 0; border-radius: 11px; background: none; color: var(--fg);
+  font: 500 14px var(--sans); text-align: left; transition: background .15s;
+}
+.typemenu button svg { color: var(--muted); transition: color .15s; }
+.typemenu button:hover, .typemenu button:focus-visible { background: var(--card-hover); outline: none; }
+.typemenu button[aria-checked="true"] { background: var(--card-sel); }
+.typemenu button[aria-checked="true"] svg { color: var(--fg); }
+.typemenu .n { border: 0; padding: 0; opacity: 1; color: var(--muted); font: 500 11.5px var(--mono); }
+.typewrap.open .typemenu button { animation: itemin .32s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i) * 40ms + 40ms); }
+@keyframes itemin { from { opacity: 0; transform: translateY(6px); } }
+.sidebtn { display: none; }
 .menu { animation-name: menuin; }
 @keyframes menuin { from { opacity: 0; transform: translateY(-6px); } }
 .card .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; padding: 0 20px; }
@@ -255,25 +306,6 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .card .seg button { height: 32px; border-radius: 8px; font-size: 14px; }
 .card .seg button[aria-pressed="true"] { background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 0 0 .5px rgba(0,0,0,.06); }
 
-/* size dropdown */
-.dd { position: relative; }
-.dd-btn { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px; margin-right: -8px; border: 0; border-radius: 8px; background: none; color: var(--fg); font: 14px var(--sans); }
-.dd-btn:hover, .dd-btn[aria-expanded="true"] { background: var(--card-hover); }
-.dd-btn svg { color: var(--muted); transition: transform .15s; }
-.dd-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
-.dd-menu {
-  position: absolute; right: -8px; top: calc(100% + 6px); z-index: 20; min-width: 250px; margin: 0; padding: 6px; list-style: none;
-  background: var(--card); border-radius: 12px; box-shadow: 0 0 0 1px var(--card-edge), 0 16px 40px -12px rgba(0,0,0,.28);
-}
-.dd-menu:focus { outline: none; }
-.dd-menu li {
-  display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: center; gap: 10px;
-  height: 36px; padding: 0 10px; border-radius: 8px; font-size: 14px; cursor: pointer;
-}
-.dd-menu li:hover, .dd-menu li:focus { background: var(--card-hover); outline: none; }
-.dd-menu li .ck { visibility: hidden; color: var(--fg); }
-.dd-menu li[aria-selected="true"] .ck { visibility: visible; }
-.dd-menu li .dim { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
 
 .arow {
   display: flex; align-items: center; gap: 12px; width: 100%; height: 38px; padding: 0 20px;
@@ -460,17 +492,22 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 
 /* ---------- Narrow screens: the dock stacks into rows ---------- */
 @media (max-width: 860px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
   .dock { flex-wrap: wrap; justify-content: center; width: 100%; row-gap: 8px; }
   .dock .dsep { display: none; }
-  .dock .seg { flex: 1 1 100%; width: auto; }
-  .dcolors { flex: 1 1 100%; justify-content: center; border-bottom: 1px solid var(--card-line); padding-bottom: 6px; }
+  .dcolors { order: 1; flex: 1 1 100%; justify-content: center; border-bottom: 1px solid var(--card-line); padding-bottom: 6px; }
   .dock .swrow { flex-wrap: wrap; justify-content: center; padding-top: 8px; }
-  .dock .dd { order: 5; flex: none; }
-  .dtools { order: 6; flex: 1 1 0; justify-content: space-between; min-width: 0; }
-  .dtools .dbtn { flex: 1; justify-content: center; gap: 5px; padding: 0 4px; }
-  .szw { display: none; }
+  .typewrap { order: 2; }
+  .dtools { order: 3; flex: 1 1 0; justify-content: flex-end; min-width: 0; }
+  .dtools .dbtn { gap: 6px; padding: 0 10px; }
+  .sidebtn { display: inline-flex; }
   .pop { left: 16px !important; right: 16px; width: auto !important; transform: none !important; }
-  .dock .dd-menu { left: 0; right: auto; transform: none; }
+  /* the right column becomes a card that opens above the dock */
+  .side {
+    position: fixed; z-index: 15; left: 16px; right: 16px; bottom: calc(var(--dock-h, 150px) + 4px);
+    width: auto; max-height: 58vh; margin: 0; display: none; animation: popin .16s ease-out;
+  }
+  .side.open { display: block; }
 }
 /* ---------- Touch screens: bigger targets, no keyboard hints ---------- */
 button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -494,9 +531,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   .sw, .sw.base, .swi.add button { width: 36px; height: 36px; border-radius: 7px; }
   .swi .x { width: 20px; height: 20px; top: -8px; right: -8px; font-size: 13px; }
   .swi .x::before { content: ""; position: absolute; inset: -8px; }
-  .dd-btn { height: 40px; }
-  .dd-menu li { height: 46px; }
   .arow { height: 48px; }
+  .typebtn { height: 42px; }
+  .typemenu button { height: 48px; }
   .opts button { height: 36px; padding: 0 14px; }
   .tile > button:first-child { width: 72px; height: 46px; }
   .sleeve .acts button { height: 34px; padding: 0 14px; font-size: 12px; }
@@ -575,61 +612,67 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   </div>
   <div class="meta" id="meta"></div>
 
+  <aside class="side card" id="side" aria-label="Settings">
+    <div class="row"><span class="lbl">Size</span><span class="rv" id="sizeVal"></span></div>
+    <div class="sizes" id="sizes" role="radiogroup" aria-label="Size"></div>
+    <div class="psep"></div>
+    <div class="row" id="stopsHead">
+      <span class="lbl">Color stops</span>
+      <span class="icons"><button class="ib" id="reverseBtn" type="button" title="Reverse order" aria-label="Reverse color order"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M5 7h11M13 4l3 3-3 3M15 13H4M7 10l-3 3 3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span>
+    </div>
+    <div class="bar" id="bar" title="Click to add a color"></div>
+    <div class="row slide" id="sizeField">
+      <label for="selSize">Spread</label>
+      <input type="range" id="selSize" min="15" max="120" step="1"><output id="sizeOut" hidden></output>
+    </div>
+    <div class="row" id="baseRow">
+      <span class="rl">Background</span>
+      <label class="sw base"><input type="color" id="baseColor" aria-label="Background color"></label>
+    </div>
+    <div class="psep"></div>
+    <div class="row slide" id="angleField">
+      <label for="angle">Angle</label>
+      <input type="range" id="angle" min="0" max="360" step="1"><output id="angleOut" hidden></output>
+    </div>
+    <div class="row slide">
+      <label for="blur">Blur</label>
+      <input type="range" id="blur" min="0" max="200" step="1"><output id="blurOut" hidden></output>
+    </div>
+    <div class="row slide">
+      <label for="grain">Noise</label>
+      <input type="range" id="grain" min="0" max="40" step="1"><output id="grainOut" hidden></output>
+    </div>
+    <div class="psep"></div>
+    <div class="row">
+      <span class="lbl">Motion</span>
+      <label class="switch" title="Animate the gradient">
+        <input type="checkbox" id="motionOn" aria-label="Animate the gradient"><span aria-hidden="true"></span>
+      </label>
+    </div>
+    <div class="row slide" id="speedField">
+      <label for="speed">Loop</label>
+      <input type="range" id="speed" min="3" max="20" step="1"><output id="speedOut" hidden></output>
+    </div>
+    <div class="row slide" id="amountField">
+      <label for="amount">Movement</label>
+      <input type="range" id="amount" min="5" max="100" step="1"><output id="amountOut" hidden></output>
+    </div>
+  </aside>
+
   <div class="dock-wrap" id="dockWrap">
-    <div class="pop card" id="adjustPop" role="dialog" aria-label="Adjust" hidden>
-      <div class="row" id="stopsHead">
-        <span class="lbl">Color stops</span>
-        <span class="icons"><button class="ib" id="reverseBtn" type="button" title="Reverse order" aria-label="Reverse color order"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M5 7h11M13 4l3 3-3 3M15 13H4M7 10l-3 3 3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span>
-      </div>
-      <div class="bar" id="bar" title="Click to add a color"></div>
-      <div class="row slide" id="sizeField">
-        <label for="selSize">Spread</label>
-        <input type="range" id="selSize" min="15" max="120" step="1"><output id="sizeOut" hidden></output>
-      </div>
-      <div class="row" id="baseRow">
-        <span class="rl">Background</span>
-        <label class="sw base"><input type="color" id="baseColor" aria-label="Background color"></label>
-      </div>
-      <div class="psep"></div>
-      <div class="row slide" id="angleField">
-        <label for="angle">Angle</label>
-        <input type="range" id="angle" min="0" max="360" step="1"><output id="angleOut" hidden></output>
-      </div>
-      <div class="row slide">
-        <label for="blur">Blur</label>
-        <input type="range" id="blur" min="0" max="200" step="1"><output id="blurOut" hidden></output>
-      </div>
-      <div class="row slide">
-        <label for="grain">Noise</label>
-        <input type="range" id="grain" min="0" max="40" step="1"><output id="grainOut" hidden></output>
-      </div>
-    </div>
-    <div class="pop card" id="motionPop" role="dialog" aria-label="Motion" hidden>
-      <div class="row">
-        <span class="lbl">Motion</span>
-        <label class="switch" title="Animate the gradient">
-          <input type="checkbox" id="motionOn" aria-label="Animate the gradient"><span aria-hidden="true"></span>
-        </label>
-      </div>
-      <div class="row slide" id="speedField">
-        <label for="speed">Loop</label>
-        <input type="range" id="speed" min="3" max="20" step="1"><output id="speedOut" hidden></output>
-      </div>
-      <div class="row slide" id="amountField">
-        <label for="amount">Movement</label>
-        <input type="range" id="amount" min="5" max="100" step="1"><output id="amountOut" hidden></output>
-      </div>
-    </div>
     <div class="pop card" id="presetPop" role="dialog" aria-label="Presets" hidden>
       <div class="row"><span class="lbl">Presets</span></div>
       <div class="tiles" id="presets"></div>
     </div>
 
     <div class="dock card" id="dock" role="toolbar" aria-label="Gradient settings">
-      <div class="seg" id="modes" role="group" aria-label="Gradient type">
-        <button type="button" data-mode="linear">Linear</button>
-        <button type="button" data-mode="radial">Radial</button>
-        <button type="button" data-mode="mesh">Mesh</button>
+      <div class="typewrap" id="typeWrap">
+        <button class="typebtn" id="typeBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="modes" title="Gradient type (1, 2, 3)"><span class="ti" id="typeIcon"></span><span class="tn" id="typeName"></span><svg class="chev" viewBox="0 0 11 7" width="11" height="7" aria-hidden="true"><path d="M1 6l4.5-4.5L10 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="typemenu card" id="modes" role="menu" aria-label="Gradient type">
+          <button type="button" role="menuitemradio" data-mode="linear" style="--i:0"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 13.5l7-7M3.8 9.7l5.9-5.9M10.3 16.2l5.9-5.9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Linear</span><kbd class="n">1</kbd></button>
+          <button type="button" role="menuitemradio" data-mode="radial" style="--i:1"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="1" fill="currentColor"/></svg><span>Radial</span><kbd class="n">2</kbd></button>
+          <button type="button" role="menuitemradio" data-mode="mesh" style="--i:2"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3.5 8.2c2.4-1.6 4.4 1.6 6.5 0s4.1-1.6 6.5 0M3.5 12.8c2.4-1.6 4.4 1.6 6.5 0s4.1-1.6 6.5 0M8.2 3.5c-1.6 2.4 1.6 4.4 0 6.5s-1.6 4.1 0 6.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span>Mesh</span><kbd class="n">3</kbd></button>
+        </div>
       </div>
       <span class="dsep" aria-hidden="true"></span>
       <div class="dcolors">
@@ -637,14 +680,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
         <button class="ib" id="shuffleBtn" type="button" title="New colors" aria-label="Pick new colors"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M16 10a6 6 0 1 1-1.8-4.3M16 3.5v3.2h-3.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
       <span class="dsep" aria-hidden="true"></span>
-      <div class="dd" id="sizeDD">
-        <button class="dd-btn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="sizeLbl sizeVal"><span id="sizeVal"></span><svg viewBox="0 0 11 7" width="11" height="7" aria-hidden="true"><path d="M1 1l4.5 4.5L10 1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-        <ul class="dd-menu" role="listbox" aria-labelledby="sizeLbl" tabindex="-1" hidden></ul>
-      </div>
-      <span class="dsep" aria-hidden="true"></span>
       <div class="dtools">
-        <button class="dbtn" type="button" data-pop="adjustPop" aria-expanded="false" title="Stops, angle, blur and noise"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4 6h7M15 6h1M4 14h1M9 14h7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="13" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="7" cy="14" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span>Adjust</span></button>
-        <button class="dbtn" type="button" data-pop="motionPop" aria-expanded="false" title="Animate the gradient"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M3 10c2-5 4-5 6 0s4 5 6 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M17 7.5v5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Motion</span></button>
+        <button class="dbtn sidebtn" type="button" id="sideBtn" aria-expanded="false" aria-controls="side" title="Settings"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4 6h7M15 6h1M4 14h1M9 14h7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="13" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="7" cy="14" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span>Settings</span></button>
         <button class="dbtn" type="button" data-pop="presetPop" aria-expanded="false" title="Presets"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 12.5c3-3 5.5-3 7 0s4 2 6-1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Presets</span></button>
       </div>
     </div>
@@ -921,7 +958,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const aw = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
     const ah = stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
     // breathing room so the canvas floats between the top controls and the dock (less on phones)
-    const room = matchMedia('(max-width: 860px)').matches ? 0.94 : 0.8;
+    const room = matchMedia('(max-width: 860px)').matches ? 0.94 : 0.9;
     const sc = Math.min(aw / W, ah / H) * room;
     const fw = Math.max(40, Math.floor(W * sc)), fh = Math.max(40, Math.floor(H * sc));
     frame.style.width = fw + 'px'; frame.style.height = fh + 'px';
@@ -998,7 +1035,14 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const mesh = S.mode === 'mesh';
     sel = clamp(sel, 0, S.stops.length - 1);
     const cur = S.stops[sel];
-    modeBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === S.mode)));
+    modeBtns.forEach(b => b.setAttribute('aria-checked', String(b.dataset.mode === S.mode)));
+    if (typeBtn.dataset.mode !== S.mode) {
+      const cur = modeBtns.find(b => b.dataset.mode === S.mode);
+      $('typeIcon').innerHTML = cur.querySelector('svg').outerHTML;
+      $('typeName').textContent = cur.querySelector('span').textContent;
+      if (typeBtn.dataset.mode) { typeBtn.classList.remove('swap'); void typeBtn.offsetWidth; typeBtn.classList.add('swap'); }
+      typeBtn.dataset.mode = S.mode;
+    }
 
     // bar
     const bar = $('bar');
@@ -1029,9 +1073,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     $('angle').value = S.angle; $('angleOut').textContent = S.angle + '°';
     $('blur').value = S.blur; $('blurOut').textContent = S.blur + '%';
     $('grain').value = S.grain; $('grainOut').textContent = S.grain;
-    // "Desktop 16:9" → the word can hide on narrow screens, leaving "16:9"
-    $('sizeVal').innerHTML = FORMATS[S.format][2].replace(/^(\S+) /, '<span class="szw">$1 </span>');
-    ddMenu.querySelectorAll('li').forEach(li => li.setAttribute('aria-selected', String(li.dataset.k === S.format)));
+    $('sizeVal').textContent = `${FORMATS[S.format][0]} × ${FORMATS[S.format][1]}`;
+    $('sizes').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === S.format)));
 
     // output
     const mo = S.motion;
@@ -1042,7 +1085,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     });
     $('speed').value = mo.speed; $('speedOut').textContent = mo.speed + 's';
     $('amount').value = mo.amount; $('amountOut').textContent = mo.amount + '%';
-    document.querySelector('[data-pop="motionPop"]').classList.toggle('on', mo.on);
     $('mp4Btn').disabled = !mo.on;
     $('mp4Btn').title = mo.on ? '' : 'Turn on Motion to export a video';
     const notes = [];
@@ -1184,6 +1226,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       S.stops[0].p = 0;
       S.stops.push({ c: S.base, p: 100, x: 80, y: 80, s: 55 });
     }
+    closeType(true);
     draw();
   });
   // Color list: rebuilt only when the set of colors or the selection changes, so typing and the
@@ -1277,7 +1320,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   }
   popBtns.forEach(btn => btn.addEventListener('click', () => {
     const pop = $(btn.dataset.pop), same = openPop === pop;
-    closePop(false); closeMenu(false); closeDD(false);
+    closePop(false); closeMenu(false); closeType(false); closeSide();
     if (same) return;
     pop.hidden = false; btn.setAttribute('aria-expanded', 'true'); openPop = pop;
     syncUI(); placePop(pop, btn);
@@ -1292,7 +1335,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   }
   exportBtn.addEventListener('click', () => {
     if (!exportMenu.hidden) { closeMenu(false); return; }
-    closePop(false); closeDD(false);
+    closePop(false); closeType(false); closeSide();
     exportMenu.hidden = false; exportBtn.setAttribute('aria-expanded', 'true');
     exportMenu.querySelector('.arow:not(:disabled)').focus();
   });
@@ -1312,43 +1355,60 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && openPop) { e.stopPropagation(); closePop(true); }
+    else if (e.key === 'Escape' && side.classList.contains('open')) { e.stopPropagation(); closeSide(); sideBtn.focus(); }
   }, true);
 
-  // Size dropdown: a small listbox menu instead of the browser's native one.
-  const ddBtn = $('sizeDD').querySelector('.dd-btn'), ddMenu = $('sizeDD').querySelector('.dd-menu');
+  // Size: four shape buttons in the right column.
+  const SIZE_ICONS = {
+    '16:9': '<svg viewBox="0 0 26 22" width="26" height="22" aria-hidden="true"><rect x="2" y="5" width="22" height="12.5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+    '9:16': '<svg viewBox="0 0 26 22" width="26" height="22" aria-hidden="true"><rect x="7.5" y="1.5" width="11" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+    '1:1': '<svg viewBox="0 0 26 22" width="26" height="22" aria-hidden="true"><rect x="4.5" y="2.5" width="17" height="17" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+    'circle': '<svg viewBox="0 0 26 22" width="26" height="22" aria-hidden="true"><circle cx="13" cy="11" r="8.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+  };
   Object.entries(FORMATS).forEach(([k, [w, h, label]]) => {
-    const li = document.createElement('li');
-    li.role = 'option'; li.tabIndex = -1; li.dataset.k = k;
-    li.innerHTML = `<svg class="ck" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${label}</span><span class="dim">${w} × ${h}</span>`;
-    ddMenu.appendChild(li);
+    const b = document.createElement('button');
+    b.type = 'button'; b.dataset.k = k; b.title = `${label} · ${w} × ${h}`;
+    b.innerHTML = `${SIZE_ICONS[k]}<span>${k === 'circle' ? 'Circle' : k}</span>`;
+    b.onclick = () => { S.format = k; fit(); draw(); };
+    $('sizes').appendChild(b);
   });
-  const ddItems = () => [...ddMenu.querySelectorAll('li')];
-  function openDD() {
-    ddMenu.hidden = false; ddBtn.setAttribute('aria-expanded', 'true');
-    (ddItems().find(li => li.dataset.k === S.format) || ddItems()[0]).focus();
+
+  // Type picker: one button in the dock opens a short list above it.
+  const typeWrap = $('typeWrap'), typeBtn = $('typeBtn');
+  function openType() {
+    closePop(false); closeMenu(false); closeSide();
+    typeWrap.classList.add('open'); typeBtn.setAttribute('aria-expanded', 'true');
+    (modeBtns.find(b => b.dataset.mode === S.mode) || modeBtns[0]).focus();
   }
-  function closeDD(refocus) {
-    if (ddMenu.hidden) return;
-    ddMenu.hidden = true; ddBtn.setAttribute('aria-expanded', 'false');
-    if (refocus) ddBtn.focus();
+  function closeType(refocus) {
+    if (!typeWrap.classList.contains('open')) return;
+    typeWrap.classList.remove('open'); typeBtn.setAttribute('aria-expanded', 'false');
+    if (refocus) typeBtn.focus();
   }
-  function chooseSize(k) { S.format = k; fit(); draw(); closeDD(true); }
-  ddBtn.addEventListener('click', () => { closePop(false); closeMenu(false); ddMenu.hidden ? openDD() : closeDD(false); });
-  ddBtn.addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); openDD(); } });
-  ddMenu.addEventListener('click', e => { const li = e.target.closest('li'); if (li) chooseSize(li.dataset.k); });
-  ddMenu.addEventListener('keydown', e => {
-    const items = ddItems(), i = items.indexOf(document.activeElement);
-    if (e.key === 'ArrowDown') items[(i + 1) % items.length].focus();
-    else if (e.key === 'ArrowUp') items[(i - 1 + items.length) % items.length].focus();
-    else if (e.key === 'Home') items[0].focus();
-    else if (e.key === 'End') items[items.length - 1].focus();
-    else if (e.key === 'Enter' || e.key === ' ') { if (i >= 0) chooseSize(items[i].dataset.k); }
-    else if (e.key === 'Escape') closeDD(true);
-    else if (e.key === 'Tab') { closeDD(false); return; }
+  typeBtn.addEventListener('click', () => typeWrap.classList.contains('open') ? closeType(false) : openType());
+  $('modes').addEventListener('keydown', e => {
+    const i = modeBtns.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') modeBtns[(i + 1) % modeBtns.length].focus();
+    else if (e.key === 'ArrowUp') modeBtns[(i - 1 + modeBtns.length) % modeBtns.length].focus();
+    else if (e.key === 'Escape') closeType(true);
+    else if (e.key === 'Tab') { closeType(false); return; }
     else return;
     e.preventDefault(); e.stopPropagation();
   });
-  document.addEventListener('pointerdown', e => { if (!$('sizeDD').contains(e.target)) closeDD(false); });
+  document.addEventListener('pointerdown', e => { if (!typeWrap.contains(e.target)) closeType(false); });
+
+  // On phones the right column folds into a card that opens from the dock.
+  const side = $('side'), sideBtn = $('sideBtn');
+  function closeSide() { side.classList.remove('open'); sideBtn.setAttribute('aria-expanded', 'false'); }
+  sideBtn.addEventListener('click', () => {
+    const open = !side.classList.contains('open');
+    closePop(false); closeMenu(false); closeType(false); closeSide();
+    if (!open) return;
+    document.documentElement.style.setProperty('--dock-h', dockWrap.offsetHeight + 'px');
+    side.classList.add('open'); sideBtn.setAttribute('aria-expanded', 'true');
+  });
+  document.addEventListener('pointerdown', e => { if (!side.contains(e.target) && !sideBtn.contains(e.target)) closeSide(); });
+  addEventListener('resize', () => { if (!matchMedia('(max-width: 860px)').matches) closeSide(); });
 
   // ---------- Randomize ----------
   function randomize() {
@@ -1399,6 +1459,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (k === 'l') { e.preventDefault(); $('libView').hidden ? openLibrary() : closeLibrary(); return; }
     if (!$('libView').hidden) return;
     if (k === 'r') { e.preventDefault(); randomize(); }
+    if (['1', '2', '3'].includes(k)) { e.preventDefault(); modeBtns[+k - 1].click(); }
     if (k === 's') { e.preventDefault(); saveToLibrary(); }
   });
 
