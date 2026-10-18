@@ -1295,14 +1295,18 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     const snap = JSON.parse(JSON.stringify(S));
     const c = document.createElement('canvas'); c.width = W; c.height = H;
     const cx = c.getContext('2d', { willReadFrequently: true });
+    // Video: grain stays still from frame to frame (changing noise every frame is what wrecks
+    // compression), and a faint still dither keeps smooth gradients from banding.
+    const vsnap = { ...snap, grain: Math.max(snap.grain, 3) };
     const drawFrame = i => {
-      paint(cx, W, H, animated(snap, i / total), i);
+      paint(cx, W, H, animated(vsnap, i / total), 0);
       if (snap.format === 'circle') {
         // video has no transparency, so the globe sits on white
         cx.save(); cx.globalCompositeOperation = 'destination-over'; cx.fillStyle = '#ffffff'; cx.fillRect(0, 0, W, H); cx.restore();
       }
     };
-    const bitrate = Math.round(W * H * fps * 0.2);
+    // generous bitrate: ~40 Mbps at 1080p30, capped for very large frames
+    const bitrate = Math.min(80e6, Math.round(W * H * fps * 0.65));
     encoding = true; cancelEnc = false;
     openSheet('progress', 'Making your video'); progress(0, total);
     $('exVid').pause();
@@ -1336,8 +1340,13 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
       ['vp09.00.51.08', 'vp9'], ['vp09.00.41.08', 'vp9'], ['av01.0.12M.08', 'av1'], ['av01.0.08M.08', 'av1'],
     ];
     let config = null, muxCodec = null;
-    for (const [codec, mc] of CODECS) {
-      const cfg = { codec, width: W, height: H, bitrate, framerate: fps };
+    // Try for the best quality first, then step down if the browser's encoder refuses it.
+    const tries = [];
+    for (const [codec, mc] of CODECS)
+      for (const br of [bitrate, Math.round(bitrate * 0.6), Math.round(bitrate * 0.35)])
+        for (const extra of [{ bitrateMode: 'variable', latencyMode: 'quality' }, {}])
+          tries.push([{ codec, width: W, height: H, bitrate: br, framerate: fps, ...extra }, mc]);
+    for (const [cfg, mc] of tries) {
       try { const r = await VideoEncoder.isConfigSupported(cfg); if (r.supported) { config = cfg; muxCodec = mc; break; } } catch {}
     }
     if (!config) return null;
