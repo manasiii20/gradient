@@ -1359,6 +1359,15 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     const [W, H] = videoDims(), br = videoBitrate(W, H), secs = S.motion.speed, mb = br * secs / 8 / 1e6;
     $('exInfo').textContent = `${W} × ${H} · ${vset.fps} fps · up to ${Math.round(br / 1e6)} Mbps · file up to ${mb < 10 ? mb.toFixed(1) : Math.round(mb)} MB for the ${secs}s loop`;
   }
+  function stillOfCurrent() {
+    const [W0, H0] = FORMATS[S.format], k = 720 / Math.max(W0, H0);
+    const w = even(W0 * k), h = even(H0 * k);
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const x = c.getContext('2d', { willReadFrequently: true });
+    paint(x, w, h, animated(S, 0));
+    if (S.format === 'circle') { x.save(); x.globalCompositeOperation = 'destination-over'; x.fillStyle = '#ffffff'; x.fillRect(0, 0, w, h); x.restore(); }
+    return c.toDataURL('image/png');
+  }
   let prevJob = 0, prevTimer = 0, prevUrl = null;
   function schedulePreview() { clearTimeout(prevTimer); prevTimer = setTimeout(makePreview, 300); }
   async function makePreview() {
@@ -1397,7 +1406,10 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
     if (encoding || !S.motion.on) return;
     openSheet('settings', 'Export video');
     syncVideoSettings();
-    $('exPrev').removeAttribute('src');
+    // drop any clip from an earlier export and show the current gradient straight away
+    const v = $('exPrev');
+    v.pause(); v.removeAttribute('src'); v.load();
+    v.poster = stillOfCurrent();
     makePreview();
   };
 
