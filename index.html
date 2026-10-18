@@ -110,7 +110,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
   flex: 1; min-height: 0;
   display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: minmax(0, 1fr) auto auto;
 }
-.stage, .meta, .dock-wrap { grid-column: 1; }
+.stage, .sizebar-wrap, .dock-wrap { grid-column: 1; }
 .stage {
   min-height: 0;
   display: grid; place-items: center;
@@ -139,9 +139,12 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .h.sel { transform: scale(1.35); box-shadow: 0 1px 5px rgba(0,0,0,.35), 0 0 0 .75px rgba(120,120,118,.9); }
 .h.center { background: transparent; width: 16px; height: 16px; margin: -8px 0 0 -8px; }
 .h.center::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: #fff; }
+/* size sits right under the canvas it shapes, in a small floating pill with the pixel size */
+.sizebar-wrap { display: flex; justify-content: center; padding: 2px 16px 12px; }
+.sizebar { display: inline-flex; align-items: center; gap: 2px; padding: 4px; border-radius: 13px; }
 .meta {
-  text-align: center; font: 12px var(--mono); color: var(--muted);
-  padding: 0 16px 14px; font-variant-numeric: tabular-nums;
+  font: 11.5px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap;
+  padding: 0 10px 0 12px; margin-left: 4px; border-left: 1px solid var(--card-line);
 }
 
 /* ---------- Preset tiles ---------- */
@@ -225,12 +228,12 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .side .row { padding: 0 18px; }
 .side .bar { margin: 2px 24px 22px; }
 .side .swrow { padding: 2px 18px 14px; }
-.sizes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 2px 12px 8px; }
+.sizes { display: flex; gap: 2px; }
 .sizes button {
-  display: grid; justify-items: center; gap: 3px; padding: 7px 0 6px; border: 0; border-radius: 10px;
-  background: none; color: var(--muted); font: 500 11px var(--sans); transition: background .15s, color .15s;
+  display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px 0 8px; border: 0; border-radius: 9px;
+  background: none; color: var(--muted); font: 500 12.5px var(--sans); transition: background .15s, color .15s;
 }
-.sizes button svg { height: 22px; }
+.sizes button svg { width: 19px; height: 16px; }
 .sizes button:hover { background: var(--card-hover); color: var(--fg); }
 .sizes button[aria-pressed="true"] { background: var(--card-sel); color: var(--fg); }
 
@@ -489,6 +492,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   .dock .tiles { flex: 1 1 0; min-width: 0; }
   .dtools { display: flex; flex: none; border-left: 1px solid var(--card-line); padding-left: 6px; }
   .sidebtn { display: inline-flex; gap: 6px; padding: 0 10px; }
+  .sizebar .meta { display: none; }
   /* the right column becomes a card that opens above the dock */
   .side {
     position: fixed; z-index: 15; left: 16px; right: 16px; bottom: calc(var(--dock-h, 150px) + 4px);
@@ -594,12 +598,15 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       <div class="handles" id="handles"></div>
     </div>
   </div>
-  <div class="meta" id="meta"></div>
+  <div class="sizebar-wrap">
+    <div class="sizebar card">
+      <div class="sizes" id="sizes" role="radiogroup" aria-label="Size"></div>
+      <span class="meta" id="meta"></span>
+    </div>
+  </div>
 
   <aside class="side card" id="side" aria-label="Settings">
     <div class="side-scroll">
-      <div class="sizes" id="sizes" role="radiogroup" aria-label="Size"></div>
-      <div class="psep"></div>
       <div class="row">
         <div class="seg" id="modes" role="group" aria-label="Gradient type">
           <button type="button" data-mode="linear">Linear</button>
@@ -1171,9 +1178,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       r.style.setProperty('--p', ((r.value - r.min) / (r.max - r.min) * 100) + '%');
       r.title = r.nextElementSibling ? r.nextElementSibling.textContent : '';
     });
-    const [W, H, label] = FORMATS[S.format];
-    const modeLabel = { linear: `Linear ${S.angle}°`, radial: 'Radial', mesh: 'Mesh' }[S.mode];
-    $('meta').textContent = `${W} × ${H} px${S.format === 'circle' ? ' · Circle' : ''} · ${modeLabel} · ${S.stops.length} colors${mo.on ? ` · ${mo.speed}s loop` : ''}`;
+    const [W, H] = FORMATS[S.format];
+    $('meta').textContent = `${W} × ${H}`;
 
     renderHandles();
   }
