@@ -108,9 +108,9 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 /* ---------- Main: canvas in the middle, dock floating at the bottom ---------- */
 .app {
   flex: 1; min-height: 0;
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(0, 1fr) auto;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: minmax(0, 1fr) auto;
 }
-.stage, .sizebar-wrap, .dock-wrap { grid-column: 1; }
+.stage, .dock-wrap { grid-column: 1; }
 .stage {
   min-height: 0;
   display: grid; place-items: center;
@@ -139,9 +139,6 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .h.sel { transform: scale(1.35); box-shadow: 0 1px 5px rgba(0,0,0,.35), 0 0 0 .75px rgba(120,120,118,.9); }
 .h.center { background: transparent; width: 16px; height: 16px; margin: -8px 0 0 -8px; }
 .h.center::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: #fff; }
-/* size sits right above the canvas it shapes, in a small floating pill */
-.sizebar-wrap { display: flex; justify-content: center; padding: 10px 16px 0; }
-.sizebar { display: inline-flex; align-items: center; gap: 2px; padding: 4px; border-radius: 13px; }
 
 /* ---------- Preset tiles ---------- */
 .tile { position: relative; flex: none; }
@@ -234,16 +231,22 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 /* the background reads as a round swatch, apart from the square colours that sit on it */
 .sw.base { border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12), 0 0 0 2px var(--card), 0 0 0 3px var(--card-line-strong); }
 .cdiv { width: 1px; height: 22px; background: var(--card-line-strong); }
-.sizes { display: flex; gap: 2px; }
-.sizes button {
-  display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px 0 8px; border: 0; border-radius: 9px;
-  background: none; color: var(--muted); font: 500 12.5px var(--sans); transition: background .15s, color .15s;
-}
-.sizes button svg { width: 19px; height: 16px; }
-.sizes button:hover { background: var(--card-hover); color: var(--fg); }
-.sizes button[aria-pressed="true"] { background: var(--card-sel); color: var(--fg); }
+.side .seg.sizes { grid-template-columns: 1fr 1fr .8fr 1.25fr; margin: 8px 0 2px; }
+.seg.sizes button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: 28px; padding: 0 2px; font-size: 12px; white-space: nowrap; }
+.seg.sizes button svg { width: 15px; height: 14px; flex: none; }
 
 .sidebtn { display: none; }
+/* rows that appear (texture sliders, stop bar, background swatch) ease in instead of popping */
+.side .row.slide, .side .bar, .baseswi { animation: rowin .32s cubic-bezier(.22,1,.36,1) both; }
+@keyframes rowin { from { opacity: 0; transform: translateY(-4px); } }
+.frame.reshape { animation: reshape .45s cubic-bezier(.22,1,.36,1); }
+@keyframes reshape { from { opacity: .55; transform: scale(.975); } }
+.btn, .dbtn, .ib, .fbtn, .sizes button, .arow { transition: background-color .2s ease, border-color .2s ease, color .2s ease, opacity .2s ease, transform .2s ease; }
+.btn:active, .ib:active { transform: scale(.96); }
+.sw { transition: box-shadow .25s ease, transform .25s cubic-bezier(.22,1,.36,1); }
+.swi:not(.add) .sw:hover { transform: translateY(-1px); }
+.dlabel { transition: color .2s ease; }
+body, .card { transition: background-color .3s ease, color .3s ease, box-shadow .3s ease; }
 .card .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; padding: 0 20px; }
 .card .lbl { font-weight: 600; font-size: 14px; }
 /* Sliders are filled bars: the name sits inside on the left, the value on the right, and a thin
@@ -303,9 +306,17 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .sw.base { width: 28px; height: 28px; }
 
 /* segmented type control */
-.card .seg { flex: 1; background: var(--card-sel); border-radius: 10px; padding: 3px; }
-.card .seg button { height: 32px; border-radius: 8px; font-size: 14px; }
-.card .seg button[aria-pressed="true"] { background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 0 0 .5px rgba(0,0,0,.06); }
+.card .seg { position: relative; flex: 1; background: var(--card-sel); border-radius: 10px; padding: 3px; }
+.card .seg button { position: relative; z-index: 1; height: 32px; border-radius: 8px; font-size: 14px; transition: color .25s ease; }
+.card .seg button:hover { color: var(--fg); }
+.card .seg button[aria-pressed="true"] { background: none; box-shadow: none; color: var(--fg); }
+/* the selected look is one piece that glides between options */
+.seg-ind {
+  position: absolute; top: 3px; left: 0; height: calc(100% - 6px); border-radius: 8px; pointer-events: none;
+  background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 0 0 .5px rgba(0,0,0,.06);
+  transition: transform .38s cubic-bezier(.22,1,.36,1), width .38s cubic-bezier(.22,1,.36,1);
+}
+.seg-ind.instant { transition: none; }
 
 
 .arow {
@@ -599,11 +610,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 </header>
 
 <main class="app">
-  <div class="sizebar-wrap">
-    <div class="sizebar card">
-      <div class="sizes" id="sizes" role="radiogroup" aria-label="Size"></div>
-    </div>
-  </div>
   <div class="stage" id="stage">
     <div class="frame" id="frame">
       <canvas id="cv" aria-label="Gradient preview"></canvas>
@@ -619,6 +625,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
           <button type="button" data-mode="radial">Radial</button>
           <button type="button" data-mode="mesh">Mesh</button>
         </div>
+      </div>
+      <div class="row">
+        <div class="seg sizes" id="sizes" role="radiogroup" aria-label="Size"></div>
       </div>
       <div class="psep"></div>
       <div class="row">
@@ -1048,7 +1057,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const aw = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
     const ah = stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
     // breathing room so the canvas floats between the top controls and the dock (less on phones)
-    const room = matchMedia('(max-width: 860px)').matches ? 0.94 : 0.82;
+    const room = matchMedia('(max-width: 860px)').matches ? 0.94 : 0.88;
     const sc = Math.min(aw / W, ah / H) * room;
     const fw = Math.max(40, Math.floor(W * sc)), fh = Math.max(40, Math.floor(H * sc));
     frame.style.width = fw + 'px'; frame.style.height = fh + 'px';
@@ -1121,6 +1130,21 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
   // ---------- UI sync ----------
   const modeBtns = [...document.querySelectorAll('#modes button')];
+  // Segmented controls share one highlight that glides to whichever option is pressed.
+  const segs = [...document.querySelectorAll('.side .seg')];
+  segs.forEach(seg => {
+    const ind = document.createElement('span');
+    ind.className = 'seg-ind instant'; ind.setAttribute('aria-hidden', 'true');
+    seg.prepend(ind);
+  });
+  function placeInd(seg) {
+    const on = seg.querySelector('button[aria-pressed="true"]'), ind = seg.firstElementChild;
+    if (!on || !on.offsetWidth) return;
+    ind.style.width = on.offsetWidth + 'px';
+    ind.style.transform = `translateX(${on.offsetLeft}px)`;
+    if (ind.classList.contains('instant')) requestAnimationFrame(() => requestAnimationFrame(() => ind.classList.remove('instant')));
+  }
+  addEventListener('resize', () => segs.forEach(seg => { seg.firstElementChild.classList.add('instant'); placeInd(seg); }));
   function syncUI() {
     const mesh = S.mode === 'mesh';
     sel = clamp(sel, 0, S.stops.length - 1);
@@ -1162,6 +1186,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     $('texSize').value = tx.scale; $('texSizeOut').textContent = tx.scale + '%';
     $('texDepth').value = tx.depth; $('texDepthOut').textContent = tx.depth + '%';
     $('sizes').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === S.format)));
+    segs.forEach(placeInd);
 
     // output
     const mo = S.motion;
@@ -1396,7 +1421,11 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const b = document.createElement('button');
     b.type = 'button'; b.dataset.k = k; b.title = `${label} · ${w} × ${h}`;
     b.innerHTML = `${SIZE_ICONS[k]}<span>${k === 'circle' ? 'Circle' : k}</span>`;
-    b.onclick = () => { S.format = k; fit(); draw(); };
+    b.onclick = () => {
+      if (S.format === k) return;
+      S.format = k; fit(); draw();
+      frame.classList.remove('reshape'); void frame.offsetWidth; frame.classList.add('reshape');
+    };
     $('sizes').appendChild(b);
   });
 
@@ -1436,6 +1465,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (!open) return;
     document.documentElement.style.setProperty('--dock-h', $('dockWrap').offsetHeight + 'px');
     side.classList.add('open'); sideBtn.setAttribute('aria-expanded', 'true');
+    segs.forEach(seg => { seg.firstElementChild.classList.add('instant'); placeInd(seg); });
   });
   document.addEventListener('pointerdown', e => { if (!side.contains(e.target) && !sideBtn.contains(e.target)) closeSide(); });
   addEventListener('resize', () => { if (!matchMedia('(max-width: 860px)').matches) closeSide(); });
