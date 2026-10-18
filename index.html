@@ -201,7 +201,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
   position: absolute; bottom: calc(100% + 4px); left: 50%; width: 320px; padding: 10px 0; z-index: 15;
   animation: popin .16s ease-out;
 }
-.psep { height: 1px; margin: 6px 0; background: var(--card-line); }
+.psep { height: 1px; margin: 10px 0; background: var(--card-line); }
 .menu { top: calc(100% + 8px); bottom: auto; left: auto; right: 0; width: 230px; padding: 6px 0; }
 .menu .arow { height: 40px; }
 @keyframes popin { from { opacity: 0; transform: translateY(6px); } }
@@ -216,14 +216,14 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
   width: 288px; max-height: calc(100% - 22px);
   margin: 10px max(20px, env(safe-area-inset-right, 0px)) 0 0;
 }
-.side-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; padding: 8px 0 8px; }
+.side-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; padding: 12px 0; }
 .side-scroll::-webkit-scrollbar { display: none; }
-.side .seg { flex: 1; margin: 4px 0; }
+.side .seg { flex: 1; margin: 2px 0 6px; }
 .side .seg.tex { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .side .seg.tex button { font-size: 13px; }
 .side .row { padding: 0 18px; }
-.side .bar { margin: 2px 24px 22px; }
-.side .swrow { padding: 2px 18px 14px; }
+.side .bar { margin: 4px 24px 22px; }
+.side .swrow { padding: 4px 18px 12px; }
 .sizes { display: flex; gap: 2px; }
 .sizes button {
   display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px 0 8px; border: 0; border-radius: 9px;
@@ -238,7 +238,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .card .lbl { font-weight: 600; font-size: 14px; }
 /* Sliders are filled bars: the name sits inside on the left, the value on the right, and a thin
    marker rides the edge of the fill. */
-.card .row.slide { display: block; position: relative; min-height: 0; padding-block: 2px; }
+.card .row.slide { display: block; position: relative; min-height: 0; padding-block: 3px; }
 .card .row.slide label, .card .row.slide output {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 1; pointer-events: none; font-size: 13px;
 }
