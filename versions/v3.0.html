@@ -477,6 +477,16 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   display: flex; align-items: center; gap: 32px; min-width: 228px; height: 44px; padding: 0 12px 0 16px; border: 0; border-radius: 12px;
   background: none; color: var(--fg); text-align: left; transition: background-color .2s ease, transform .2s ease;
 }
+/* between the phone layout and roomy desktops the bar fills its column and the buttons share it,
+   instead of spilling out under the settings column */
+@media (min-width: 861px) and (max-width: 1100px) {
+  #dock.savebar { width: 100%; }
+  #dock .barbtn { flex: 1 1 0; min-width: 0; gap: 10px; padding: 0 10px 0 14px; }
+  .barbtn .bt { min-width: 0; }
+  #dock .bt1, #dock .bt2 { overflow: hidden; text-overflow: ellipsis; }
+}
+@media (min-width: 861px) and (max-width: 1000px) { #dock .bt2 { display: none; } }
+@media (min-width: 861px) and (max-width: 930px) { #dock .barbtn kbd { display: none; } }
 .barbtn:hover { background: var(--card-hover); }
 .barbtn:active { transform: scale(.98); }
 .bt { display: grid; gap: 1px; }
@@ -538,7 +548,7 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
   animation: libin .28s cubic-bezier(.2,.7,.2,1);
 }
 .mxtop { position: absolute; top: 0; left: 0; right: auto; display: flex; align-items: center; gap: 14px; padding: calc(env(safe-area-inset-top, 0px) + 14px) 20px 0; }
-.mxtop .btn.icon { width: 34px; height: 34px; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 6px 16px -10px rgba(0,0,0,.25); }
+.mxtop .btn.icon { width: 32px; height: 32px; }
 .mxcard { position: absolute; right: 20px; top: 76px; width: 288px; padding: 16px 18px 18px; border-radius: 18px; }
 .mxlbl { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
 .mxname { position: relative; height: 34px; font: 600 28px/34px var(--sans); letter-spacing: -0.02em; color: var(--fg); overflow: hidden; perspective: 400px; }
