@@ -618,6 +618,55 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+/* ---------- Presets drawer: a slim tab on the left edge that slides out into a column of presets ---------- */
+.app { position: relative; }
+.pdrawer { position: absolute; z-index: 12; left: 0; top: 0; bottom: 0; pointer-events: none; }
+.ptab {
+  pointer-events: auto; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  width: 30px; padding: 14px 0 12px; border: 0; border-radius: 0 12px 12px 0;
+  background: var(--card); color: var(--fg); box-shadow: 0 0 0 1px var(--card-edge), 0 14px 30px -18px rgba(0,0,0,.35);
+  font: 500 11px var(--sans); text-transform: uppercase; letter-spacing: .1em;
+  transition: transform .35s cubic-bezier(.22,1,.36,1), opacity .2s, width .2s, background .2s;
+}
+.ptab span { writing-mode: vertical-rl; transform: rotate(180deg); }
+.ptab kbd { font-size: 10px; padding: 0 4px; letter-spacing: 0; opacity: .45; }
+.ptab:hover { width: 34px; background: var(--card); }
+.pdrawer.open .ptab { opacity: 0; transform: translate(-100%, -50%); pointer-events: none; }
+.ppanel {
+  pointer-events: auto; position: absolute; top: 10px; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+  left: max(20px, env(safe-area-inset-left, 0px)); width: 196px;
+  display: flex; flex-direction: column; overflow: hidden;
+  transform: translateX(calc(-100% - 28px)); opacity: 0; visibility: hidden;
+  transition: transform .42s cubic-bezier(.22,1,.36,1), opacity .25s, visibility 0s .42s;
+}
+.pdrawer.open .ppanel { transform: none; opacity: 1; visibility: visible; transition: transform .42s cubic-bezier(.22,1,.36,1), opacity .2s, visibility 0s; }
+.phead { flex: none; display: flex; align-items: center; gap: 8px; padding: 14px 10px 6px 18px; }
+.phead kbd { font-size: 10px; padding: 0 4px; opacity: .4; }
+.phead .ib { margin-left: auto; }
+.pgrid {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none;
+  display: grid; grid-template-columns: 1fr 1fr; align-content: start; gap: 14px 10px; padding: 10px 16px 18px;
+}
+.pgrid::-webkit-scrollbar { display: none; }
+.pcell { display: flex; flex-direction: column; gap: 6px; padding: 0; border: 0; background: none; color: var(--muted); text-align: left; font: 500 11.5px var(--sans); min-width: 0; }
+.pcell .pv {
+  display: block; width: 100%; aspect-ratio: 3 / 2; border-radius: 10px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1);
+  transition: transform .45s cubic-bezier(.22,1,.36,1), box-shadow .45s cubic-bezier(.22,1,.36,1);
+}
+.pcell .pn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 2px; transition: color .2s; }
+.pdrawer.open .pcell { animation: rowin .4s cubic-bezier(.22,1,.36,1) both; animation-delay: calc(var(--i) * 22ms + 60ms); }
+.pcell:hover .pv, .pcell:focus-visible .pv { transform: translateY(-4px) scale(1.05); box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 12px 18px -10px rgba(0,0,0,.5); }
+.pcell:hover .pn, .pcell:focus-visible .pn, .pcell.on .pn { color: var(--fg); }
+.pcell.on .pv { box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 0 0 2px var(--card), 0 0 0 3.5px var(--fg); }
+.pcell:focus-visible { outline: none; }
+.pcell:active .pv { transform: translateY(-1px) scale(1.01); transition-duration: .1s; }
+body.mixing .pdrawer { display: none; }
+@media (max-width: 860px) {
+  .ppanel { z-index: 16; bottom: calc(var(--dock-h, 150px) + 4px); left: 16px; }
+  .ptab { top: 42%; }
+}
+
 /* ---------- Narrow screens: the dock stacks into rows ---------- */
 @media (max-width: 860px) {
   .app { grid-template-columns: minmax(0, 1fr); }
@@ -737,6 +786,14 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     </div>
   </div>
 
+  <div class="pdrawer" id="pDrawer">
+    <button class="ptab" id="pTab" type="button" aria-expanded="false" aria-controls="pPanel" title="Presets (P)"><span>Presets</span><kbd>P</kbd></button>
+    <section class="ppanel card" id="pPanel" aria-label="Presets" inert>
+      <div class="phead"><span class="lbl">Presets</span><kbd>P</kbd><button class="ib" id="pClose" type="button" aria-label="Close presets"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M12.5 5L7.5 10l5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+      <div class="pgrid" id="presets" role="group" aria-label="Presets"></div>
+    </section>
+  </div>
+
   <aside class="side card" id="side" aria-label="Settings">
     <div class="side-scroll">
       <div class="row">
@@ -820,8 +877,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
   <div class="dock-wrap" id="dockWrap">
     <div class="dock card savebar" id="dock" role="toolbar" aria-label="Save and fun mode">
-      <span class="dlabel" aria-hidden="true" hidden>Presets</span>
-      <div class="tiles" id="presets" role="group" aria-label="Presets" hidden></div>
       <button class="barbtn" id="saveBtn" type="button" title="Save to library (S)">
         <span class="bt"><span class="bt1">Save to library</span><span class="bt2">Keep this gradient</span></span>
         <kbd>S</kbd>
@@ -1703,6 +1758,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (e.key === 'Escape' && !$('overlay').hidden) { closeExport(); return; }
     if (e.key === 'Escape' && !$('libView').hidden) { closeLibrary(); return; }
     if (e.key === 'Escape' && !$('mixView').hidden) { closeMix(); return; }
+    if (e.key === 'Escape' && presetsOpen()) { closePresets(true); return; }
     const k = e.key.toLowerCase();
     if (!$('mixView').hidden) {
       if (k === 'f') { e.preventDefault(); closeMix(); }
@@ -1714,6 +1770,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (k === 'f' && $('libView').hidden) { e.preventDefault(); openMix(); return; }
     if (k === 'l') { e.preventDefault(); $('libView').hidden ? openLibrary() : closeLibrary(); return; }
     if (!$('libView').hidden) return;
+    if (k === 'p') { e.preventDefault(); presetsOpen() ? closePresets(true) : openPresets(); return; }
     if (k === 'r') { e.preventDefault(); randomize(); }
     if (['1', '2', '3'].includes(k)) { e.preventDefault(); modeBtns[+k - 1].click(); }
     if (k === 's') { e.preventDefault(); saveToLibrary(); }
@@ -2059,18 +2116,39 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     }
     return wrap;
   }
-  // The dock label reads "Presets" and turns into the name of whichever preset is under the pointer.
-  const dlabel = document.querySelector('.dlabel');
-  function showPresetName(e) {
-    const t = e.target && e.target.closest('.tile');
-    dlabel.textContent = t ? t.dataset.name : 'Presets';
-    dlabel.classList.toggle('name', !!t);
+  // ---------- Presets drawer ----------
+  const pDrawer = $('pDrawer'), pTab = $('pTab'), pPanel = $('pPanel');
+  let presetOn = -1;
+  function openPresets() {
+    const same = presetOn >= 0 && JSON.stringify(S) === JSON.stringify(fromPreset(PRESETS[presetOn]));
+    $('presets').querySelectorAll('.pcell').forEach((c, j) => c.classList.toggle('on', same && j === presetOn));
+    pDrawer.classList.add('open'); pPanel.inert = false; pTab.setAttribute('aria-expanded', 'true');
+    const b = $('presets').querySelector('.pcell.on') || $('presets').querySelector('.pcell');
+    if (b) b.focus({ preventScroll: true });
   }
-  ['pointerover', 'focusin'].forEach(ev => $('presets').addEventListener(ev, showPresetName));
-  ['pointerleave', 'focusout'].forEach(ev => $('presets').addEventListener(ev, () => showPresetName({ target: null })));
+  function closePresets(refocus) {
+    if (!pDrawer.classList.contains('open')) return;
+    pDrawer.classList.remove('open'); pPanel.inert = true; pTab.setAttribute('aria-expanded', 'false');
+    if (refocus) pTab.focus();
+  }
+  const presetsOpen = () => pDrawer.classList.contains('open');
+  pTab.onclick = openPresets;
+  $('pClose').onclick = () => closePresets(true);
+  document.addEventListener('pointerdown', e => { if (presetsOpen() && !pDrawer.contains(e.target)) closePresets(); });
   function renderLibrary() {
     const p = $('presets'); p.innerHTML = '';
-    PRESETS.forEach(pr => p.appendChild(tile(fromPreset(pr), pr.name, () => { S = fromPreset(pr); sel = 0; draw(); })));
+    PRESETS.forEach((pr, i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'pcell'; b.style.setProperty('--i', i); b.setAttribute('aria-label', `Load ${pr.name}`);
+      b.innerHTML = '<span class="pv"></span><span class="pn"></span>';
+      b.firstChild.style.background = gradient(fromPreset(pr), false);
+      b.lastChild.textContent = pr.name;
+      b.onclick = () => {
+        S = fromPreset(pr); sel = 0; draw();
+        presetOn = i; p.querySelectorAll('.pcell').forEach((c, j) => c.classList.toggle('on', j === i));
+      };
+      p.appendChild(b);
+    });
   }
 
   // ---------- Copy + export ----------
