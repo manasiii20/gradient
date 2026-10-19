@@ -1837,18 +1837,18 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
 
   // ---------- Mix: pour colours into a globe and watch them blend ----------
-  // Each drop is a soft blob that swells like ink landing in water, nudging the others aside, while
-  // the whole bowl drifts and swirls. The warm-to-cold slider picks the colour being poured.
+  // The bowl is a little fluid: colour is carried around by a slow current, and a pour wells up from
+  // where it lands and floods outward, pushing what was there aside. The warm-to-cold slider picks the colour being poured.
   const FRESH_SCALE = [[0, '#c3e83f'], [.14, '#6fe0a8'], [.28, '#23c48e'], [.42, '#10a6a6'], [.55, '#1ec1e0'], [.68, '#2a6fe0'], [.8, '#3a33b8'], [.9, '#7b2fd6'], [1, '#d42fb0']];
   const FRESH_NAMES = [[0, 'Lime'], [.08, 'Pistachio'], [.15, 'Mint'], [.24, 'Jade'], [.33, 'Emerald'], [.42, 'Teal'], [.5, 'Lagoon'],
     [.58, 'Aqua'], [.66, 'Ocean'], [.74, 'Cobalt'], [.81, 'Indigo'], [.88, 'Violet'], [.94, 'Orchid'], [1, 'Magenta']];
   const MIX_SCALE = [[0, '#ff1500'], [.16, '#ff3d00'], [.32, '#ff7a00'], [.46, '#f9bc29'], [.6, '#f6dcc0'], [.74, '#ecc9f3'], [.87, '#b3aef8'], [1, '#6586f6']];
   const MIX_NAMES = [[0, 'Flare'], [.07, 'Scarlet'], [.15, 'Ember'], [.23, 'Blaze'], [.31, 'Tangerine'], [.39, 'Amber'], [.46, 'Sun'],
     [.53, 'Honey'], [.6, 'Sand'], [.67, 'Blush'], [.74, 'Lilac'], [.81, 'Haze'], [.88, 'Periwinkle'], [.95, 'Sky']];
-  const bowl = { blobs: [], ts: { warm: .46, fresh: .42 }, sc: 'warm', raf: 0, last: 0, time: 0, seed: 0, lastDropT: null, lastDropAt: 0, name: '' };
+  const bowl = { src: [], stirs: [], fade: null, fadeT: 0, pending: null, ts: { warm: .46, fresh: .42 }, sc: 'warm', raf: 0, last: 0, time: 0, seed: 0, lastDropT: null, lastDropAt: 0, name: '' };
   const mxCv = $('mxGlobe'), mxCtx = mxCv.getContext('2d');
   const mxCols = [...document.querySelectorAll('.mxcol')];
-  const mxOff = document.createElement('canvas'); mxOff.width = mxOff.height = 180;
+  const mxOff = document.createElement('canvas'); mxOff.width = mxOff.height = 128;
   const mxOx = mxOff.getContext('2d');
   const mxNoise = (() => {
     const c = document.createElement('canvas'); c.width = c.height = 160;
@@ -1894,16 +1894,21 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     });
     setMixName(mixName(curT()));
   }
-  function mixDrop(c, x, y, R = .22 + Math.random() * .08) {
-    // the new drop pushes its neighbours outward as it lands
-    bowl.blobs.forEach(b => {
-      const dx = b.x - x, dy = b.y - y, d = Math.hypot(dx, dy) || .001, f = Math.max(0, 1 - d / 1.3) * .9;
-      b.vx += dx / d * f; b.vy += dy / d * f;
-    });
-    bowl.blobs.push({ c, x, y, r: .02, R, vx: 0, vy: 0, seed: Math.random() * 100 });
-    // the bowl holds about sixteen drops; the oldest fade away
-    const live = bowl.blobs.filter(b => !b.dying);
-    if (live.length > 16) { live[0].dying = true; }
+  // the fluid: a grid of colour (dye) and the current that carries it
+  const FN = 128, FH = 2 / (FN - 1);
+  const FD = new Float32Array(FN * FN * 3), FT = new Float32Array(FN * FN * 3);
+  const PSI = new Float32Array(FN * FN), FU = new Float32Array(FN * FN), FV = new Float32Array(FN * FN);
+  const mxImg = mxOx.createImageData(FN, FN);
+  // the history slot waiting for the bowl to settle is filled before anything new happens
+  function settlePending() {
+    if (bowl.pending && !bowl.pending.snap) bowl.pending.snap = Float32Array.from(FD);
+    bowl.pending = null;
+  }
+  // a pour: colour wells up at (x, y) and pushes outward; R sets roughly how far it spreads
+  function mixDrop(c, x, y, R = .26) {
+    settlePending();
+    const tau = .4, area = 9 * R * R;
+    bowl.src.push({ x, y, rgb: toRgb(c), q0: area / (2 * Math.PI * tau), q: 0, tau, age: 0 });
   }
   function mixPour(stream) {
     // a drag keeps pouring into roughly the same spot, so it reads as one growing pool, not scattered drops
@@ -1916,99 +1921,89 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   }
   function mixStep(dt) {
     bowl.time += dt;
-    const B = bowl.blobs, t = bowl.time;
-    // the water never settles, but it doesn't spin as one body either: a drifting, curling current
-    // (the curl of a few travelling waves) folds the colours through each other, a couple of eddies
-    // wander about, and every drop has its own restless wobble, so the ink keeps dispersing
-    const W = bowl.waves || (bowl.waves = [0, 1, 2, 3].map(k => ({
-      kx: (Math.random() - .5) * 5, ky: (Math.random() - .5) * 5, w: (.18 + Math.random() * .22) * (Math.random() < .5 ? -1 : 1),
-      p: Math.random() * 6.28, a: .05 + Math.random() * .04, s: .05 + Math.random() * .06,
+    const t = bowl.time, h = FH, N = FN;
+    // the resting current: a few slow travelling waves whose directions keep turning, plus an overall
+    // turn that drifts back and forth; it is shaped to run along the rim, never through it
+    const W = bowl.waves || (bowl.waves = [0, 1, 2, 3].map(() => ({
+      kx: (Math.random() - .5) * 6, ky: (Math.random() - .5) * 6, w: (.12 + Math.random() * .2) * (Math.random() < .5 ? -1 : 1),
+      p: Math.random() * 6.28, a: .022 + Math.random() * .014, s: (Math.random() - .5) * .14,
     })));
-    const ed = [0, 1, 2].map(k => {
-      const a = t * (.11 + k * .04) + k * 2.1 + Math.sin(t * .13 + k) * 1.2, rr = .36 + .18 * Math.sin(t * .17 + k * 1.7);
-      return [Math.cos(a) * rr, Math.sin(a) * rr, (k % 2 ? -1 : 1) * (.15 + .06 * Math.sin(t * .23 + k))];
-    });
-    for (const b of B) {
-      let fx = -b.y * .08, fy = b.x * .08;
-      for (const v of W) {
-        // the wave directions themselves slowly turn, so the current never repeats
-        const kx = v.kx * Math.cos(t * v.s) - v.ky * Math.sin(t * v.s), ky = v.kx * Math.sin(t * v.s) + v.ky * Math.cos(t * v.s);
-        const c = Math.cos(kx * b.x + ky * b.y + v.w * t * 6 + v.p) * v.a * 1.8;
-        fx += ky * c; fy -= kx * c;
-      }
-      for (const [ex, ey, st] of ed) {
-        const dx = b.x - ex, dy = b.y - ey, q = st / (dx * dx + dy * dy + .15);
-        fx += -dy * q; fy += dx * q;
-      }
-      // a restless wobble per drop: random kicks that fade, so no two drops move alike
-      b.wx = (b.wx || 0) * Math.exp(-dt * 1.4) + (Math.random() - .5) * 1.1 * Math.sqrt(dt);
-      b.wy = (b.wy || 0) * Math.exp(-dt * 1.4) + (Math.random() - .5) * 1.1 * Math.sqrt(dt);
-      fx += b.wx * .35; fy += b.wy * .35;
-      // drift toward the flow, while splashes from new drops still carry their own push
-      const k = Math.min(1, dt * 1.6);
-      b.vx += (fx - b.vx) * k; b.vy += (fy - b.vy) * k;
-      // each drop breathes a little, like ink slowly spreading and gathering
-      const target = b.dying ? 0 : b.R * (1 + .14 * Math.sin(t * (.4 + (b.seed % 1) * .4) + b.seed * 3));
-      b.r += (target - b.r) * Math.min(1, dt * (b.dying ? 1.2 : 2.4));
-    }
-    // where drops touch, their colours bleed into each other like wet ink (each keeps a little of its own)
-    for (const b of B) { if (!b.rgb) { b.rgb = toRgb(b.c); b.own = b.rgb.slice(); } b.mix = [0, 0, 0, 0]; }
-    for (let i = 0; i < B.length; i++) for (let j = i + 1; j < B.length; j++) {
-      const a = B[i], b = B[j], d = Math.hypot(b.x - a.x, b.y - a.y), reach = (a.r + b.r) * 1.1;
-      if (d >= reach) continue;
-      const w = 1 - d / reach;
-      for (let q = 0; q < 3; q++) { a.mix[q] += b.rgb[q] * w; b.mix[q] += a.rgb[q] * w; }
-      a.mix[3] += w; b.mix[3] += w;
-    }
-    for (const b of B) {
-      const m = b.mix, rate = Math.min(1, dt * .07 * Math.min(1, m[3])), back = Math.min(1, dt * .045);
-      for (let q = 0; q < 3; q++) {
-        if (m[3]) b.rgb[q] += (m[q] / m[3] - b.rgb[q]) * rate;
-        b.rgb[q] += (b.own[q] - b.rgb[q]) * back;
-      }
-      b.c = toHex(b.rgb);
-    }
-    for (let i = 0; i < B.length; i++) for (let j = i + 1; j < B.length; j++) {
-      const a = B[i], b = B[j], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || .001;
-      const min = (a.r + b.r) * .62;
-      if (d < min) {
-        const push = (min - d) * 2.6 * dt, wa = a.r * a.r, wb = b.r * b.r, w = wa + wb || 1;
-        a.vx -= dx / d * push * wb / w * 6; a.vy -= dy / d * push * wb / w * 6;
-        b.vx += dx / d * push * wa / w * 6; b.vy += dy / d * push * wa / w * 6;
+    const ws = W.map(v => { const ca = Math.cos(t * v.s), sa = Math.sin(t * v.s); return [v.kx * ca - v.ky * sa, v.kx * sa + v.ky * ca, v.w * t + v.p, v.a]; });
+    const spin = .045 * Math.sin(t * .06 + 1.3);
+    for (let j = 0; j < N; j++) {
+      const y = -1 + j * h;
+      for (let i = 0; i < N; i++) {
+        const x = -1 + i * h, e = 1 - x * x - y * y;
+        if (e <= 0) { PSI[j * N + i] = 0; continue; }
+        let q = spin;
+        for (const [kx, ky, ph, a] of ws) q += a * Math.sin(kx * x + ky * y + ph);
+        PSI[j * N + i] = e * q;
       }
     }
-    const damp = Math.exp(-dt * .9);
-    for (const b of B) {
-      const d = Math.hypot(b.x, b.y), lim = .92 - b.r * .35;
-      if (d > lim) { b.vx -= b.x / d * (d - lim) * 4 * dt * 6; b.vy -= b.y / d * (d - lim) * 4 * dt * 6; }
-      b.vx *= damp; b.vy *= damp; b.x += b.vx * dt; b.y += b.vy * dt;
+    // pours push outward from where they land (fading as they finish); stirring drags the colour along
+    for (const p of bowl.src) { p.age += dt; p.q = p.q0 * Math.exp(-p.age / p.tau); }
+    bowl.src = bowl.src.filter(p => p.q > p.q0 * .01);
+    for (const st of bowl.stirs) st.age += dt;
+    bowl.stirs = bowl.stirs.filter(st => st.age < 1.2);
+    for (let j = 1; j < N - 1; j++) for (let i = 1; i < N - 1; i++) {
+      const k = j * N + i, x = -1 + i * h, y = -1 + j * h;
+      let u = (PSI[k + N] - PSI[k - N]) / (2 * h), v = -(PSI[k + 1] - PSI[k - 1]) / (2 * h);
+      for (const p of bowl.src) { const dx = x - p.x, dy = y - p.y, d2 = dx * dx + dy * dy + .004; u += p.q * dx / d2; v += p.q * dy / d2; }
+      for (const st of bowl.stirs) { const dx = x - st.x, dy = y - st.y, f = Math.exp(-(dx * dx + dy * dy) / .03 - st.age * 3); u += st.vx * f; v += st.vy * f; }
+      FU[k] = u; FV[k] = v;
     }
-    bowl.blobs = B.filter(b => !(b.dying && b.r < .02));
+    // carry the colour along the current: every cell looks back along the flow to see what arrives
+    FT.set(FD);
+    const g = dt / h, lim = .985;
+    for (let j = 1; j < N - 1; j++) for (let i = 1; i < N - 1; i++) {
+      const k = j * N + i;
+      let px = i - FU[k] * g, py = j - FV[k] * g;
+      const cx = px * h - 1, cy = py * h - 1, r = Math.hypot(cx, cy);
+      if (r > lim) { px = (cx / r * lim + 1) / h; py = (cy / r * lim + 1) / h; }
+      px = clamp(px, 0, N - 1.001); py = clamp(py, 0, N - 1.001);
+      const i0 = px | 0, j0 = py | 0, fx = px - i0, fy = py - j0;
+      const a = (j0 * N + i0) * 3, b = a + 3, c = a + N * 3, d = c + 3, o = k * 3;
+      for (let q = 0; q < 3; q++) FD[o + q] = (FT[a + q] * (1 - fx) + FT[b + q] * fx) * (1 - fy) + (FT[c + q] * (1 - fx) + FT[d + q] * fx) * fy;
+    }
+    // where colours meet they soften into each other a little, like paint at its wet edge
+    FT.set(FD);
+    const kd = Math.min(.2, dt * 1.4);
+    for (let j = 1; j < N - 1; j++) for (let i = 1; i < N - 1; i++) {
+      const o = (j * N + i) * 3;
+      for (let q = 0; q < 3; q++) FD[o + q] += (FT[o + q - 3] + FT[o + q + 3] + FT[o + q - N * 3] + FT[o + q + N * 3] - 4 * FT[o + q]) * kd;
+    }
+    // the rim cells copy their inner neighbours so the edge never goes stale
+    for (let n = 0; n < N; n++) for (const [k, kk] of [[n, n + N], [(N - 1) * N + n, (N - 2) * N + n], [n * N, n * N + 1], [n * N + N - 1, n * N + N - 2]])
+      for (let q = 0; q < 3; q++) FD[k * 3 + q] = FD[kk * 3 + q];
+    // fresh colour keeps welling up where a pour is still flowing
+    for (const p of bowl.src) {
+      const rr = .075, w0 = Math.min(1, p.q / p.q0 * 1.6), ci = (p.x + 1) / h, cj = (p.y + 1) / h, R = rr / h + 1;
+      for (let j = Math.max(0, Math.floor(cj - R)); j <= Math.min(N - 1, Math.ceil(cj + R)); j++)
+        for (let i = Math.max(0, Math.floor(ci - R)); i <= Math.min(N - 1, Math.ceil(ci + R)); i++) {
+          const dd = Math.hypot(i - ci, j - cj) * h;
+          if (dd >= rr) continue;
+          const w = w0 * (1 - (dd / rr) ** 2), o = (j * N + i) * 3;
+          for (let q = 0; q < 3; q++) FD[o + q] += (p.rgb[q] - FD[o + q]) * w;
+        }
+    }
+    // undo and redo ease the whole bowl back to a remembered picture
+    if (bowl.fade) {
+      const f = Math.min(1, dt * 6), T = bowl.fade;
+      for (let n = 0; n < FD.length; n++) FD[n] += (T[n] - FD[n]) * f;
+      if ((bowl.fadeT -= dt) <= 0) bowl.fade = null;
+    }
   }
   function mixDraw() {
-    const W = mxOff.width, half = W / 2, B = bowl.blobs;
-    // the water itself takes on the overall colour of what has been poured in
-    let tw = 0; const acc = [0, 0, 0];
-    B.forEach(b => { const w = b.r * b.r, c = toRgb(b.c); tw += w; acc[0] += c[0] * w; acc[1] += c[1] * w; acc[2] += c[2] * w; });
-    mxOx.fillStyle = tw ? toHex(acc.map(v => v / tw)) : '#f9bc29';
-    mxOx.fillRect(0, 0, W, W);
-    for (const b of B) {
-      const cx = half + b.x * half, cy = half + b.y * half, rr = Math.max(1, b.r * half * 1.5);
-      // each drop is one soft pool, leaning a little along the way it flows
-      const sp = Math.hypot(b.vx, b.vy), ang = Math.atan2(b.vy, b.vx), st = 1 + Math.min(.22, sp * .5);
-      mxOx.save();
-      mxOx.translate(cx, cy); mxOx.rotate(ang); mxOx.scale(st, 1 / st);
-      const g = mxOx.createRadialGradient(0, 0, 0, 0, 0, rr);
-      g.addColorStop(0, b.c); g.addColorStop(.32, b.c); g.addColorStop(.72, b.c + 'a0'); g.addColorStop(1, b.c + '00');
-      mxOx.fillStyle = g; mxOx.fillRect(-rr, -rr, rr * 2, rr * 2);
-      mxOx.restore();
-    }
+    const D = mxImg.data;
+    for (let n = 0, m = 0; n < D.length; n += 4, m += 3) { D[n] = FD[m]; D[n + 1] = FD[m + 1]; D[n + 2] = FD[m + 2]; D[n + 3] = 255; }
+    mxOx.putImageData(mxImg, 0, 0);
     const S2 = mxCv.width;
     mxCtx.clearRect(0, 0, S2, S2);
     mxCtx.save();
     mxCtx.beginPath(); mxCtx.arc(S2 / 2, S2 / 2, S2 / 2, 0, Math.PI * 2); mxCtx.clip();
-    if ('filter' in mxCtx) mxCtx.filter = `blur(${(S2 * .035).toFixed(1)}px)`;
-    mxCtx.drawImage(mxOff, -S2 * .06, -S2 * .06, S2 * 1.12, S2 * 1.12);
+    mxCtx.imageSmoothingEnabled = true; mxCtx.imageSmoothingQuality = 'high';
+    if ('filter' in mxCtx) mxCtx.filter = `blur(${(S2 * .013).toFixed(1)}px)`;
+    mxCtx.drawImage(mxOff, -S2 * .015, -S2 * .015, S2 * 1.03, S2 * 1.03);
     mxCtx.filter = 'none';
     mxCtx.globalCompositeOperation = 'overlay';
     for (let y = 0; y < S2; y += 160) for (let x = 0; x < S2; x += 160) mxCtx.drawImage(mxNoise, x, y);
@@ -2027,39 +2022,40 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     mxCv.width = mxCv.height = Math.round(size * dpr);
   }
   function seedMix() {
-    bowl.waves = null;
-    // start the bowl from the colours of the gradient you were working on
-    bowl.blobs = []; bowl.time = 0;
-    const cols = S.stops.slice(0, 6).map(s => s.c);
-    cols.forEach((c, i) => {
-      const a = i / cols.length * Math.PI * 2 + .4, r = cols.length > 1 ? .38 : 0;
-      bowl.blobs.push({ c, x: Math.cos(a) * r, y: Math.sin(a) * r, r: .4, R: .42, vx: 0, vy: 0, seed: Math.random() * 100 });
-    });
+    // start the bowl from the gradient you were working on
+    bowl.waves = null; bowl.src = []; bowl.stirs = []; bowl.fade = null; bowl.pending = null; bowl.time = 0;
+    const c = document.createElement('canvas'); c.width = c.height = FN;
+    const x = c.getContext('2d', { willReadFrequently: true });
+    paint(x, FN, FN, { ...S, grain: 0, format: '1:1', motion: { ...S.motion, on: false }, texture: { ...S.texture, on: false } });
+    const d = x.getImageData(0, 0, FN, FN).data;
+    for (let n = 0; n < FN * FN; n++) { FD[n * 3] = d[n * 4]; FD[n * 3 + 1] = d[n * 4 + 1]; FD[n * 3 + 2] = d[n * 4 + 2]; }
   }
   let mixReturn = null;
   // the bowl's history: a snapshot after each pour, drop, clear or shuffle
   let bowlHist = [], bowlHi = -1;
   function bowlCommit() {
-    const snap = bowl.blobs.filter(b => !b.dying).map(b => ({ c: b.c, x: b.x, y: b.y, R: b.R, seed: b.seed }));
-    bowlHist = bowlHist.slice(0, bowlHi + 1); bowlHist.push(snap);
-    if (bowlHist.length > 60) bowlHist.shift();
+    // the snapshot is taken once this change has finished spreading (or right before the next one)
+    settlePending();
+    bowlHist = bowlHist.slice(0, bowlHi + 1);
+    const slot = { snap: null }; bowlHist.push(slot);
+    if (bowlHist.length > 40) bowlHist.shift();
     bowlHi = bowlHist.length - 1; syncHist();
+    bowl.pending = slot;
+    setTimeout(() => { if (bowl.pending === slot) settlePending(); }, 1600);
   }
   function bowlRestore() {
-    // the current drops fade out while the remembered ones swell back in
-    bowl.blobs.forEach(b => { b.dying = true; });
-    bowlHist[bowlHi].forEach(s => bowl.blobs.push({ ...s, r: s.R * .5, vx: 0, vy: 0 }));
+    const snap = bowlHist[bowlHi].snap;
+    if (snap) { bowl.src = []; bowl.fade = snap; bowl.fadeT = .7; }
     syncHist();
   }
-  function bowlUndo() { if (bowlHi > 0) { bowlHi--; bowlRestore(); } }
-  function bowlRedo() { if (bowlHi < bowlHist.length - 1) { bowlHi++; bowlRestore(); } }
+  function bowlUndo() { settlePending(); if (bowlHi > 0) { bowlHi--; bowlRestore(); } }
+  function bowlRedo() { settlePending(); if (bowlHi < bowlHist.length - 1) { bowlHi++; bowlRestore(); } }
   // Randomize in fun mode: a fresh handful of colours poured in at once
   function mixRandom() {
-    bowl.blobs.forEach(b => { b.dying = true; });
     const n = 4 + Math.floor(Math.random() * 3), h0 = Math.random() * 360, step = 25 + Math.random() * 60;
     for (let i = 0; i < n; i++) {
       const a = i / n * Math.PI * 2 + Math.random(), r = .25 + Math.random() * .3;
-      mixDrop(oklch(.62 + Math.random() * .26, .09 + Math.random() * .12, (h0 + i * step) % 360), Math.cos(a) * r, Math.sin(a) * r, .38 + Math.random() * .12);
+      mixDrop(oklch(.62 + Math.random() * .26, .09 + Math.random() * .12, (h0 + i * step) % 360), Math.cos(a) * r, Math.sin(a) * r, .42 + Math.random() * .14);
     }
     bowlCommit();
   }
@@ -2150,15 +2146,16 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (!stir) return;
     const [x, y] = globePt(e), dx = x - stir.x, dy = y - stir.y;
     if (Math.hypot(e.clientX - stir.sx, e.clientY - stir.sy) > 5) { stir.moved = true; mxCv.classList.add('stirring'); }
-    bowl.blobs.forEach(b => {
-      const d = Math.hypot(b.x - x, b.y - y), f = Math.max(0, 1 - d / .6);
-      b.vx += dx * f * 9; b.vy += dy * f * 9;
-    });
+    if (stir.moved) {
+      bowl.stirs.push({ x, y, vx: clamp(dx * 22, -3, 3), vy: clamp(dy * 22, -3, 3), age: 0 });
+      if (bowl.stirs.length > 40) bowl.stirs.shift();
+    }
     stir.x = x; stir.y = y;
   });
   const stirEnd = e => {
     if (!stir) return;
-    if (!stir.moved) { const [x, y] = globePt(e); mixDrop(mixColorAt(curT()), x, y, .26); bowlCommit(); }
+    if (!stir.moved) { const [x, y] = globePt(e); mixDrop(mixColorAt(curT()), x, y, .26); }
+    bowlCommit();
     stir = null; mxCv.classList.remove('stirring');
   };
   mxCv.addEventListener('pointerup', stirEnd);
@@ -2166,19 +2163,39 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
   $('mxClear').onclick = () => {
     const c = mixColorAt(curT());
-    bowl.blobs.forEach(b => { b.dying = true; });
-    mixDrop(c, 0, 0, .6);
+    mixDrop(c, 0, 0, 1);
     bowlCommit();
   };
   // turn the bowl into a real mesh gradient: each drop becomes a colour you can keep editing
   // the bowl as a mesh gradient: each drop becomes a colour, the overall mix becomes the background
   function bowlState(extra = {}) {
-    const live = bowl.blobs.filter(b => !b.dying && b.r > .05).slice(-8);
-    if (!live.length) return null;
-    let tw = 0; const acc = [0, 0, 0];
-    bowl.blobs.forEach(b => { const w = b.r * b.r, c = toRgb(b.c); tw += w; acc[0] += c[0] * w; acc[1] += c[1] * w; acc[2] += c[2] * w; });
-    return { ...S, ...extra, mode: 'mesh', base: toHex(acc.map(v => v / tw)),
-      stops: live.map((b, i) => ({ c: b.c, p: r1(i / Math.max(1, live.length - 1) * 100), x: r1(50 + b.x * 50), y: r1(50 + b.y * 50), s: clamp(Math.round(b.r * 95), 15, 120) })) };
+    const P = [], acc = [0, 0, 0];
+    for (let j = 2; j < FN; j += 4) for (let i = 2; i < FN; i += 4) {
+      const x = i * FH - 1, y = j * FH - 1;
+      if (x * x + y * y > .9) continue;
+      const o = (j * FN + i) * 3;
+      P.push([x, y, FD[o], FD[o + 1], FD[o + 2]]); acc[0] += FD[o]; acc[1] += FD[o + 1]; acc[2] += FD[o + 2];
+    }
+    if (!P.length) return null;
+    const K = 6;
+    let C = Array.from({ length: K }, (_, i) => [...P[Math.floor((i + .5) / K * P.length)], 0]);
+    for (let it = 0; it < 8; it++) {
+      const sum = C.map(() => [0, 0, 0, 0, 0, 0]);
+      for (const p of P) {
+        let bi = 0, bd = Infinity;
+        C.forEach((c, ci) => {
+          const d = (p[2] - c[2]) ** 2 + (p[3] - c[3]) ** 2 + (p[4] - c[4]) ** 2 + ((p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2) * 2500;
+          if (d < bd) { bd = d; bi = ci; }
+        });
+        const a = sum[bi]; for (let q = 0; q < 5; q++) a[q] += p[q]; a[5]++;
+      }
+      C = sum.map((a, ci) => a[5] ? [...a.slice(0, 5).map(v => v / a[5]), a[5]] : [...C[ci].slice(0, 5), 0]);
+    }
+    // big regions first, so smaller pools of colour sit on top of them, as they do in the bowl
+    const live = C.filter(c => c[5] > P.length * .02).sort((a, b) => b[5] - a[5]);
+    return { ...S, ...extra, mode: 'mesh', base: toHex(acc.map(v => v / P.length)),
+      stops: live.map((c, i) => ({ c: toHex([c[2], c[3], c[4]]), p: r1(i / Math.max(1, live.length - 1) * 100),
+        x: r1(50 + c[0] * 50), y: r1(50 + c[1] * 50), s: clamp(Math.round(Math.sqrt(c[5] / P.length) * 120), 25, 120) })) };
   }
   // S in fun mode saves the globe itself (as a round mesh gradient) and sends it flying into Library
   function saveBowl() {
