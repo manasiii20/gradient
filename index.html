@@ -672,10 +672,15 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
   .dtools { display: flex; flex: none; border-left: 1px solid var(--card-line); padding-left: 6px; }
   .sidebtn { display: inline-flex; gap: 6px; padding: 0 10px; }
   /* the right column becomes a card that opens above the dock */
+  /* settings open as a sheet over the lower half; the canvas moves up into the space above it, so you
+     can watch every change as you make it */
   .side {
-    position: fixed; z-index: 15; left: 16px; right: 16px; bottom: calc(var(--dock-h, 150px) + 4px);
-    width: auto; max-height: 62vh; margin: 0; display: none; animation: popin .16s ease-out; align-self: auto;
+    position: fixed; z-index: 15; left: 12px; right: 12px; bottom: calc(var(--dock-h, 150px) + 4px);
+    width: auto; max-height: min(52vh, 460px); margin: 0; display: none; animation: sheetin .32s cubic-bezier(.22,1,.36,1); align-self: auto;
   }
+  @keyframes sheetin { from { opacity: 0; transform: translateY(24px); } }
+  body.sheet-open .stage { padding-bottom: calc(var(--sheet-h, 0px) + 14px); }
+  body.sheet-anim .frame { transition: width .32s cubic-bezier(.22,1,.36,1), height .32s cubic-bezier(.22,1,.36,1); }
   .side.open { display: flex; }
   .dlabel { display: none; }
   .savebar { width: auto; gap: 2px; }
@@ -1763,7 +1768,20 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
   // On phones the right column folds into a card that opens from the dock.
   const side = $('side'), sideBtn = $('sideBtn');
-  function closeSide() { side.classList.remove('open'); sideBtn.setAttribute('aria-expanded', 'false'); }
+  // on phones the canvas makes room for the settings sheet, sliding up into the space above it
+  function roomForSheet(open) {
+    if (document.body.classList.contains('sheet-open') === open) return;
+    document.documentElement.style.setProperty('--sheet-h', open ? side.offsetHeight + 'px' : '0px');
+    document.body.classList.add('sheet-anim');
+    document.body.classList.toggle('sheet-open', open);
+    fit(); draw();
+    clearTimeout(roomForSheet.t); roomForSheet.t = setTimeout(() => document.body.classList.remove('sheet-anim'), 360);
+  }
+  new ResizeObserver(() => {
+    if (!document.body.classList.contains('sheet-open')) return;
+    document.documentElement.style.setProperty('--sheet-h', side.offsetHeight + 'px'); fit(); draw();
+  }).observe(side);
+  function closeSide() { side.classList.remove('open'); sideBtn.setAttribute('aria-expanded', 'false'); roomForSheet(false); }
   sideBtn.addEventListener('click', () => {
     const open = !side.classList.contains('open');
     closeMenu(false); closeSide();
@@ -1772,8 +1790,10 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     document.documentElement.style.setProperty('--dock-h', $('dockWrap').offsetHeight + 'px');
     side.classList.add('open'); sideBtn.setAttribute('aria-expanded', 'true');
     segs.forEach(seg => { seg.firstElementChild.classList.add('instant'); placeInd(seg); });
+    roomForSheet(true);
   });
-  document.addEventListener('pointerdown', e => { if (!side.contains(e.target) && !sideBtn.contains(e.target)) closeSide(); });
+  // working on the canvas (dragging its dots) keeps the sheet open; anywhere else closes it
+  document.addEventListener('pointerdown', e => { if (!side.contains(e.target) && !sideBtn.contains(e.target) && !frame.contains(e.target)) closeSide(); });
   addEventListener('resize', () => { if (!matchMedia('(max-width: 860px)').matches) closeSide(); });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && side.classList.contains('open')) { e.stopPropagation(); closeSide(); sideBtn.focus(); }
