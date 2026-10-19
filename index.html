@@ -467,7 +467,12 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 /* the cards tuck behind the top of the glass, like papers in a folder */
 .ask-cards { position: absolute; left: 0; right: 0; top: 0; height: 150px; display: flex; justify-content: center; }
 .ask-slot { flex: none; position: relative; width: 124px; height: 92px; margin: 0 -13px; transform: translate(var(--x, 0px), var(--y, 18px)); }
-.ask-slot:hover, .ask-slot:focus-within { z-index: 2; }
+.ask-slot:hover, .ask-slot:focus-within, .ask-slot.picked { z-index: 2; }
+.ask-slot.picked .ask-card { transform: translateY(-20px) rotate(0deg) scale(1.04); box-shadow: inset 0 0 0 1px rgba(255,255,255,.55), 0 0 0 2px rgba(255,255,255,.9), 0 24px 36px -18px rgba(30,30,60,.55); }
+@media (hover: none) { .ask-slot:hover .ask-card { transform: rotate(var(--r, 0deg)); } .ask-slot.picked:hover .ask-card { transform: translateY(-20px) rotate(0deg) scale(1.04); } }
+.ask-hint b { font-weight: 600; }
+.ask-hint .th, .intro-skip .th { display: none; }
+@media (hover: none), (pointer: coarse), (max-width: 480px) { .ask-hint .th, .intro-skip .th { display: inline; } .intro-skip .kh { display: none; } }
 .ask-cards { pointer-events: none; }
 .ask-slot { pointer-events: auto; }
 .ask-card {
@@ -1054,10 +1059,10 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
           <button type="submit" class="ask-go" id="askGo" aria-label="Create"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4.5 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         </div>
       </form>
-      <p class="ask-hint" id="askHint">Type<span class="kh"> and press <kbd>↵</kbd></span> &nbsp;·&nbsp; or pick a card</p>
+      <p class="ask-hint" id="askHint">Type<span class="kh"> and press <kbd>↵</kbd></span> &nbsp;·&nbsp; or <span class="kh">pick</span><span class="th">tap</span> a card</p>
     </div>
   </div>
-  <div class="intro-bottom"><button type="button" class="intro-skip" id="introSkip"><kbd class="spacek">space</kbd> to skip</button></div>
+  <div class="intro-bottom"><button type="button" class="intro-skip" id="introSkip"><span class="kh"><kbd class="spacek">space</kbd> to skip</span><span class="th">Skip</span></button></div>
 </div>
 <div class="tour" id="tour" hidden>
   <div class="tour-spot" id="tourSpot"></div>
@@ -3422,7 +3427,17 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       const c = document.createElement('canvas'); c.width = 248; c.height = 184; b.appendChild(c);
       const st = fromPreset(pr);
       paint(c.getContext('2d', { willReadFrequently: true }), c.width, c.height, { ...st, format: '16:9', grain: st.grain * .6, texture: { ...st.texture, on: false } });
-      b.onclick = () => { introPick = st; leaveIntro('go'); };
+      // touch screens can't hover: the first tap previews a card (it lifts, the backdrop takes its colours),
+      // a second tap on it, or the arrow, goes in with it
+      b.onclick = () => {
+        if (matchMedia('(hover: none)').matches && !slot.classList.contains('picked')) {
+          box.querySelectorAll('.ask-slot.picked').forEach(x => x.classList.remove('picked'));
+          slot.classList.add('picked'); introCard = st; setIntroBg(calmed(st, .35));
+          $('askHint').innerHTML = 'Tap it again, or <b>→</b>, to start with this one';
+          return;
+        }
+        introPick = st; leaveIntro('go');
+      };
       slot.onmouseenter = b.onfocus = () => setIntroBg(calmed(st, .35));
       slot.onmouseleave = b.onblur = () => setIntroBg(introTyped || fromPreset(CALM));
       slot.appendChild(b); box.appendChild(slot);
@@ -3445,12 +3460,13 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   $('askInput').addEventListener('keydown', e => {
     if (e.key === 'Tab' && !$('askInput').value && phAt >= 0) { e.preventDefault(); $('askInput').value = TRY[phAt]; $('askInput').dispatchEvent(new Event('input')); }
   });
-  let introTyped = null, typeT = 0;
+  let introTyped = null, typeT = 0, introCard = null;
   $('askInput').addEventListener('input', () => {
     clearTimeout(typeT);
     $('askInput').parentElement.classList.toggle('filled', !!$('askInput').value);
+    if (introCard) { introCard = null; document.querySelectorAll('.ask-slot.picked').forEach(x => x.classList.remove('picked')); }
     $('askHint').classList.remove('miss');
-    $('askHint').innerHTML = 'Type<span class="kh"> and press <kbd>↵</kbd></span> &nbsp;·&nbsp; or pick a card';
+    $('askHint').innerHTML = 'Type<span class="kh"> and press <kbd>↵</kbd></span> &nbsp;·&nbsp; or <span class="kh">pick</span><span class="th">tap</span> a card';
     typeT = setTimeout(() => {
       const v = $('askInput').value;
       const st = readPrompt(v, true);
@@ -3461,6 +3477,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   $('askForm').addEventListener('submit', e => {
     e.preventDefault();
     const v = $('askInput').value.trim();
+    if (!v && introCard) { introPick = introCard; leaveIntro('go'); return; }
     if (!v) { $('askInput').focus(); return; }
     const st = readPrompt(v);
     if (!st) {
@@ -3479,7 +3496,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     gx.putImageData(d, 0, 0);
     document.querySelector('.intro-grain').style.backgroundImage = `url(${g.toDataURL()})`;
     sizeIntro(); introT0 = performance.now();
-    introTyped = null; introPick = null; $('askInput').value = ''; $('askInput').parentElement.classList.remove('filled');
+    introTyped = null; introPick = null; introCard = null; $('askInput').value = ''; $('askInput').parentElement.classList.remove('filled');
     startPh();
     introBg = bgState(fromPreset(CALM)); setIntroBg(fromPreset(CALM));
     buildCards();
