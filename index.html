@@ -462,7 +462,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro-top, .intro-mid, .intro-bottom { position: relative; z-index: 1; text-align: center; }
 .intro-top { padding-top: calc(env(safe-area-inset-top, 0px) + 24px); }
 .intro-mark { font: 500 14px var(--sans); letter-spacing: -.01em; opacity: .55; }
-.intro-mid { flex: 1; display: flex; align-items: flex-end; justify-content: center; width: 100%; padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 12vh); }
+.intro-mid { flex: 1; display: flex; align-items: flex-end; justify-content: center; width: 100%; padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 7vh); }
 .ask { position: relative; width: min(820px, 100%); padding-top: 88px; }
 /* the cards tuck behind the top of the glass, like papers in a folder */
 .ask-cards { position: absolute; left: 0; right: 0; top: 0; height: 150px; display: flex; justify-content: center; }
@@ -506,7 +506,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .ask-field { position: relative; flex: 1; min-width: 0; height: 100%; }
 .ask-bar input { width: 100%; height: 100%; border: 0; outline: 0; background: none; color: #1d1d22; font: 400 16px var(--sans); }
 /* the placeholder: "Try" stays put while the suggestion after it changes every few seconds */
-.ask-ph { position: absolute; inset: 0; display: flex; align-items: center; pointer-events: none; white-space: nowrap; overflow: hidden; color: rgba(120,119,132,.55); font: 400 16px var(--sans); }
+.ask-ph { position: absolute; inset: 0; display: flex; align-items: center; line-height: 1.5em; pointer-events: none; white-space: nowrap; overflow: hidden; color: rgba(120,119,132,.55); font: 400 16px var(--sans); }
 .ph-win { position: relative; display: inline-block; height: 1.5em; margin-left: .3em; overflow: hidden; vertical-align: middle; transition: width .4s cubic-bezier(.4,0,.2,1); }
 .ph-win > span { position: absolute; left: 0; top: 0; line-height: 1.5em; color: rgba(120,119,132,.78); transition: transform .42s cubic-bezier(.4,0,.2,1), opacity .3s ease; }
 .ph-win > span.below { transform: translateY(100%); opacity: 0; }
@@ -528,6 +528,18 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .ask-go { margin-left: 4px; background: #1d1d22; color: #fff; }
 .ask-go:hover { transform: translateY(-1px); }
 .ask-go:active { transform: scale(.95); }
+/* what the words were read as: each word with dots of the colours it brought */
+.ask-read { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 14px; }
+.ask-read:empty { display: none; }
+.ask-chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 6px; border-radius: 8px; font: 500 12px var(--sans); color: rgba(29,29,34,.72);
+  background: rgba(255,255,255,.5); box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: chipin .35s cubic-bezier(.22,1,.36,1) both; }
+.ask-chip.mod { padding-left: 10px; color: rgba(29,29,34,.5); font-style: italic; font-weight: 400; }
+.ask-chip i { display: inline-flex; }
+.ask-chip i b { width: 12px; height: 12px; border-radius: 50%; margin-left: -3px; box-shadow: 0 0 0 1.5px rgba(255,255,255,.9); }
+.ask-chip i b:first-child { margin-left: 0; }
+@keyframes chipin { from { opacity: 0; transform: translateY(4px); } }
+.intro.dim .ask-chip { color: rgba(255,255,255,.85); background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+.intro.dim .ask-chip.mod { color: rgba(255,255,255,.6); }
 .ask-hint:empty { display: none; }
 .ask-hint { margin: 16px 0 0; font: 400 13px var(--sans); color: rgba(29,29,34,.5); transition: color .3s; }
 .ask-hint kbd { opacity: .7; }
@@ -537,13 +549,21 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .ask-hint.miss { color: rgba(29,29,34,.75); }
 .intro-bottom { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 26px); }
 .intro-top { padding-top: calc(env(safe-area-inset-top, 0px) + 18px); }
-.intro-skip { border: 0; background: none; color: rgba(29,29,34,.5); font: 400 13px var(--sans); padding: 5px 8px; border-radius: 7px; }
-.intro-skip:hover { color: #1d1d22; background: rgba(255,255,255,.4); }
+.intro-skip {
+  display: inline-flex; align-items: center; gap: 2px; height: 34px; padding: 0 14px; border: 0; border-radius: 999px;
+  color: rgba(29,29,34,.6); font: 400 13px var(--sans); background: rgba(255,255,255,.34);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.6), 0 6px 18px -12px rgba(30,30,60,.35); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  transition: background .2s, color .2s;
+}
+.intro-skip:hover { color: #1d1d22; background: rgba(255,255,255,.55); }
 .intro { transition: opacity .7s ease, transform .9s cubic-bezier(.22,1,.36,1); }
 .intro.dim .ask-hint, .intro.dim .intro-skip { color: rgba(255,255,255,.6); }
 .intro.dim .ask-glass { background: rgba(255,255,255,.14); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 24px 50px -30px rgba(0,0,0,.6); }
 .intro-skip kbd { margin: 0 4px; opacity: .7; }
-.intro-skip .spacek { display: inline-block; min-width: 46px; text-align: center; padding: 1px 6px; border-radius: 5px; font-size: 10.5px; }
+.intro-skip .spacek { display: inline-block; min-width: 54px; margin: 0 6px; text-align: center; padding: 2px 8px; border-radius: 6px; font: 500 11px var(--sans); color: rgba(29,29,34,.7); border: 0; opacity: 1;
+  background: rgba(255,255,255,.75); box-shadow: inset 0 -1px 0 rgba(30,30,60,.12), 0 1px 2px rgba(30,30,60,.12); }
+.intro.dim .intro-skip { background: rgba(255,255,255,.1); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+.intro.dim .intro-skip .spacek { background: rgba(255,255,255,.18); color: rgba(255,255,255,.85); }
 @media (hover: none), (pointer: coarse) { .intro-skip .spacek { min-width: 0; } }
 @media (max-width: 480px) {
   .ask-ph { font-size: 14px; }
@@ -1055,7 +1075,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   <canvas class="intro-cv" id="introCv"></canvas>
   <canvas class="intro-cv intro-prev" id="introPrev"></canvas>
   <div class="intro-grain" aria-hidden="true"></div>
-  <div class="intro-top"><button type="button" class="intro-skip" id="introSkip"><span class="kh"><kbd class="spacek">space</kbd> to skip</span><span class="th">Skip</span></button></div>
+  <div class="intro-top"><button type="button" class="intro-skip" id="introSkip"><span class="kh">Press <kbd class="spacek">space</kbd> to jump straight in</span><span class="th">Skip</span></button></div>
   <div class="intro-mid">
     <div class="ask">
       <div class="ask-cards" id="askCards" role="group" aria-label="Start from one of these"></div>
@@ -1071,6 +1091,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
           <button type="submit" class="ask-go" id="askGo" aria-label="Create"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4.5 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         </div>
       </form>
+      <div class="ask-read" id="askRead" aria-live="polite"></div>
       <p class="ask-hint" id="askHint" aria-live="polite"></p>
     </div>
   </div>
@@ -3482,6 +3503,15 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     typeT = setTimeout(() => {
       const v = $('askInput').value;
       const st = readPrompt(v, true);
+      // every word gets a tag with its colours; words it doesn't know show the colours made up for them
+      const { read } = interpret(v, true), box = $('askRead');
+      const key = JSON.stringify(read.map(r => [r.w, r.mod, !!r.unknown]));
+      if (box.dataset.key !== key) {
+        box.dataset.key = key;
+        const own = w => { const r = seeded(w), h = r() * 360, st2 = 30 + r() * 60; return [0, 1, 2].map(i => oklch(.62 + r() * .25, .1 + r() * .1, (h + i * st2) % 360)); };
+        box.innerHTML = read.slice(0, 7).map(r => r.mod ? `<span class="ask-chip mod">${r.w}</span>`
+          : `<span class="ask-chip"><i>${(r.unknown ? own(r.w) : r.cols).map(c => `<b style="background:${c}"></b>`).join('')}</i>${r.hint ? 'hint of ' : ''}${r.w}</span>`).join('');
+      }
       introTyped = st ? calmed(st, .12) : null;   // shown close to true, so dark words really look dark
       setIntroBg(introTyped || fromPreset(CALM));
     }, 140);
@@ -3508,6 +3538,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     gx.putImageData(d, 0, 0);
     document.querySelector('.intro-grain').style.backgroundImage = `url(${g.toDataURL()})`;
     sizeIntro(); introT0 = performance.now();
+    $('askRead').innerHTML = ''; $('askRead').dataset.key = '';
     introTyped = null; introPick = null; introCard = null; $('askInput').value = ''; $('askInput').parentElement.classList.remove('filled');
     startPh();
     introBg = bgState(fromPreset(CALM)); setIntroBg(fromPreset(CALM));
