@@ -506,7 +506,7 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
 .mxtitle { display: grid; gap: 1px; }
 .mxtitle h2 { margin: 0; font: 600 15px/19px var(--sans); letter-spacing: -0.01em; }
 .mxtitle span { font-size: 12px; color: var(--muted); }
-.mxcard { position: absolute; left: 20px; top: 76px; width: 230px; padding: 16px 18px 18px; border-radius: 18px; }
+.mxcard { position: absolute; right: 20px; top: 76px; width: 288px; padding: 16px 18px 18px; border-radius: 18px; }
 .mxlbl { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
 .mxname { position: relative; height: 34px; font: 600 28px/34px var(--sans); letter-spacing: -0.02em; color: var(--fg); overflow: hidden; perspective: 400px; }
 .mxname span { position: absolute; left: 0; top: 0; white-space: nowrap; transform-origin: 50% 100%; }
@@ -522,14 +522,22 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
 .mxglobe { pointer-events: auto; border-radius: 50%; box-shadow: var(--frame-shadow); cursor: crosshair; touch-action: none; }
 .mxglobe.stirring { cursor: grabbing; }
 .mxtemp {
-  position: absolute; right: 20px; top: 76px; bottom: 23px; width: 72px; border-radius: 18px; padding: 16px 0;
-  display: flex; flex-direction: column; align-items: center; gap: 12px; font-size: 12px; color: var(--muted);
+  position: absolute; right: 20px; top: 300px; bottom: 23px; width: 288px; border-radius: 18px; padding: 16px 18px 18px;
+  display: flex; flex-direction: column;
 }
+.mxcols { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.mxcol {
+  display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px 0; border-radius: 14px;
+  font-size: 12px; color: var(--muted); transition: background-color .25s ease, color .25s ease;
+}
+.mxcol.on { background: var(--card-hover); color: var(--fg); }
 .mxtrack {
   position: relative; flex: 1; width: 16px; border-radius: 8px; cursor: pointer; touch-action: none;
-  background: linear-gradient(#ff1500, #ff3d00 16%, #ff7a00 32%, #f9bc29 46%, #f6dcc0 60%, #ecc9f3 74%, #b3aef8 87%, #6586f6);
   box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
 }
+.mxcol[data-sc="warm"] .mxtrack { background: linear-gradient(#ff1500, #ff3d00 16%, #ff7a00 32%, #f9bc29 46%, #f6dcc0 60%, #ecc9f3 74%, #b3aef8 87%, #6586f6); }
+.mxcol[data-sc="fresh"] .mxtrack { background: linear-gradient(#c3e83f, #6fe0a8 14%, #23c48e 28%, #10a6a6 42%, #1ec1e0 55%, #2a6fe0 68%, #3a33b8 80%, #7b2fd6 90%, #d42fb0); }
+.mxcol:not(.on) .mxknob { transform: scale(.82); opacity: .8; }
 .mxknob {
   position: absolute; left: 50%; top: 0; width: 24px; height: 24px; margin: -12px 0 0 -12px; padding: 0; border-radius: 50%;
   border: 3px solid #fff; background: var(--knob, #f9bc29); box-shadow: 0 0 0 .5px rgba(0,0,0,.2), 0 2px 8px rgba(0,0,0,.3); cursor: grab;
@@ -543,10 +551,14 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
   .mxname { height: 28px; font-size: 22px; line-height: 28px; grid-row: 1 / 3; align-self: center; }
   .mxrow { margin-top: 0; }
   .mxrgb { margin-top: 2px; }
-  .mxglobe-wrap { inset: 128px 80px 104px; }
+  .mxglobe-wrap { inset: 128px 124px 104px 12px; }
   .mxtitle { display: none; }
   .mxtop { padding-left: 12px; }
-  .mxtemp { right: 12px; top: 140px; bottom: 96px; width: 56px; }
+  .mxtemp { right: 12px; top: 140px; bottom: 96px; width: 104px; padding: 8px; }
+  .mxtemp > .mxlbl { display: none; }
+  .mxcols { margin-top: 0; gap: 4px; }
+  .mxcol { padding: 8px 0; font-size: 11px; }
+  .mxtrack { width: 14px; }
   .mxbar-wrap { left: 12px; right: 12px; }
   .mxbar-wrap .barbtn kbd { display: none; }
 }
@@ -872,10 +884,12 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   <div class="mxglobe-wrap">
     <canvas class="mxglobe" id="mxGlobe" aria-label="Colour mix. Click to drop the current colour, drag to stir."></canvas>
   </div>
-  <aside class="mxtemp card" aria-label="Warm to cold">
-    <span>Warm</span>
-    <div class="mxtrack" id="mxTrack"><button class="mxknob" id="mxKnob" type="button" role="slider" aria-label="Colour, warm to cold" aria-valuemin="0" aria-valuemax="100"></button></div>
-    <span>Cold</span>
+  <aside class="mxtemp card" aria-label="Colour scales">
+    <div class="mxlbl">Pick a colour to pour</div>
+    <div class="mxcols">
+      <div class="mxcol" data-sc="warm"><span>Warm</span><div class="mxtrack"><button class="mxknob" type="button" role="slider" aria-label="Warm to cold" aria-valuemin="0" aria-valuemax="100"></button></div><span>Cold</span></div>
+      <div class="mxcol" data-sc="fresh"><span>Fresh</span><div class="mxtrack"><button class="mxknob" type="button" role="slider" aria-label="Fresh to deep" aria-valuemin="0" aria-valuemax="100"></button></div><span>Deep</span></div>
+    </div>
   </aside>
   <div class="mxbar-wrap">
     <div class="dock card savebar" role="toolbar" aria-label="Mix actions">
@@ -1713,11 +1727,15 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   // ---------- Mix: pour colours into a globe and watch them blend ----------
   // Each drop is a soft blob that swells like ink landing in water, nudging the others aside, while
   // the whole bowl drifts and swirls. The warm-to-cold slider picks the colour being poured.
+  const FRESH_SCALE = [[0, '#c3e83f'], [.14, '#6fe0a8'], [.28, '#23c48e'], [.42, '#10a6a6'], [.55, '#1ec1e0'], [.68, '#2a6fe0'], [.8, '#3a33b8'], [.9, '#7b2fd6'], [1, '#d42fb0']];
+  const FRESH_NAMES = [[0, 'Lime'], [.08, 'Pistachio'], [.15, 'Mint'], [.24, 'Jade'], [.33, 'Emerald'], [.42, 'Teal'], [.5, 'Lagoon'],
+    [.58, 'Aqua'], [.66, 'Ocean'], [.74, 'Cobalt'], [.81, 'Indigo'], [.88, 'Violet'], [.94, 'Orchid'], [1, 'Magenta']];
   const MIX_SCALE = [[0, '#ff1500'], [.16, '#ff3d00'], [.32, '#ff7a00'], [.46, '#f9bc29'], [.6, '#f6dcc0'], [.74, '#ecc9f3'], [.87, '#b3aef8'], [1, '#6586f6']];
   const MIX_NAMES = [[0, 'Flare'], [.07, 'Scarlet'], [.15, 'Ember'], [.23, 'Blaze'], [.31, 'Tangerine'], [.39, 'Amber'], [.46, 'Sun'],
     [.53, 'Honey'], [.6, 'Sand'], [.67, 'Blush'], [.74, 'Lilac'], [.81, 'Haze'], [.88, 'Periwinkle'], [.95, 'Sky']];
-  const bowl = { blobs: [], t: .46, raf: 0, last: 0, time: 0, seed: 0, lastDropT: null, lastDropAt: 0, name: '' };
+  const bowl = { blobs: [], ts: { warm: .46, fresh: .42 }, sc: 'warm', raf: 0, last: 0, time: 0, seed: 0, lastDropT: null, lastDropAt: 0, name: '' };
   const mxCv = $('mxGlobe'), mxCtx = mxCv.getContext('2d');
+  const mxCols = [...document.querySelectorAll('.mxcol')];
   const mxOff = document.createElement('canvas'); mxOff.width = mxOff.height = 180;
   const mxOx = mxOff.getContext('2d');
   const mxNoise = (() => {
@@ -1726,18 +1744,22 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 22; }
     x.putImageData(d, 0, 0); return c;
   })();
-  function mixColorAt(t) {
+  // two scales: warm to cold, and fresh greens through blues to deep violets
+  const SCALES = { warm: [MIX_SCALE, MIX_NAMES], fresh: [FRESH_SCALE, FRESH_NAMES] };
+  function mixColorAt(t, sc = bowl.sc) {
+    const SC = SCALES[sc][0];
     t = clamp(t, 0, 1);
-    for (let i = 1; i < MIX_SCALE.length; i++) {
-      const [t1, c1] = MIX_SCALE[i];
+    for (let i = 1; i < SC.length; i++) {
+      const [t1, c1] = SC[i];
       if (t <= t1) {
-        const [t0, c0] = MIX_SCALE[i - 1], k = (t - t0) / (t1 - t0), a = toRgb(c0), b = toRgb(c1);
+        const [t0, c0] = SC[i - 1], k = (t - t0) / (t1 - t0), a = toRgb(c0), b = toRgb(c1);
         return toHex(a.map((v, j) => v + (b[j] - v) * k));
       }
     }
-    return MIX_SCALE[MIX_SCALE.length - 1][1];
+    return SC[SC.length - 1][1];
   }
-  const mixName = t => MIX_NAMES.reduce((best, n) => Math.abs(n[0] - t) < Math.abs(best[0] - t) ? n : best)[1];
+  const mixName = (t, sc = bowl.sc) => SCALES[sc][1].reduce((best, n) => Math.abs(n[0] - t) < Math.abs(best[0] - t) ? n : best)[1];
+  const curT = () => bowl.ts[bowl.sc];
   function setMixName(n) {
     if (n === bowl.name) return;
     bowl.name = n;
@@ -1747,15 +1769,18 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     box.appendChild(sp);
   }
   function syncMixReadout() {
-    const c = mixColorAt(bowl.t), [r, g, b] = toRgb(c);
+    const c = mixColorAt(curT()), [r, g, b] = toRgb(c);
     $('mxHex').textContent = c.toUpperCase();
     $('mxChip').style.background = c;
     $('mxRgb').textContent = `R ${r} G ${g} B ${b}`;
-    $('mxKnob').style.top = (bowl.t * 100) + '%';
-    $('mxKnob').style.setProperty('--knob', c);
-    $('mxKnob').setAttribute('aria-valuenow', Math.round(bowl.t * 100));
-    $('mxKnob').setAttribute('aria-valuetext', `${mixName(bowl.t)} ${c}`);
-    setMixName(mixName(bowl.t));
+    mxCols.forEach(col => {
+      const sc = col.dataset.sc, t = bowl.ts[sc], kc = mixColorAt(t, sc), knob = col.querySelector('.mxknob');
+      col.classList.toggle('on', sc === bowl.sc);
+      knob.style.top = (t * 100) + '%'; knob.style.setProperty('--knob', kc);
+      knob.setAttribute('aria-valuenow', Math.round(t * 100));
+      knob.setAttribute('aria-valuetext', `${mixName(t, sc)} ${kc}`);
+    });
+    setMixName(mixName(curT()));
   }
   function mixDrop(c, x, y, R = .34 + Math.random() * .14) {
     // the new drop pushes its neighbours outward as it lands
@@ -1770,8 +1795,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   }
   function mixPour() {
     const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * .45;
-    mixDrop(mixColorAt(bowl.t), Math.cos(a) * r, Math.sin(a) * r);
-    bowl.lastDropT = bowl.t; bowl.lastDropAt = performance.now();
+    mixDrop(mixColorAt(curT()), Math.cos(a) * r, Math.sin(a) * r);
+    bowl.lastDropT = curT(); bowl.lastDropAt = performance.now();
   }
   function mixStep(dt) {
     bowl.time += dt;
@@ -1878,9 +1903,12 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const d = $('dock').getBoundingClientRect(), wrap = document.querySelector('.mxbar-wrap');
     wrap.style.left = d.left + 'px'; wrap.style.width = d.width + 'px'; wrap.style.right = 'auto';
     wrap.style.bottom = (innerHeight - d.bottom) + 'px';
-    const g = document.querySelector('.mxglobe-wrap');
-    if (matchMedia('(max-width: 860px)').matches) { g.removeAttribute('style'); return; }
-    const cx = d.left + d.width / 2, half = Math.max(120, Math.min(cx - 270, innerWidth - 112 - cx));
+    const g = document.querySelector('.mxglobe-wrap'), card = document.querySelector('.mxcard'), temp = document.querySelector('.mxtemp');
+    if (matchMedia('(max-width: 860px)').matches) { [g, card, temp].forEach(el => el.removeAttribute('style')); return; }
+    const sr = $('side').getBoundingClientRect();
+    Object.assign(card.style, { left: sr.left + 'px', width: sr.width + 'px', right: 'auto', top: sr.top + 'px' });
+    Object.assign(temp.style, { left: sr.left + 'px', width: sr.width + 'px', right: 'auto', top: (sr.top + card.offsetHeight + 12) + 'px', bottom: (innerHeight - sr.bottom) + 'px' });
+    const cx = d.left + d.width / 2, half = Math.max(120, Math.min(cx - 24, sr.left - 24 - cx));
     g.style.left = (cx - half) + 'px'; g.style.right = (innerWidth - cx - half) + 'px';
     g.style.bottom = (innerHeight - d.top + 18) + 'px';
   }
@@ -1910,33 +1938,35 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   $('mixClose').onclick = closeMix;
   addEventListener('resize', () => { if (!$('mixView').hidden) { alignMix(); fitMix(); } });
 
-  // the slider: dragging pours a little of each colour you pass through
-  const mxTrack = $('mxTrack');
-  function mixSetT(e) {
-    const r = mxTrack.getBoundingClientRect();
-    bowl.t = clamp((e.clientY - r.top) / r.height, 0, 1);
+  // the sliders: dragging either one pours a little of each colour you pass through
+  function mixSetT(e, track, sc) {
+    const r = track.getBoundingClientRect();
+    bowl.sc = sc; bowl.ts[sc] = clamp((e.clientY - r.top) / r.height, 0, 1);
     syncMixReadout();
-    const moved = bowl.lastDropT === null || Math.abs(bowl.t - bowl.lastDropT) > .045;
+    const moved = bowl.lastDropT === null || Math.abs(curT() - bowl.lastDropT) > .045;
     if (moved && performance.now() - bowl.lastDropAt > 140) mixPour();
   }
-  let mxDragging = false;
-  mxTrack.addEventListener('pointerdown', e => {
-    mxDragging = true; mxTrack.classList.add('drag'); mxTrack.setPointerCapture(e.pointerId);
-    bowl.lastDropT = null; mixSetT(e);
-  });
-  mxTrack.addEventListener('pointermove', e => { if (mxDragging) mixSetT(e); });
-  const mxEnd = () => {
-    if (!mxDragging) return;
-    mxDragging = false; mxTrack.classList.remove('drag');
-    if (performance.now() - bowl.lastDropAt > 200) mixPour();
-    bowlCommit();
-  };
-  mxTrack.addEventListener('pointerup', mxEnd);
-  mxTrack.addEventListener('pointercancel', mxEnd);
-  $('mxKnob').addEventListener('keydown', e => {
-    const d = { ArrowUp: -.04, ArrowDown: .04, PageUp: -.15, PageDown: .15 }[e.key];
-    if (d !== undefined) { e.preventDefault(); bowl.t = clamp(bowl.t + d, 0, 1); syncMixReadout(); }
-    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); mixPour(); bowlCommit(); }
+  mxCols.forEach(col => {
+    const track = col.querySelector('.mxtrack'), knob = col.querySelector('.mxknob'), sc = col.dataset.sc;
+    let dragging = false;
+    track.addEventListener('pointerdown', e => {
+      dragging = true; track.classList.add('drag'); track.setPointerCapture(e.pointerId);
+      bowl.lastDropT = null; mixSetT(e, track, sc);
+    });
+    track.addEventListener('pointermove', e => { if (dragging) mixSetT(e, track, sc); });
+    const end = () => {
+      if (!dragging) return;
+      dragging = false; track.classList.remove('drag');
+      if (performance.now() - bowl.lastDropAt > 200) mixPour();
+      bowlCommit();
+    };
+    track.addEventListener('pointerup', end);
+    track.addEventListener('pointercancel', end);
+    knob.addEventListener('keydown', e => {
+      const d = { ArrowUp: -.04, ArrowDown: .04, PageUp: -.15, PageDown: .15 }[e.key];
+      if (d !== undefined) { e.preventDefault(); bowl.sc = sc; bowl.ts[sc] = clamp(bowl.ts[sc] + d, 0, 1); syncMixReadout(); }
+      else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); bowl.sc = sc; mixPour(); bowlCommit(); }
+    });
   });
 
   // the globe: a click drops the current colour there, a drag stirs the bowl
@@ -1959,14 +1989,14 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   });
   const stirEnd = e => {
     if (!stir) return;
-    if (!stir.moved) { const [x, y] = globePt(e); mixDrop(mixColorAt(bowl.t), x, y, .4); bowlCommit(); }
+    if (!stir.moved) { const [x, y] = globePt(e); mixDrop(mixColorAt(curT()), x, y, .4); bowlCommit(); }
     stir = null; mxCv.classList.remove('stirring');
   };
   mxCv.addEventListener('pointerup', stirEnd);
   mxCv.addEventListener('pointercancel', () => { stir = null; mxCv.classList.remove('stirring'); });
 
   $('mxClear').onclick = () => {
-    const c = mixColorAt(bowl.t);
+    const c = mixColorAt(curT());
     bowl.blobs.forEach(b => { b.dying = true; });
     mixDrop(c, 0, 0, .6);
     bowlCommit();
