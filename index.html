@@ -236,6 +236,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .side-scroll > .row:has(> #modes) + .psep { flex-basis: 6px; max-height: 26px; }
 .side-scroll::-webkit-scrollbar { display: none; }
 /* export sits at the foot of the column, always in view */
+.stabs { display: none; }
 .side-foot { flex: none; display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 6px; padding: 6px 20px 20px; }
 .fbtn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; padding: 0 8px;
@@ -675,9 +676,25 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
   /* settings open as a sheet over the lower half; the canvas moves up into the space above it, so you
      can watch every change as you make it */
   .side {
-    position: fixed; z-index: 15; left: 12px; right: 12px; bottom: calc(var(--dock-h, 150px) + 4px);
-    width: auto; max-height: min(52vh, 460px); margin: 0; display: none; animation: sheetin .32s cubic-bezier(.22,1,.36,1); align-self: auto;
+    position: fixed; z-index: 15; left: 12px; right: 12px; bottom: var(--sheet-bottom, 90px);
+    width: auto; max-height: none; margin: 0; display: none; animation: sheetin .32s cubic-bezier(.22,1,.36,1); align-self: auto;
   }
+  /* one section at a time, picked from a row of tabs, so the sheet stays short and the canvas stays big */
+  .side .stabs { display: flex; gap: 2px; padding: 8px 8px 0; overflow-x: auto; scrollbar-width: none; flex: none; }
+  .side .stabs::-webkit-scrollbar { display: none; }
+  .side .stabs button { flex: 1 1 auto; min-width: 0; height: 34px; padding: 0 6px; border: 0; border-radius: 9px; background: none; color: var(--muted); font: 500 12.5px var(--sans); white-space: nowrap; }
+  .side .stabs button[aria-selected="true"] { background: var(--card-sel); color: var(--fg); }
+  .side .side-scroll { padding: 10px 0 12px; overflow: visible; min-height: 0; }
+  .side .side-scroll > .psep { display: none; }
+  .side .side-scroll > [data-sec] { display: none; }
+  .side[data-tab="type"] [data-sec="type"], .side[data-tab="colors"] [data-sec="colors"], .side[data-tab="adjust"] [data-sec="adjust"],
+  .side[data-tab="texture"] [data-sec="texture"], .side[data-tab="motion"] [data-sec="motion"] { display: flex; }
+  .side[data-tab="colors"] .bar[data-sec="colors"] { display: block; }
+  .side[data-tab="type"] [data-sec="type"] .seg { margin: 4px 0; }
+  .side .side-scroll > [data-sec][hidden] { display: none !important; }
+  .side .side-foot { display: none; padding: 12px 16px 14px; }
+  .side[data-tab="export"] .side-foot { display: grid; }
+  .side[data-tab="export"] .side-scroll { display: none; }
   @keyframes sheetin { from { opacity: 0; transform: translateY(24px); } }
   body.sheet-open .stage { padding-bottom: calc(var(--sheet-h, 0px) + 14px); }
   body.sheet-anim .frame { transition: width .32s cubic-bezier(.22,1,.36,1), height .32s cubic-bezier(.22,1,.36,1); }
@@ -792,7 +809,15 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     </div>
   </div>
 
-  <aside class="side card" id="side" aria-label="Settings">
+  <aside class="side card" id="side" aria-label="Settings" data-tab="colors">
+    <div class="stabs" role="tablist" aria-label="Settings sections">
+      <button type="button" role="tab" data-tab="type">Type</button>
+      <button type="button" role="tab" data-tab="colors" aria-selected="true">Colours</button>
+      <button type="button" role="tab" data-tab="adjust">Adjust</button>
+      <button type="button" role="tab" data-tab="texture">Texture</button>
+      <button type="button" role="tab" data-tab="motion">Motion</button>
+      <button type="button" role="tab" data-tab="export">Export</button>
+    </div>
     <div class="side-scroll">
       <div class="row">
         <div class="seg" id="modes" role="group" aria-label="Gradient type">
@@ -1769,7 +1794,20 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   // On phones the right column folds into a card that opens from the dock.
   const side = $('side'), sideBtn = $('sideBtn');
   // on phones the canvas makes room for the settings sheet, sliding up into the space above it
+  // which section each part of the settings belongs to (only used by the phone sheet)
+  const secOf = (el, sec) => el && (el.closest('.side-scroll > *') || el).setAttribute('data-sec', sec);
+  secOf($('modes'), 'type');
+  [$('reverseBtn'), document.querySelector('.side .colorline'), $('bar')].forEach(el => secOf(el, 'colors'));
+  [$('sizeField'), $('angleField'), $('blur'), $('grain')].forEach(el => secOf(el, 'adjust'));
+  [$('texOn'), $('texKindsRow'), $('texSizeField'), $('texDepthField')].forEach(el => secOf(el, 'texture'));
+  [$('motionOn'), $('speedField'), $('amountField')].forEach(el => secOf(el, 'motion'));
+  side.querySelectorAll('.stabs button').forEach(t => t.addEventListener('click', () => {
+    side.dataset.tab = t.dataset.tab;
+    side.querySelectorAll('.stabs button').forEach(x => x.setAttribute('aria-selected', String(x === t)));
+    segs.forEach(seg => { seg.firstElementChild.classList.add('instant'); placeInd(seg); });
+  }));
   function roomForSheet(open) {
+    if (open) document.documentElement.style.setProperty('--sheet-bottom', Math.round(innerHeight - $('dock').getBoundingClientRect().top + 6) + 'px');
     if (document.body.classList.contains('sheet-open') === open) return;
     document.documentElement.style.setProperty('--sheet-h', open ? side.offsetHeight + 'px' : '0px');
     document.body.classList.add('sheet-anim');
