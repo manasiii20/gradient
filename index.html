@@ -239,9 +239,9 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .side-scroll > .row:has(> #modes) + .psep { flex-basis: 6px; max-height: 26px; }
 .side-scroll::-webkit-scrollbar { display: none; }
 /* export sits at the foot of the column, always in view */
-.side-foot { flex: none; display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 6px; padding: 6px 20px 20px; }
+.side-foot { flex: none; display: grid; grid-template-columns: auto auto auto; gap: 4px; padding: 6px 20px 20px; }
 .fbtn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; padding: 0 8px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px; height: 34px; padding: 0 6px; min-width: 0;
   border: 0; border-radius: 10px; background: var(--card-sel); color: var(--fg); font: 500 13px var(--sans); white-space: nowrap;
 }
 .fbtn svg { width: 16px; height: 16px; flex: none; }
@@ -540,6 +540,11 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro-bottom { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 26px); }
 .intro-skip { border: 0; background: none; color: rgba(29,29,34,.4); font: 400 11.5px var(--sans); padding: 5px 8px; border-radius: 7px; }
 .intro-skip:hover { color: #1d1d22; background: rgba(255,255,255,.4); }
+.intro { transition: opacity .7s ease, transform .9s cubic-bezier(.22,1,.36,1); }
+.intro.dim .ask-hint, .intro.dim .intro-skip { color: rgba(255,255,255,.6); }
+.intro.dim .ask-chip { color: rgba(255,255,255,.85); background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+.intro.dim .ask-chip.mod, .intro.dim .ask-chip.unk { color: rgba(255,255,255,.6); }
+.intro.dim .ask-glass { background: rgba(255,255,255,.14); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 24px 50px -30px rgba(0,0,0,.6); }
 .intro-skip kbd { margin: 0 4px; opacity: .7; }
 .intro-skip .spacek { display: inline-block; min-width: 46px; text-align: center; padding: 1px 6px; border-radius: 5px; font-size: 10px; }
 @media (hover: none), (pointer: coarse) { .intro-skip .spacek { min-width: 0; } }
@@ -919,7 +924,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       <button class="btn icon" id="undoBtn" type="button" aria-label="Undo" title="Undo (Ctrl+Z / ⌘Z)" disabled><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M7.5 4.5L4 8l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M4 8h7.5a4.5 4.5 0 0 1 0 9H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
       <button class="btn icon" id="redoBtn" type="button" aria-label="Redo" title="Redo (Shift+Ctrl+Z / ⇧⌘Z)" disabled><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M12.5 4.5L16 8l-3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M16 8H8.5a4.5 4.5 0 0 0 0 9H11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     </div>
-    <button class="btn icon" id="tourBtn" type="button" aria-label="Take the tour" title="Take the tour (?)"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7.9 7.9a2.2 2.2 0 1 1 3.2 2c-.7.4-1.1.9-1.1 1.6v.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="14.2" r=".95" fill="currentColor"/></svg></button>
     <button class="btn icon theme" id="themeBtn" type="button" aria-label="Switch to dark mode" title="Switch to dark mode"><svg class="sun" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M10 2.5v1.6M10 15.9v1.6M2.5 10h1.6M15.9 10h1.6M4.7 4.7l1.1 1.1M14.2 14.2l1.1 1.1M4.7 15.3l1.1-1.1M14.2 5.8l1.1-1.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><svg class="moon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M16.5 12.2A6.6 6.6 0 0 1 7.8 3.5a6.6 6.6 0 1 0 8.7 8.7z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     <button class="btn icon" id="libBtn" type="button" aria-label="Library" title="Library (L) · save with S"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="3" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     <div class="menu-wrap" id="sizeWrap">
@@ -1535,6 +1539,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (z) zoomTo(z);
   };
   const zoomReset = () => { panX = panY = 0; zoomTo(1); };
+  stage.addEventListener('wheel', () => { if (typeof tourSettle === 'function') tourSettle(); }, { passive: true });
   stage.addEventListener('wheel', e => {
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
@@ -3228,6 +3233,10 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const pc = iprev.getContext('2d'); pc.clearRect(0, 0, iprev.width, iprev.height); pc.drawImage(icv, 0, 0);
     iprev.classList.add('show'); void iprev.offsetWidth; iprev.classList.remove('show');
     introBg = bgState(st); introLast = 0;
+    // a dark backdrop turns the small text around the prompt light
+    const lum = c => { const [r, g, b] = toRgb(c); return .2126 * r + .7152 * g + .0722 * b; };
+    const avg = [st.base, ...st.stops.map(x => x.c)].reduce((a, c) => a + lum(c), 0) / (st.stops.length + 1);
+    introEl.classList.toggle('dim', avg < 110);
     const cs = st.stops.map(x => x.c);
     $('askOrb').style.setProperty('--orb', `conic-gradient(from 200deg, ${[...cs, cs[0]].join(', ')})`);
   }
@@ -3265,6 +3274,36 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     smoothie: ['#ffb38a', '#ff9ad5', '#fff1dc'], lamp: ['#ff7a3d', '#ffd23f', '#c2185b'], dinosaur: ['#7ee081', '#3fbf6e', '#ffd166'], ramen: ['#f2c14e', '#e8352b', '#2b1a3a'], grandma: ['#f2c4cf', '#e8d6b8', '#a9bfa0'], date: ['#ff8fab', '#c9184a', '#ffd6e0'],
     earth: ['#7a4a2a', '#b08a5a', '#6b8f4e'], desert: ['#e9c18f', '#d0714a', '#f5e2bd'], berry: ['#7a1f5c', '#c2185b', '#f49ac1'], wine: ['#5a0f2e', '#8a1538', '#c94f6a'], ice: ['#eaf6ff', '#bfe3f5', '#8ccaf6'], mermaid: ['#2ad1c9', '#8a4fe0', '#f49ac1'], peacock: ['#0b6e6e', '#1a4fa0', '#4a2a8a'],
   };
+  // themes: a palette, and the many words that call for it
+  const THEMES = [
+    [['#0b0a0d', '#4a0a12', '#1f0f1c', '#8a1010'], 'horror scary scare creepy spooky fear terror terrifying nightmare nightmares haunted haunt ghost ghosts ghoul demon demons devil evil death dead deadly blood bloody vampire vampires zombie zombies witch witches curse cursed grave graveyard crypt gothic goth sinister doom dread skull bones killer murder slasher monster monsters creature cult occult shadow shadows'],
+    [['#2b0505', '#b3120f', '#ff3d1a', '#120404'], 'anger angry rage furious fury mad hate war battle violence aggressive intense danger dangerous alarm emergency'],
+    [['#04141f', '#00e5ff', '#2b6bff', '#0a0a1a'], 'tech technology cyber cyberpunk robot robots digital future futuristic ai code coding computer hacker matrix data machine circuit hologram sci scifi'],
+    [['#0b1a05', '#a6ff00', '#38d900', '#1a2b0a'], 'toxic poison poisonous radioactive slime acid venom biohazard sick mutant'],
+    [['#2a1a4a', '#7b3fd6', '#2ee6b6', '#f2c14e'], 'fantasy dragon dragons castle wizard wizards magic magical spell spells elf elves myth mythical potion enchanted kingdom quest'],
+    [['#fffaf0', '#f2e3b8', '#e8f0ff', '#ffffff'], 'heaven heavenly angel angels divine holy pure purity grace light peace soul'],
+    [['#0b2a1a', '#2e8b57', '#c9a24a', '#e8f2e0'], 'money cash rich wealth wealthy dollar dollars bank finance profit gold'],
+    [['#3a3f2a', '#6b6b3a', '#a89f6a', '#2a2a22'], 'military army soldier camo camouflage khaki hunter safari jungle'],
+    [['#f4fbfb', '#bfe8e2', '#7cc4e6', '#ffffff'], 'medical hospital clinic doctor nurse health healthy clean hygiene care pharmacy dental'],
+    [['#0f1f3a', '#2a4a7a', '#a8b4c8', '#eef2f7'], 'corporate business office professional formal serious meeting finance bank lawyer suit'],
+    [['#ff3d6e', '#ffd23f', '#3ad1ff', '#7ee081'], 'kids kid child children toy toys play playful fun funny cartoon silly game games circus carnival'],
+    [['#1a1440', '#ff2bd6', '#ffb800', '#2bf2ff'], 'music concert festival club dance dancing dj beat rock pop edm techno'],
+    [['#ffd6e0', '#ffc6a8', '#fff3e6', '#e8c8f0'], 'cute adorable kawaii soft cuddly puppy kitten bunny teddy'],
+    [['#2b1d14', '#7a4a2a', '#c8a582', '#f2e3cf'], 'cozy cabin wood wooden fireplace blanket book books library reading study'],
+    [['#e8eef4', '#9aaabb', '#5a6a7a', '#2b333d'], 'metal steel iron concrete industrial urban street grey grid factory machine'],
+    [['#fbd6c8', '#d6c9f0', '#c6e8f5', '#fff6e8'], 'hope hopeful gentle tender kind kindness healing hug comfort'],
+    [['#1a2a4a', '#3a5a8a', '#8aa0c8', '#d6dde6'], 'lonely loneliness alone sadness sorrow grief tears crying blue rainy melancholy'],
+    [['#ffe066', '#ff9f43', '#ff6b9d', '#fff3c4'], 'excited excitement yay wow amazing awesome fun cheerful bright sunshine smile smiles laugh'],
+    [['#e6efe9', '#b9d3c4', '#d6e6f2', '#f5f3ee'], 'relax relaxing relaxed meditation yoga spa breathe breath serene serenity tranquil quiet slow'],
+    [['#0a0a1a', '#3a2a7a', '#2a6fe0', '#c6b8ff'], 'universe cosmos cosmic nebula planet planets astronaut rocket orbit infinity'],
+    [['#ff6b35', '#f7c548', '#2ec4b6', '#e8d6b8'], 'retro vintage seventies eighties nineties nostalgia nostalgic old classic polaroid'],
+    [['#1d1d22', '#3a3a44', '#c8b590', '#f3ede4'], 'minimal minimalist simple modern sleek monochrome classy chic'],
+    [['#ff8fab', '#ff4d6d', '#c9184a', '#ffe5ec'], 'kiss kisses crush flirty passion passionate desire sexy'],
+    [['#7da45a', '#c9dba4', '#f2c14e', '#e9f5db'], 'farm countryside meadow picnic field fields village rustic spring'],
+    [['#2ec5e8', '#ffe066', '#ff7a66', '#f5e2bd'], 'vacation holiday travel trip getaway resort cruise pool'],
+  ];
+  const THEME_OF = {};
+  THEMES.forEach(([pal, words]) => words.split(' ').forEach(w => { if (!WORDS[w] || !WORDS[w].length) THEME_OF[w] = pal; }));
   // descriptive words change every colour a little: lighter, deeper, brighter, quieter, warmer, cooler
   const MODS = {
     pastel: 'light', soft: 'light', light: 'light', pale: 'light', airy: 'light', gentle: 'light', baby: 'light', powder: 'light', whisper: 'light', calm: 'light',
@@ -3295,6 +3334,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     for (const ch of text) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
     return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; };
   }
+  Object.assign(WORDS, THEME_OF);
   const KEYS = Object.keys(WORDS).filter(k => WORDS[k].length);
   // find a word: exact, without an ending (-s, -y, -ish, -ing, -ed), two words run together, or, for the word
   // still being typed, the first known word it starts (so "laven" already means lavender)
@@ -3403,9 +3443,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       slot.appendChild(b); box.appendChild(slot);
     });
   }
-  const TRY = ['a unicorn’s birthday party', 'mango smoothie on the beach', 'dragon fruit disco', 'cotton candy thunderstorm', 'a mermaid’s first date',
-    'bubblegum galaxy', 'aliens at a pool party', 'grandma’s rose garden', 'lava lamp in the 70s', 'jellyfish rave', 'pink lemonade sunset',
-    'a very sleepy cloud', 'midnight taco run', 'sunday pancakes', 'my coffee is too strong', 'a dinosaur in love', 'neon ramen at 2am'];
+  const TRY = ['unicorn party', 'mango smoothie', 'dragonfruit disco', 'cotton candy', 'mermaid dreams', 'bubblegum galaxy', 'alien rave', 'rose garden',
+    'lava lamp', 'jellyfish glow', 'pink lemonade', 'sleepy cloud', 'midnight tacos', 'sunday pancakes', 'haunted house', 'dinosaur love', 'neon ramen', 'birthday cake']
   let phAt = -1, phTimer = 0;
   function nextPh(first) {
     phAt = (phAt + 1) % TRY.length;
@@ -3439,7 +3478,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
           : r.unknown ? `<span class="ask-chip unk">${r.w}</span>`
           : `<span class="ask-chip"><i>${r.cols.map(c => `<b style="background:${c}"></b>`).join('')}</i>${r.hint ? 'hint of ' : ''}${r.w}</span>`).join('');
       }
-      introTyped = st ? calmed(st, .4) : null;
+      introTyped = st ? calmed(st, .12) : null;   // shown close to true, so dark words really look dark
       setIntroBg(introTyped || fromPreset(CALM));
     }, 140);
   });
@@ -3498,7 +3537,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     { title: 'Welcome to Gradient', text: 'Make soft, grainy gradients, set them moving, and take them anywhere as CSS, an image or a video. Here is a quick look around, and you can try each part as you go.', next: 'Show me around' },
     { el: ['#frame'], title: 'Your canvas', text: 'Drag a dot to move its colour around. Go on, try it.<span class="kh"> Pinch on a trackpad, or hold <kbd>⌘</kbd> / <kbd>Ctrl</kbd> and scroll, to zoom in.</span>' },
     { el: ['#side', '#sideBtn'], title: 'Shape it', text: 'Pick linear, radial or mesh, then tune the colours, blur, noise, glass texture and motion. Have a play.' },
-    { el: ['#presetBtn'], also: ['#pPanel'], key: 'p', title: 'Presets', text: 'Not sure where to start? Open the row of classics and pick one to try it.<span class="kh"> Or press <kbd>P</kbd>.</span>' },
+    { el: ['#dock'], also: ['#pPanel'], key: 'p', title: 'Presets', text: 'Not sure where to start? Open the row of classics and pick one to try it.<span class="kh"> Or press <kbd>P</kbd>.</span>' },
     { el: ['#funBtn'], key: 'f', title: 'Fun mode', text: 'Pour colours into a liquid globe, then turn the mix into a gradient. Open it for a go; the tour waits here until you are back.' },
     { el: ['#saveBtn'], key: 's', title: 'Save to library', text: 'Keep what you make. Try it and watch it fly into your Library, up top.<span class="kh"> Or press <kbd>S</kbd>.</span>' },
     { el: ['.side-foot', '#sideBtn'], title: 'Take it with you', text: 'Copy the CSS, or export an image or a looping video in the size you need.' },
@@ -3510,6 +3549,11 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   const tourTarget = st => (st.el || []).map(q => document.querySelector(q)).find(visible);
   // everything outside the highlight is covered, so only the part being shown can be used
   const blocks = [...document.querySelectorAll('.tour-block')];
+  blocks.forEach(bl => bl.addEventListener('wheel', e => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    if (tourAt >= 0 && (TOUR[tourAt].el || [])[0] === '#frame') { const r = stage.getBoundingClientRect(); zoomTo(zoom * Math.exp(-e.deltaY * .01), e.clientX - r.left - r.width / 2, e.clientY - r.top - r.height / 2); }
+  }, { passive: false }));
   function setBlocks(h) {
     const vw = innerWidth, vh = innerHeight, px = v => Math.max(0, Math.round(v)) + 'px';
     const R = [[0, 0, vw, h.t], [0, h.b, vw, vh - h.b], [0, h.t, h.l, h.b - h.t], [h.r, h.t, vw - h.r, h.b - h.t]];
@@ -3530,8 +3574,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     let h = { l: b.left - pad, t: b.top - pad, r: b.right + pad, b: b.bottom + pad };
     const host = t.parentElement && t.parentElement.closest('.card');
     if (host) {
-      const c = host.getBoundingClientRect(), k = 5;
-      h = { l: Math.max(h.l, c.left + k), t: Math.max(h.t, c.top + k), r: Math.min(h.r, c.right - k), b: Math.min(h.b, c.bottom - k) };
+      const c = host.getBoundingClientRect(), k = 6;
+      const px = Math.max(2, Math.min(pad, b.left - c.left - k, c.right - k - b.right)), py = Math.max(2, Math.min(pad, b.top - c.top - k, c.bottom - k - b.bottom));
+      h = { l: b.left - px, t: b.top - py, r: b.right + px, b: b.bottom + py };
     }
     // presets: once the row is open, the highlight grows to take it in, so it can be clicked
     if (st.also && dockEl.classList.contains('popen')) st.also.map(q => document.querySelector(q)).filter(visible).forEach(el => {
@@ -3540,7 +3585,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     });
     const r = { left: h.l + pad, top: h.t + pad, right: h.r - pad, bottom: h.b - pad, width: h.r - h.l - pad * 2, height: h.b - h.t - pad * 2 };
     const round = t.id === 'frame' && S.format === 'circle';
-    const rad = round ? '50%' : Math.min(18, (parseFloat(getComputedStyle(t).borderTopLeftRadius) || 8) + 6) + 'px';
+    const rad = round ? '50%' : Math.min(12, (parseFloat(getComputedStyle(t).borderTopLeftRadius) || 8) + 2) + 'px';
     Object.assign(spot.style, { left: h.l + 'px', top: h.t + 'px', width: h.r - h.l + 'px', height: h.b - h.t + 'px', borderRadius: rad });
     setBlocks(h);
     // the card sits beside the spotlight wherever there is room: right, left, above, then below
@@ -3593,7 +3638,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   document.querySelector('.top .brand').addEventListener('click', () => { if ($('mixView').hidden && $('libView').hidden && tourAt < 0) openIntro(); });
   $('tourNext').onclick = () => tourAt < TOUR.length - 1 ? showTourStep(tourAt + 1) : endTour();
   $('tourSkip').onclick = () => tourAt === TOUR.length - 1 ? showTourStep(tourAt - 1) : endTour();
-  $('tourBtn').onclick = openTour;
   addEventListener('resize', placeTour);
   const tourSettle = () => { if (tourAt >= 0) { setTimeout(placeTour, 60); setTimeout(placeTour, 520); } };
   document.addEventListener('click', tourSettle, true);
