@@ -7,7 +7,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: the gradient is the workspace. Large live canvas on the left, a quiet control column on the right, library strip under the canvas. */
 :root {
@@ -57,6 +57,8 @@ html, body { height: 100%; overflow: hidden; }
 body {
   margin: 0;
   background-color: var(--bg);
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.2px);
+  background-size: 22px 22px;
   color: var(--fg);
   font: 14px/1.45 var(--sans);
   display: flex;
@@ -109,18 +111,6 @@ button { cursor: pointer; }
 .hist .btn:first-child { border-radius: 8px 0 0 8px; }
 .hist .btn:last-child { border-radius: 0 8px 8px 0; margin-left: -1px; }
 kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 1px solid currentColor; opacity: .55; }
-
-/* ---------- Backdrop: a soft wash of the gradient's own colours glows behind the canvas ---------- */
-.ambient {
-  position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; pointer-events: none;
-  opacity: .85; filter: blur(60px) saturate(1.35);
-  -webkit-mask-image: radial-gradient(ellipse 78% 74% at 40% 48%, #000 0%, rgba(0,0,0,.7) 40%, transparent 85%);
-          mask-image: radial-gradient(ellipse 78% 74% at 40% 48%, #000 0%, rgba(0,0,0,.7) 40%, transparent 85%);
-  transition: opacity .6s ease;
-}
-:root[data-theme="dark"] .ambient { opacity: .5; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ambient { opacity: .5; } }
-@media (max-width: 860px) { .ambient { -webkit-mask-image: radial-gradient(ellipse 80% 50% at 50% 42%, #000 0%, transparent 80%); mask-image: radial-gradient(ellipse 80% 50% at 50% 42%, #000 0%, transparent 80%); } }
 
 /* ---------- Main: canvas in the middle, dock floating at the bottom ---------- */
 .app {
@@ -458,6 +448,52 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .pbar { height: 6px; border-radius: 3px; background: var(--chip); overflow: hidden; }
 .pbar i { display: block; height: 100%; width: 0; background: var(--fg); transition: width .15s; }
 
+/* ---------- Intro: a full-screen moving gradient with a big title, to start from ---------- */
+.intro { position: fixed; inset: 0; z-index: 80; overflow: hidden; color: #fff; background: #111; display: flex; flex-direction: column; align-items: center; transition: opacity .7s ease, transform .9s cubic-bezier(.22,1,.36,1); }
+.intro.leaving { opacity: 0; transform: scale(1.04); pointer-events: none; }
+.intro-cv { position: absolute; inset: 0; width: 100%; height: 100%; }
+.intro-prev { opacity: 0; transition: opacity .8s ease; }
+.intro-prev.show { opacity: 1; transition: none; }
+.intro-grain { position: absolute; inset: 0; pointer-events: none; opacity: .5; mix-blend-mode: overlay; background-size: 160px 160px; }
+.intro::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 70% 60% at 50% 45%, rgba(0,0,0,.14), transparent 70%); }
+.intro-top, .intro-mid, .intro-bottom { position: relative; z-index: 1; text-align: center; }
+.intro-top { padding-top: calc(env(safe-area-inset-top, 0px) + 22px); }
+.intro-mark { font: 400 19px var(--sans); letter-spacing: -.01em; padding-bottom: 6px; border-bottom: 1.5px solid currentColor; }
+.intro-mid { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 20px; }
+.intro-title { position: relative; margin: 0; font: 400 clamp(56px, 10vw, 128px)/1 "Instrument Serif", Georgia, serif; letter-spacing: -.01em; text-shadow: 0 2px 30px rgba(0,0,0,.12); white-space: nowrap; }
+.intro-num { font-variant-numeric: lining-nums; }
+.intro-name { display: inline-block; }
+.intro-title.swap .intro-name, .intro-title.swap .intro-num { animation: introname .6s cubic-bezier(.22,1,.36,1); }
+@keyframes introname { from { opacity: 0; transform: translateY(var(--dir, 18px)); filter: blur(6px); } }
+.intro-arrows { display: flex; gap: 6px; margin-top: 10px; }
+.intro-arrows button { width: 40px; height: 40px; border: 0; border-radius: 10px; background: none; color: #fff; display: grid; place-items: center; transition: background .2s, transform .2s; }
+.intro-arrows button:hover { background: rgba(255,255,255,.16); }
+.intro-arrows button:active { transform: scale(.94); }
+.intro-text { margin: 26px 0 0; font: 400 15px/1.55 var(--sans); text-shadow: 0 1px 14px rgba(0,0,0,.18); }
+.intro-bottom { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px); }
+.intro-hint { margin: 0 0 14px; font: 400 14px var(--sans); text-shadow: 0 1px 12px rgba(0,0,0,.2); }
+.intro-pill { display: inline-flex; gap: 6px; padding: 6px; border-radius: 16px; background: rgba(255,255,255,.22); box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.intro-pill button { height: 48px; padding: 0 20px; border: 0; border-radius: 11px; font: 500 15px var(--sans); transition: transform .2s, background .2s; }
+.intro-pill button:active { transform: scale(.97); }
+.intro-ghost { background: rgba(0,0,0,.16); color: #fff; }
+.intro-ghost:hover { background: rgba(0,0,0,.26); }
+.intro-go { background: #fff; color: #1a1a19; }
+.intro-go span { display: inline-block; transition: transform .25s ease; }
+.intro-go:hover span { transform: translateX(3px); }
+/* on pale gradients the type turns dark so it stays readable */
+.intro { transition: opacity .7s ease, transform .9s cubic-bezier(.22,1,.36,1), color .6s ease; }
+.intro.light { color: #1a1a19; }
+.intro.light .intro-title, .intro.light .intro-text, .intro.light .intro-hint { text-shadow: 0 1px 18px rgba(255,255,255,.35); }
+.intro.light .intro-arrows button { color: #1a1a19; }
+.intro.light .intro-arrows button:hover { background: rgba(0,0,0,.07); }
+.intro.light .intro-pill { background: rgba(255,255,255,.4); box-shadow: inset 0 0 0 1px rgba(255,255,255,.6), 0 10px 30px -18px rgba(0,0,0,.35); }
+.intro.light .intro-ghost { background: rgba(0,0,0,.06); color: #1a1a19; }
+.intro.light .intro-ghost:hover { background: rgba(0,0,0,.11); }
+.intro.light .intro-go { background: #1a1a19; color: #fff; }
+.intro.light::after { background: none; }
+@media (max-width: 480px) { .intro-text { font-size: 14px; } .intro-pill button { padding: 0 14px; font-size: 14px; } .intro-hint { font-size: 13px; padding: 0 20px; } }
+@media (prefers-reduced-motion: reduce) { .intro-title.swap .intro-name, .intro-title.swap .intro-num { animation: none; } }
+
 /* ---------- Onboarding: a welcome card, then a spotlight that glides from part to part ---------- */
 .tour { position: fixed; inset: 0; z-index: 70; }
 .tour-spot {
@@ -590,7 +626,7 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
 .mxbar-wrap .barbtn { flex: 1; min-width: 0; }
 .mixview {
   position: fixed; inset: 0; z-index: 26; overflow: hidden;
-  background-color: var(--bg);
+  background-color: var(--bg); background-image: radial-gradient(var(--dot) 1px, transparent 1.2px); background-size: 22px 22px;
   animation: libin .28s cubic-bezier(.2,.7,.2,1);
 }
 .mxtop { position: absolute; top: 0; left: 0; right: auto; display: flex; align-items: center; gap: 14px; padding: calc(env(safe-area-inset-top, 0px) + 14px) 20px 0; }
@@ -808,7 +844,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 </head>
 <body>
 
-<canvas class="ambient" id="ambient" width="48" height="30" aria-hidden="true"></canvas>
 <header class="top">
   <div class="brand">Gradient</div>
   <div class="top-actions">
@@ -942,6 +977,27 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   </div>
 </main>
 
+<div class="intro" id="intro" hidden role="dialog" aria-modal="true" aria-labelledby="introName">
+  <canvas class="intro-cv" id="introCv"></canvas>
+  <canvas class="intro-cv intro-prev" id="introPrev"></canvas>
+  <div class="intro-grain" aria-hidden="true"></div>
+  <div class="intro-top"><span class="intro-mark">Gradient</span></div>
+  <div class="intro-mid">
+    <h1 class="intro-title"><span class="intro-num" id="introNum">01</span> <span class="intro-name" id="introName">Sunrise arc</span></h1>
+    <div class="intro-arrows">
+      <button type="button" id="introNext" aria-label="Next gradient"><svg viewBox="0 0 20 20" width="22" height="22" aria-hidden="true"><path d="M10 3.5v13M4.5 11l5.5 5.5 5.5-5.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button type="button" id="introPrevBtn" aria-label="Previous gradient"><svg viewBox="0 0 20 20" width="22" height="22" aria-hidden="true"><path d="M10 16.5v-13M4.5 9L10 3.5 15.5 9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <p class="intro-text">Soft, grainy gradients that move.<br>Shape them, pour them, set them drifting,<br>and take them anywhere as CSS, an image or a video.</p>
+  </div>
+  <div class="intro-bottom">
+    <p class="intro-hint">Pick one you like with the arrows, then make it yours</p>
+    <div class="intro-pill">
+      <button type="button" class="intro-ghost" id="introTour">Show me around</button>
+      <button type="button" class="intro-go" id="introGo">Start creating <span aria-hidden="true">→</span></button>
+    </div>
+  </div>
+</div>
 <div class="tour" id="tour" hidden>
   <div class="tour-spot" id="tourSpot"></div>
   <div class="tour-card card" id="tourCard" role="dialog" aria-modal="true" aria-labelledby="tourTitle" aria-describedby="tourText">
@@ -1434,7 +1490,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       render();
       syncUI();
       store.set('gb-current', S);
-      ambientSoon();
       ensureLoop();
       if (restoring) restoring = false; else recordSoon();
       syncHist();
@@ -3064,6 +3119,77 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
   // ---------- Boot ----------
   new ResizeObserver(() => { fit(); draw(); }).observe(stage);
+  // ---------- Intro ----------
+  // First visit opens on a full-screen moving gradient. ↓ / ↑ flip through every preset; Start creating
+  // brings the one on screen into the editor, Show me around does the same and then starts the tour.
+  const INTRO = [...PRESETS, ...PRESETS_B];
+  const introEl = $('intro'), icv = $('introCv'), ictx = icv.getContext('2d'), iprev = $('introPrev');
+  let introAt = 0, introRaf = 0, introT0 = 0, introLast = 0;
+  const introOpen = () => !introEl.hidden && !introEl.classList.contains('leaving');
+  function introState(i) {
+    const st = fromPreset(INTRO[i]);
+    return { ...st, format: '16:9', grain: 0, texture: { ...st.texture, on: false }, motion: { on: true, speed: 12, amount: 85 } };
+  }
+  function sizeIntro() {
+    const k = Math.min(1, 900 / Math.max(innerWidth, innerHeight));
+    icv.width = iprev.width = Math.round(innerWidth * k); icv.height = iprev.height = Math.round(innerHeight * k);
+  }
+  function introFrame(now) {
+    introRaf = requestAnimationFrame(introFrame);
+    if (now - introLast < 33) return;   // about 30 frames a second is plenty for a slow drift
+    introLast = now;
+    const st = introState(introAt), t = ((now - introT0) / 1000 / st.motion.speed) % 1;
+    paint(ictx, icv.width, icv.height, animated(st, t));
+    if (introTone) { introTone = false; setIntroTone(); }
+  }
+  // how light the gradient is where the words sit decides whether the type is white or dark
+  let introTone = true;
+  const toneCv = document.createElement('canvas'); toneCv.width = 16; toneCv.height = 16;
+  function setIntroTone() {
+    const tx = toneCv.getContext('2d', { willReadFrequently: true });
+    tx.drawImage(icv, icv.width * .15, icv.height * .2, icv.width * .7, icv.height * .7, 0, 0, 16, 16);
+    const d = tx.getImageData(0, 0, 16, 16).data;
+    let L = 0;
+    for (let i = 0; i < d.length; i += 4) L += .2126 * d[i] + .7152 * d[i + 1] + .0722 * d[i + 2];
+    introEl.classList.toggle('light', L / (d.length / 4) > 178);
+  }
+  function showIntro(i, dir = 1) {
+    // the old picture stays on top and fades away while the new one starts moving underneath
+    const pc = iprev.getContext('2d'); pc.clearRect(0, 0, iprev.width, iprev.height); pc.drawImage(icv, 0, 0);
+    iprev.classList.add('show'); void iprev.offsetWidth; iprev.classList.remove('show');
+    introAt = (i + INTRO.length) % INTRO.length;
+    $('introNum').textContent = String(introAt + 1).padStart(2, '0');
+    $('introName').textContent = INTRO[introAt].name;
+    const ti = document.querySelector('.intro-title');
+    ti.style.setProperty('--dir', dir > 0 ? '18px' : '-18px');
+    ti.classList.remove('swap'); void ti.offsetWidth; ti.classList.add('swap');
+    introLast = 0; introTone = true;
+  }
+  function openIntro() {
+    introEl.hidden = false; introEl.classList.remove('leaving');
+    // a fine grain over the top, like the canvas has
+    const g = document.createElement('canvas'); g.width = g.height = 160;
+    const gx = g.getContext('2d'), d = gx.createImageData(160, 160);
+    for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 70; }
+    gx.putImageData(d, 0, 0);
+    document.querySelector('.intro-grain').style.backgroundImage = `url(${g.toDataURL()})`;
+    sizeIntro(); introT0 = performance.now();
+    introAt = Math.floor(Math.random() * INTRO.length); showIntro(introAt);
+    cancelAnimationFrame(introRaf); introRaf = requestAnimationFrame(introFrame);
+    $('introGo').focus({ preventScroll: true, focusVisible: false });
+  }
+  function leaveIntro(thenTour) {
+    S = fromPreset(INTRO[introAt]); sel = 0; fit(); draw();
+    store.set('gb-onboarded', 1);
+    introEl.classList.add('leaving');
+    setTimeout(() => { introEl.hidden = true; cancelAnimationFrame(introRaf); introRaf = 0; if (thenTour) { openTour(); showTourStep(1); } }, 750);
+  }
+  $('introNext').onclick = () => showIntro(introAt + 1, 1);
+  $('introPrevBtn').onclick = () => showIntro(introAt - 1, -1);
+  $('introGo').onclick = () => leaveIntro(false);
+  $('introTour').onclick = () => leaveIntro(true);
+  addEventListener('resize', () => { if (introOpen()) sizeIntro(); });
+
   // ---------- Onboarding ----------
   // First visit: a welcome card, then a spotlight glides over each part with a line or two about it.
   // Enter / → next, ← back, Esc skips. The ? button (or the ? key) plays it again.
@@ -3136,13 +3262,20 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     store.set('gb-onboarded', 1);
     tourBack && tourBack.focus && tourBack.focus();
   }
-  function maybeTour() { if (!store.get('gb-onboarded', 0) && $('mixView').hidden) openTour(); }
+  function maybeTour() { if (!store.get('gb-onboarded', 0) && $('mixView').hidden) openIntro(); }
   $('tourNext').onclick = () => tourAt < TOUR.length - 1 ? showTourStep(tourAt + 1) : endTour();
   $('tourSkip').onclick = () => tourAt === TOUR.length - 1 ? showTourStep(tourAt - 1) : endTour();
   $('tourBtn').onclick = openTour;
   addEventListener('resize', placeTour);
   // while the tour is up it owns the keyboard, so R, S, F and friends don't fire underneath it
   addEventListener('keydown', e => {
+    if (introOpen()) {
+      e.stopImmediatePropagation();
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); showIntro(introAt + 1, 1); }
+      else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); showIntro(introAt - 1, -1); }
+      else if (e.key === 'Escape') { e.preventDefault(); leaveIntro(false); }
+      return;
+    }
     if (tourAt < 0) {
       if (e.key === '?' && !/input|textarea|select/i.test(e.target.tagName) && $('overlay').hidden) { e.preventDefault(); if ($('mixView').hidden) openTour(); }
       return;
@@ -3154,21 +3287,10 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     else if (e.key === 'Tab') { e.preventDefault(); (document.activeElement === $('tourNext') ? $('tourSkip') : $('tourNext')).focus(); }
   }, true);
 
-  // the backdrop: the gradient painted tiny and stretched across the page, so it is soft for free
-  const amb = $('ambient'), ambCtx = amb.getContext('2d');
-  let ambT = 0;
-  function paintAmbient() {
-    ambT = 0;
-    ambCtx.clearRect(0, 0, amb.width, amb.height);
-    paint(ambCtx, amb.width, amb.height, { ...S, format: '16:9', grain: 0, blur: Math.min(S.blur, 100), texture: { ...S.texture, on: false } });
-  }
-  function ambientSoon() { if (!ambT) ambT = setTimeout(paintAmbient, 120); }
-
   renderLibrary();
   fit();
   draw();
-  paintAmbient();
-  setTimeout(maybeTour, 500);
+  setTimeout(maybeTour, 300);
 })();
 </script>
 </body>
