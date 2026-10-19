@@ -467,15 +467,16 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 /* the cards tuck behind the top of the glass, like papers in a folder */
 .ask-cards { position: absolute; left: 0; right: 0; top: 0; height: 150px; display: flex; justify-content: center; }
 .ask-card {
-  position: relative; width: 124px; height: 92px; margin: 0 -14px; padding: 0; border: 0; border-radius: 12px; cursor: pointer;
+  flex: none; position: relative; width: 124px; height: 92px; margin: 0 -13px; padding: 0; border: 0; border-radius: 12px; cursor: pointer; overflow: hidden; background: #ddd;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.45), 0 0 0 .5px rgba(30,30,60,.12), 0 1px 2px rgba(30,30,60,.08), 0 14px 28px -16px rgba(30,30,60,.5);
-  transform: translateY(var(--y, 18px)) rotate(var(--r, 0deg));
+  transform: translate(var(--x, 0px), var(--y, 18px)) rotate(var(--r, 0deg));
   transition: transform .5s cubic-bezier(.22,1,.36,1), box-shadow .5s ease;
   animation: cardin .8s cubic-bezier(.22,1,.36,1) both; animation-delay: calc(var(--i) * 70ms + 150ms);
 }
 @keyframes cardin { from { transform: translateY(70px) rotate(0deg); opacity: 0; } }
-.ask-card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(180deg, rgba(255,255,255,.32), rgba(255,255,255,0) 38%); }
-.ask-card:hover, .ask-card:focus-visible { transform: translateY(-18px) rotate(0deg) scale(1.04); z-index: 2; box-shadow: inset 0 0 0 1px rgba(255,255,255,.55), 0 0 0 .5px rgba(30,30,60,.12), 0 24px 36px -18px rgba(30,30,60,.55); outline: none; }
+.ask-card canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.ask-card::before { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: inherit; pointer-events: none; background: linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,0) 40%); box-shadow: inset 0 0 0 1px rgba(255,255,255,.4); }
+.ask-card:hover, .ask-card:focus-visible { transform: translate(var(--x, 0px), -18px) rotate(0deg) scale(1.04); z-index: 2; box-shadow: inset 0 0 0 1px rgba(255,255,255,.55), 0 0 0 .5px rgba(30,30,60,.12), 0 24px 36px -18px rgba(30,30,60,.55); outline: none; }
 .ask-glass {
   isolation: isolate;
   position: relative; z-index: 3; margin: 0; padding: 9px; border-radius: 22px;
@@ -493,8 +494,19 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(30,30,60,.06), 0 8px 20px -12px rgba(30,30,60,.25);
 }
 .ask-orb { flex: none; width: 22px; height: 22px; margin-right: 8px; border-radius: 50%; background: var(--orb, conic-gradient(from 200deg, #c9c3ea, #b7c8ee, #f2c9dc, #c9c3ea)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.6), 0 2px 6px -2px rgba(40,40,90,.4); transition: background .6s ease; }
-.ask-bar input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: none; color: #1d1d22; font: 400 16px var(--sans); }
-.ask-bar input::placeholder { color: #8c8b96; }
+.ask-field { position: relative; flex: 1; min-width: 0; height: 100%; }
+.ask-bar input { width: 100%; height: 100%; border: 0; outline: 0; background: none; color: #1d1d22; font: 400 16px var(--sans); }
+/* the placeholder is a little carousel of things to try; it slides to a new one every few seconds */
+.ask-ph { position: absolute; inset: 0; pointer-events: none; overflow: hidden; color: #8c8b96; font: 400 16px var(--sans); }
+.ask-ph > span { position: absolute; left: 0; top: 50%; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; transform: translateY(-50%); }
+.ask-ph > span.in { animation: phin .55s cubic-bezier(.22,1,.36,1) both; }
+.ask-ph > span.out { animation: phout .45s cubic-bezier(.55,0,.75,.2) both; }
+@keyframes phin { from { opacity: 0; transform: translateY(calc(-50% + 14px)); filter: blur(3px); } }
+@keyframes phout { to { opacity: 0; transform: translateY(calc(-50% - 14px)); filter: blur(3px); } }
+.ask-ph em { font-style: normal; color: #5d5c66; }
+.ask-ph .tabk { margin-left: 8px; font: 500 10.5px var(--mono); padding: 1px 5px; border-radius: 4px; border: 1px solid currentColor; opacity: .6; }
+.ask-field.filled .ask-ph { visibility: hidden; }
+@media (hover: none), (pointer: coarse) { .ask-ph .tabk { display: none; } }
 .ask-ib, .ask-go { flex: none; width: 38px; height: 38px; border: 0; border-radius: 9px; display: grid; place-items: center; transition: background .2s, color .2s, transform .2s; }
 .ask-ib { position: relative; background: none; color: #8c8b96; }
 .ask-ib:hover, .ask-ib:focus-visible { background: rgba(30,30,60,.06); color: #1d1d22; outline: none; }
@@ -517,6 +529,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro-skip:hover { color: #1d1d22; background: rgba(255,255,255,.4); }
 .intro-skip kbd { margin-left: 4px; opacity: .6; }
 @media (max-width: 480px) {
+  .ask-ph { font-size: 15px; }
   .ask { padding-top: 76px; }
   .ask-card { width: 84px; height: 62px; margin: 0 -10px; }
   .ask-bar { height: 54px; padding-left: 14px; }
@@ -1027,7 +1040,10 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       <form class="ask-glass" id="askForm" autocomplete="off">
         <div class="ask-bar">
           <span class="ask-orb" id="askOrb" aria-hidden="true"></span>
-          <input id="askInput" type="text" spellcheck="false" placeholder="Describe a gradient, like “misty lavender morning”" aria-label="Describe a gradient">
+          <div class="ask-field">
+            <input id="askInput" type="text" spellcheck="false" aria-label="Describe a gradient" aria-describedby="askPh">
+            <span class="ask-ph" id="askPh" aria-hidden="true"><span class="in">Describe a gradient you have in mind</span></span>
+          </div>
           <button type="button" class="ask-ib" id="askDice" aria-label="Surprise me" data-tip="Surprise me"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M10 3.8l1.55 4.15a2.4 2.4 0 0 0 1.5 1.5L17.2 11l-4.15 1.55a2.4 2.4 0 0 0-1.5 1.5L10 18.2l-1.55-4.15a2.4 2.4 0 0 0-1.5-1.5L2.8 11l4.15-1.55a2.4 2.4 0 0 0 1.5-1.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M18 3.5l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6z" fill="currentColor"/><path d="M18.2 15.6l.45 1.15 1.15.45-1.15.45-.45 1.15-.45-1.15-1.15-.45 1.15-.45z" fill="currentColor"/></svg></button>
           <button type="button" class="ask-ib" id="askFun" aria-label="Fun mode" data-tip="Fun mode"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 2.8c1.9 2.4 3 4.1 3 5.5a3 3 0 0 1-6 0c0-1.4 1.1-3.1 3-5.5z" fill="currentColor" opacity=".85"/><path d="M4.5 13.2a7.5 7.5 0 0 0 15 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7.4 15.4c1.5-.9 3-.9 4.6 0s3.1.9 4.6 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".55"/></svg></button>
           <button type="submit" class="ask-go" id="askGo" aria-label="Create"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4.5 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -3215,18 +3231,37 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     autumn: ['#b5502a', '#e8a33d', '#7a4a2a', '#f2d3a0'], spring: ['#b8e04a', '#f7b6d2', '#fff07a', '#9fe7c4'], summer: ['#ffd84a', '#ff7a66', '#2ec5e8'], winter: ['#e8f0fa', '#a9c6ea', '#5a7ab0'],
     neon: ['#ff2bd6', '#2bf2ff', '#b6ff2b'], electric: ['#3a0ca3', '#f72585', '#4cc9f0'], cyber: ['#ff2bd6', '#2b6bff', '#12121a'], retro: ['#ff6b35', '#f7c548', '#2ec4b6'], vintage: ['#d9a58a', '#c8b590', '#8a9a8a'],
     misty: ['#e3e6ee', '#cfd6e6', '#e9e1ec'], mist: ['#e3e6ee', '#cfd6e6', '#e9e1ec'], cloud: ['#f5f5f8', '#dde3ef', '#ece6f2'], fog: ['#dfe1e6', '#c9ccd6', '#eef0f3'], morning: ['#fff1dc', '#f7d6c8', '#d6def2'],
+    birthday: ['#ff8fb1', '#ffd166', '#9b8cff', '#7fe0d2'], party: ['#ff4fa3', '#ffd23f', '#3ad1ff', '#9b5cff'], celebration: ['#ff8fb1', '#ffd166', '#7fe0d2'], celebrate: ['#ff8fb1', '#ffd166', '#7fe0d2'], confetti: ['#ff5d8f', '#ffd23f', '#3ad1ff', '#7ee081'],
+    happy: ['#ffd84a', '#ff9f43', '#ff7ab6'], joy: ['#ffd84a', '#ff9f43', '#ff7ab6'], sad: ['#4a5a8a', '#8a9ab8', '#c9d3e6'], melancholy: ['#3a4566', '#7a86a6', '#c3c9d9'], love: ['#ff4d6d', '#ff8fab', '#ffc2d1'], romance: ['#c9184a', '#ff8fab', '#fff0f3'], valentine: ['#d00045', '#ff8fab', '#ffd6e0'], heart: ['#ff4d6d', '#ffb3c1'],
+    dream: ['#c9b6ff', '#ffc6e5', '#b6e3ff'], magic: ['#6a3fd6', '#d04fb0', '#5fe0e8'], fairy: ['#f7c6e0', '#c9b6ff', '#fff1a8'], unicorn: ['#ffc6e5', '#c9b6ff', '#b6e3ff', '#fff1a8'], rainbow: ['#ff5d5d', '#ffb347', '#ffe66d', '#6bdb8a', '#5aa9ff', '#a77bff'],
+    coffee: ['#4a2c1d', '#a0714f', '#e8d2b8'], latte: ['#c8a582', '#e8d2b8', '#f7efe6'], tea: ['#c8d6a0', '#e9e4c8', '#8ab06a'], matcha: ['#7da45a', '#c9dba4', '#f2f2e0'], strawberry: ['#ff4d6d', '#ffb3c1', '#fff0f3'], milkshake: ['#ffd6e0', '#fff3e6', '#d7f0ff'], cherry: ['#b3123a', '#ff6b8a', '#ffd6df'], blossom: ['#ffc6d9', '#fff0f5', '#e8a0bf'], sakura: ['#ffc6d9', '#fff0f5', '#e8a0bf'],
+    christmas: ['#b3123a', '#11714a', '#f2c14e'], halloween: ['#ff7a1a', '#2b1a3a', '#7b3fd6'], wedding: ['#fffaf2', '#f2dfd3', '#e8d6b8'], snow: ['#f5f8fc', '#d6e4f2', '#b7cbe6'], rain: ['#5a6a7a', '#9aaabb', '#d6dde6'], storm: ['#1f2633', '#4a5a6e', '#9aa8bb'], thunder: ['#1a1d33', '#5a4fa0', '#e6e08a'],
+    jazz: ['#1a1440', '#b5502a', '#f2c14e'], disco: ['#ff2bd6', '#ffd23f', '#2bf2ff', '#5a2a9a'], arcade: ['#ff2bd6', '#2bf2ff', '#1a1440'], vaporwave: ['#ff71ce', '#01cdfe', '#b967ff', '#fffb96'], lofi: ['#c9a7a0', '#8a9ab8', '#e9dcc7'],
+    zen: ['#e6efe9', '#b9d3c4', '#8ab0a0'], peaceful: ['#e6efe9', '#b9d3c4', '#cfe0ec'], cozy: ['#d0714a', '#f2c14e', '#7a4a2a'], energy: ['#ff2e63', '#ffb800', '#08d9d6'], vibrant: ['#ff2e63', '#ffb800', '#08d9d6'], northern: ['#0b1a2e', '#2ee6b6', '#7a5cff'], lights: ['#ffe9a8', '#ffb86b', '#ff7ab6'],
     earth: ['#7a4a2a', '#b08a5a', '#6b8f4e'], desert: ['#e9c18f', '#d0714a', '#f5e2bd'], berry: ['#7a1f5c', '#c2185b', '#f49ac1'], wine: ['#5a0f2e', '#8a1538', '#c94f6a'], ice: ['#eaf6ff', '#bfe3f5', '#8ccaf6'], mermaid: ['#2ad1c9', '#8a4fe0', '#f49ac1'], peacock: ['#0b6e6e', '#1a4fa0', '#4a2a8a'],
   };
   const DARK = /\b(dark|deep|night|midnight|moody|shadow|noir|space|galaxy)\b/, LIGHT = /\b(soft|pastel|light|pale|airy|dreamy|gentle|calm|misty|cloud)\b/;
+  // a steady little random generator seeded by the words, so the same words always give the same picture
+  function seeded(text) {
+    let h = 2166136261;
+    for (const ch of text) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+    return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; };
+  }
   function readPrompt(text) {
     const t = text.toLowerCase().replace(/[^a-z\s-]/g, ' ');
+    if (!t.trim()) return null;
+    const rnd = seeded(t.trim());
     let cols = [];
     for (const w of t.split(/[\s-]+/)) {
       const k = WORDS[w] ? w : WORDS[w.replace(/(ish|y|s)$/, '')] ? w.replace(/(ish|y|s)$/, '') : null;
       if (k) cols.push(...WORDS[k]);
     }
     cols = [...new Set(cols)].slice(0, 6);
-    if (!cols.length) return null;
+    // words it doesn't know still mean something: they become their own palette, the same every time
+    if (cols.length < 2) {
+      const h0 = rnd() * 360, step = (24 + rnd() * 70) * (rnd() < .5 ? 1 : -1), extra = 4 - cols.length;
+      for (let i = 0; i < extra; i++) cols.push(oklch(.6 + rnd() * .3, .08 + rnd() * .12, (h0 + i * step + 360) % 360));
+    }
     const dark = DARK.test(t), light = LIGHT.test(t);
     const shade = (c, k) => { const a = toRgb(c), w = k > 0 ? [255, 255, 255] : [12, 12, 20]; return toHex(a.map((v, i) => v + (w[i] - v) * Math.abs(k))); };
     if (light) cols = cols.map(c => shade(c, .35));
@@ -3238,31 +3273,59 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const base = [...cols].sort((a, b) => dark ? lum(a) - lum(b) : lum(b) - lum(a))[0];
     const mode = /\blinear\b/.test(t) ? 'linear' : /\b(radial|halo|glow|orb)\b/.test(t) ? 'radial' : 'mesh';
     const p = {
-      name: 'Yours', mode, angle: Math.round(Math.random() * 18) * 10, cx: 50, cy: 50, base,
+      name: 'Yours', mode, angle: Math.round(rnd() * 18) * 10, cx: 50, cy: 50, base,
       grain: /\b(grain|grainy|noisy|film|texture)\b/.test(t) ? 22 : /\b(smooth|clean|glossy)\b/.test(t) ? 2 : 8, blur: 95,
-      stops: cols.map((c, i) => [c, Math.round(i / (n - 1) * 100), Math.round(10 + Math.random() * 80), Math.round(8 + Math.random() * 84), Math.round(42 + Math.random() * 26)]),
+      stops: cols.map((c, i) => [c, Math.round(i / (n - 1) * 100), Math.round(10 + rnd() * 80), Math.round(8 + rnd() * 84), Math.round(42 + rnd() * 26)]),
     };
     const st = fromPreset(p);
     if (/\b(moving|animated|motion|flow|flowing|drift|drifting|wave|waves|alive)\b/.test(t)) st.motion = { ...st.motion, on: true };
     return st;
   }
 
+  // five cards, each a little different: some higher, some lower, leaning either way, overlapping a touch
+  const CARD_LOOK = [{ x: 6, y: 24, r: -6 }, { x: -2, y: 8, r: 3 }, { x: 3, y: 16, r: -2 }, { x: -4, y: 4, r: 5 }, { x: -6, y: 20, r: -3 }];
+  const CARD_PICKS = ['Sunrise arc', 'Deep blue', 'Candy haze', 'Cherry pop', 'Midnight bloom', 'Lemon sky', 'Sea', 'Peach glow', 'Aurora', 'Citrus', 'Ember', 'Lagoon', 'Electric', 'Rose quartz', 'Lavender field'];
   function buildCards() {
     const box = $('askCards'); box.innerHTML = '';
-    const pick = [...INTRO].sort(() => Math.random() - .5).slice(0, 5), rot = [-12, -6, 0, 6, 12], lift = [34, 16, 8, 16, 34];
+    const pool = INTRO.filter(pr => CARD_PICKS.includes(pr.name)).sort(() => Math.random() - .5);
+    // no two cards from the same corner of the colour wheel
+    const hueOf = pr => { const [r, g, b] = toRgb(pr.stops[Math.floor(pr.stops.length / 2)][0]).map(v => v / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn || 1;
+      return Math.round((mx === r ? (g - b) / d : mx === g ? 2 + (b - r) / d : 4 + (r - g) / d) * 60 + 360) % 360; };
+    const pick = [];
+    for (const pr of pool) { if (pick.length < 5 && pick.every(q => Math.min(Math.abs(hueOf(q) - hueOf(pr)), 360 - Math.abs(hueOf(q) - hueOf(pr))) > 28)) pick.push(pr); }
+    for (const pr of pool) if (pick.length < 5 && !pick.includes(pr)) pick.push(pr);
     pick.forEach((pr, i) => {
-      const b = document.createElement('button');
+      const b = document.createElement('button'), L = CARD_LOOK[i];
       b.type = 'button'; b.className = 'ask-card'; b.setAttribute('aria-label', `Start from ${pr.name}`);
-      b.style.cssText = `--i:${i}; --r:${rot[i]}deg; --y:${lift[i]}px`; b.style.background = gradient(fromPreset(pr), false);
-      b.onclick = () => { introPick = fromPreset(pr); leaveIntro('go'); };
-      b.onmouseenter = b.onfocus = () => setIntroBg(calmed(fromPreset(pr), .35));
-      b.onmouseleave = b.onblur = () => setIntroBg(introTyped || calmed(fromPreset(CALM), 0));
+      b.style.cssText = `--i:${i}; --x:${L.x}px; --y:${L.y}px; --r:${L.r}deg`;
+      const c = document.createElement('canvas'); c.width = 248; c.height = 184; b.appendChild(c);
+      const st = fromPreset(pr);
+      paint(c.getContext('2d', { willReadFrequently: true }), c.width, c.height, { ...st, format: '16:9', grain: st.grain * .6, texture: { ...st.texture, on: false } });
+      b.onclick = () => { introPick = st; leaveIntro('go'); };
+      b.onmouseenter = b.onfocus = () => setIntroBg(calmed(st, .35));
+      b.onmouseleave = b.onblur = () => setIntroBg(introTyped || fromPreset(CALM));
       box.appendChild(b);
     });
   }
+  const TRY = ['happy birthday', 'misty lavender morning', 'deep ocean night', 'strawberry milkshake', 'northern lights', 'first snow', 'late night jazz',
+    'cotton candy clouds', 'golden hour on the beach', 'neon arcade', 'matcha latte', 'summer in Positano', 'cherry blossom rain', 'vaporwave sunset', 'cozy autumn evening'];
+  let phAt = -1, phTimer = 0;
+  function nextPh() {
+    phAt = (phAt + 1) % TRY.length;
+    const box = $('askPh');
+    box.querySelectorAll('span.in').forEach(sp => { sp.className = 'out'; setTimeout(() => sp.remove(), 460); });
+    const sp = document.createElement('span'); sp.className = 'in';
+    sp.innerHTML = `Try “<em>${TRY[phAt]}</em>”<span class="tabk">tab</span>`;
+    box.appendChild(sp);
+  }
+  function startPh() { clearInterval(phTimer); phAt = Math.floor(Math.random() * TRY.length) - 1; phTimer = setInterval(nextPh, 3000); }
+  $('askInput').addEventListener('keydown', e => {
+    if (e.key === 'Tab' && !$('askInput').value && phAt >= 0) { e.preventDefault(); $('askInput').value = TRY[phAt]; $('askInput').dispatchEvent(new Event('input')); }
+  });
   let introTyped = null, typeT = 0;
   $('askInput').addEventListener('input', () => {
     clearTimeout(typeT);
+    $('askInput').parentElement.classList.toggle('filled', !!$('askInput').value);
     $('askHint').classList.remove('miss');
     $('askHint').innerHTML = 'Type<span class="kh"> and press <kbd>↵</kbd></span> &nbsp;·&nbsp; or pick a card';
     typeT = setTimeout(() => {
@@ -3292,7 +3355,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     gx.putImageData(d, 0, 0);
     document.querySelector('.intro-grain').style.backgroundImage = `url(${g.toDataURL()})`;
     sizeIntro(); introT0 = performance.now();
-    introTyped = null; introPick = null; $('askInput').value = '';
+    introTyped = null; introPick = null; $('askInput').value = ''; $('askInput').parentElement.classList.remove('filled');
+    $('askPh').innerHTML = '<span class="in">Describe a gradient you have in mind</span>'; startPh();
     introBg = bgState(fromPreset(CALM)); setIntroBg(fromPreset(CALM));
     buildCards();
     cancelAnimationFrame(introRaf); introRaf = requestAnimationFrame(introFrame);
@@ -3306,7 +3370,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     store.set('gb-onboarded', 1);
     introEl.classList.add('leaving');
     setTimeout(() => {
-      introEl.hidden = true; cancelAnimationFrame(introRaf); introRaf = 0;
+      introEl.hidden = true; cancelAnimationFrame(introRaf); introRaf = 0; clearInterval(phTimer);
       if (way === 'fun') { openMix(); openTour(4); }
       else if (way === 'skip') {}
       else openTour(1);
@@ -3434,6 +3498,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   // while the tour is up it owns the keyboard, so R, S, F and friends don't fire underneath it
   addEventListener('keydown', e => {
     if (introOpen()) {
+      if (e.target === $('askInput') && e.key !== 'Escape') return;   // typing (and Tab for a suggestion) goes to the prompt
       e.stopImmediatePropagation();
       if (e.key === 'Escape') { e.preventDefault(); leaveIntro('skip'); }
       return;
