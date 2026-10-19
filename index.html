@@ -89,7 +89,7 @@ button { cursor: pointer; }
 #sizeMenu .arow .dim { margin-left: auto; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 #sizeMenu .arow[aria-checked="true"] { background: var(--card-hover); }
 #sizeMenu .arow[aria-checked="true"] svg { color: var(--fg); }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; font-size: 15px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; font-size: 15px; cursor: default; }
 .top-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
 .btn {
@@ -3262,7 +3262,10 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     store.set('gb-onboarded', 1);
     tourBack && tourBack.focus && tourBack.focus();
   }
-  function maybeTour() { if (!store.get('gb-onboarded', 0) && $('mixView').hidden) openIntro(); }
+  // a first visit gets the tour, starting with the welcome card; the intro screen is parked for now
+  // (it still opens from the Gradient name in the corner)
+  function maybeTour() { if (!store.get('gb-onboarded', 0) && $('mixView').hidden) openTour(); }
+  document.querySelector('.top .brand').addEventListener('click', () => { if ($('mixView').hidden && $('libView').hidden && tourAt < 0) openIntro(); });
   $('tourNext').onclick = () => tourAt < TOUR.length - 1 ? showTourStep(tourAt + 1) : endTour();
   $('tourSkip').onclick = () => tourAt === TOUR.length - 1 ? showTourStep(tourAt - 1) : endTour();
   $('tourBtn').onclick = openTour;
