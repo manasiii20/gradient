@@ -2828,7 +2828,12 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       const lib = $('libBtn');
       lib.classList.remove('got'); void lib.offsetWidth; lib.classList.add('got');
       lib.querySelectorAll('.libpip').forEach(e => e.remove());
-      const pip = document.createElement('span'); pip.className = 'libpip'; pip.style.background = from.pip || gradient(S, false); lib.appendChild(pip);
+      // the little preview takes the canvas's own shape: wide, tall, square or round
+      const pip = document.createElement('span'); pip.className = 'libpip'; pip.style.background = from.pip || gradient(S, false);
+      const ar = fr.width / fr.height, big = 16;
+      pip.style.width = (ar >= 1 ? big : Math.round(big * ar)) + 'px'; pip.style.height = (ar >= 1 ? Math.round(big / ar) : big) + 'px';
+      if (round) pip.style.borderRadius = '50%';
+      lib.appendChild(pip);
       clearTimeout(pipTimer);
       pipTimer = setTimeout(() => { pip.classList.add('bye'); setTimeout(() => pip.remove(), 360); }, 2400);
     };
