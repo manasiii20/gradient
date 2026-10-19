@@ -493,6 +493,9 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 /* the main top bar stays in place above fun mode; its title takes the brand's spot */
 body.mixing .top { z-index: 30; }
 body.mixing .brand { visibility: hidden; }
+body.mixing #sizeWrap { display: none; }
+.mxbar-wrap .dock { width: 100%; }
+.mxbar-wrap .barbtn { flex: 1; min-width: 0; }
 .mixview {
   position: fixed; inset: 0; z-index: 26; overflow: hidden;
   background-color: var(--bg); background-image: radial-gradient(var(--dot) 1px, transparent 1.2px); background-size: 22px 22px;
@@ -1261,9 +1264,12 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     restoring = true;
     fit(); draw();
   }
-  function undo() { record(); if (hi > 0) { hi--; restore(); } }
-  function redo() { record(); if (hi < hist.length - 1) { hi++; restore(); } }
+  // in fun mode the same buttons and keys step through the bowl's own history
+  const mixing = () => !$('mixView').hidden;
+  function undo() { if (mixing()) return bowlUndo(); record(); if (hi > 0) { hi--; restore(); } }
+  function redo() { if (mixing()) return bowlRedo(); record(); if (hi < hist.length - 1) { hi++; restore(); } }
   function syncHist() {
+    if (mixing()) { $('undoBtn').disabled = bowlHi <= 0; $('redoBtn').disabled = bowlHi >= bowlHist.length - 1; return; }
     const dirty = !!histTimer && JSON.stringify(S) !== hist[hi];
     $('undoBtn').disabled = hi <= 0 && !dirty;
     $('redoBtn').disabled = hi >= hist.length - 1 || dirty;
@@ -1679,7 +1685,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     sel = 0;
     draw();
   }
-  $('randomBtn').onclick = randomize;
+  $('randomBtn').onclick = () => mixing() ? mixRandom() : randomize();
   addEventListener('keydown', e => {
     const tag = (e.target.tagName || '').toLowerCase();
     const typing = tag === 'textarea' || (tag === 'input' && e.target.type === 'text') || e.target.classList.contains('hex');
@@ -1695,6 +1701,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const k = e.key.toLowerCase();
     if (!$('mixView').hidden) {
       if (k === 'f') { e.preventDefault(); closeMix(); }
+      else if (k === 'r') { e.preventDefault(); mixRandom(); }
       else if (e.key === 'Enter' && !e.target.closest('button')) { e.preventDefault(); $('mxUse').click(); }
       return;
     }
@@ -1844,12 +1851,57 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     });
   }
   let mixReturn = null;
+  // the bowl's history: a snapshot after each pour, drop, clear or shuffle
+  let bowlHist = [], bowlHi = -1;
+  function bowlCommit() {
+    const snap = bowl.blobs.filter(b => !b.dying).map(b => ({ c: b.c, x: b.x, y: b.y, R: b.R, seed: b.seed }));
+    bowlHist = bowlHist.slice(0, bowlHi + 1); bowlHist.push(snap);
+    if (bowlHist.length > 60) bowlHist.shift();
+    bowlHi = bowlHist.length - 1; syncHist();
+  }
+  function bowlRestore() {
+    // the current drops fade out while the remembered ones swell back in
+    bowl.blobs.forEach(b => { b.dying = true; });
+    bowlHist[bowlHi].forEach(s => bowl.blobs.push({ ...s, r: s.R * .5, vx: 0, vy: 0 }));
+    syncHist();
+  }
+  function bowlUndo() { if (bowlHi > 0) { bowlHi--; bowlRestore(); } }
+  function bowlRedo() { if (bowlHi < bowlHist.length - 1) { bowlHi++; bowlRestore(); } }
+  // Randomize in fun mode: a fresh handful of colours poured in at once
+  function mixRandom() {
+    bowl.blobs.forEach(b => { b.dying = true; });
+    const n = 4 + Math.floor(Math.random() * 3), h0 = Math.random() * 360, step = 25 + Math.random() * 60;
+    for (let i = 0; i < n; i++) {
+      const a = i / n * Math.PI * 2 + Math.random(), r = .25 + Math.random() * .3;
+      mixDrop(oklch(.62 + Math.random() * .26, .09 + Math.random() * .12, (h0 + i * step) % 360), Math.cos(a) * r, Math.sin(a) * r, .38 + Math.random() * .12);
+    }
+    bowlCommit();
+  }
+  // fun mode lines up with the editor: its bar sits exactly where the editor's bar is, and the
+  // globe is centred above it, in the space the canvas uses
+  function alignMix() {
+    const d = $('dock').getBoundingClientRect(), wrap = document.querySelector('.mxbar-wrap');
+    wrap.style.left = d.left + 'px'; wrap.style.width = d.width + 'px'; wrap.style.right = 'auto';
+    wrap.style.bottom = (innerHeight - d.bottom) + 'px';
+    const g = document.querySelector('.mxglobe-wrap');
+    if (matchMedia('(max-width: 860px)').matches) { g.removeAttribute('style'); return; }
+    const cx = d.left + d.width / 2, half = Math.max(120, Math.min(cx - 270, innerWidth - 112 - cx));
+    g.style.left = (cx - half) + 'px'; g.style.right = (innerWidth - cx - half) + 'px';
+    g.style.bottom = (innerHeight - d.top + 70) + 'px';
+  }
+  // the hint sits halfway between the globe and the bar, so both gaps match
+  function placeHint() {
+    const h = $('mxHint'), g = mxCv.getBoundingClientRect(), bar = document.querySelector('.mxbar-wrap .dock').getBoundingClientRect(), w = h.parentElement.getBoundingClientRect();
+    h.style.bottom = 'auto';
+    h.style.top = ((g.bottom + bar.top) / 2 - h.offsetHeight / 2 - w.top) + 'px';
+  }
   function openMix() {
     mixReturn = document.activeElement;
     closeMenu(false);
     $('mixView').hidden = false;
     document.body.classList.add('mixing');
-    fitMix(); seedMix();
+    alignMix(); fitMix(); placeHint(); seedMix();
+    bowlHist = []; bowlHi = -1; bowlCommit();
     bowl.name = ''; $('mxName').innerHTML = '';
     $('mxHint').classList.remove('gone');
     syncMixReadout();
@@ -1860,12 +1912,13 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     cancelAnimationFrame(bowl.raf); bowl.raf = 0;
     $('mixView').hidden = true;
     document.body.classList.remove('mixing');
+    syncHist();
     mixReturn && mixReturn.focus && mixReturn.focus();
   }
   // the Fun mode switch slides on, then the playground opens; it switches off again on the way out
   $('funBtn').onclick = openMix;
   $('mixClose').onclick = closeMix;
-  addEventListener('resize', () => { if (!$('mixView').hidden) fitMix(); });
+  addEventListener('resize', () => { if (!$('mixView').hidden) { alignMix(); fitMix(); placeHint(); } });
 
   // the slider: dragging pours a little of each colour you pass through
   const mxTrack = $('mxTrack');
@@ -1886,13 +1939,14 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (!mxDragging) return;
     mxDragging = false; mxTrack.classList.remove('drag');
     if (performance.now() - bowl.lastDropAt > 200) mixPour();
+    bowlCommit();
   };
   mxTrack.addEventListener('pointerup', mxEnd);
   mxTrack.addEventListener('pointercancel', mxEnd);
   $('mxKnob').addEventListener('keydown', e => {
     const d = { ArrowUp: -.04, ArrowDown: .04, PageUp: -.15, PageDown: .15 }[e.key];
     if (d !== undefined) { e.preventDefault(); bowl.t = clamp(bowl.t + d, 0, 1); syncMixReadout(); }
-    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); mixPour(); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); mixPour(); bowlCommit(); }
   });
 
   // the globe: a click drops the current colour there, a drag stirs the bowl
@@ -1915,7 +1969,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   });
   const stirEnd = e => {
     if (!stir) return;
-    if (!stir.moved) { const [x, y] = globePt(e); mixDrop(mixColorAt(bowl.t), x, y, .4); }
+    if (!stir.moved) { const [x, y] = globePt(e); mixDrop(mixColorAt(bowl.t), x, y, .4); bowlCommit(); }
     stir = null; mxCv.classList.remove('stirring');
   };
   mxCv.addEventListener('pointerup', stirEnd);
@@ -1925,6 +1979,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const c = mixColorAt(bowl.t);
     bowl.blobs.forEach(b => { b.dying = true; });
     mixDrop(c, 0, 0, .6);
+    bowlCommit();
   };
   // turn the bowl into a real mesh gradient: each drop becomes a colour you can keep editing
   $('mxUse').onclick = () => {
