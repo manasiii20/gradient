@@ -475,30 +475,36 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .barbtn kbd { margin-left: auto; opacity: .45; font-size: 10.5px; padding: 1px 5px; }
 .sbdiv { width: 1px; margin: 9px 0; background: var(--card-line); flex: none; }
 
-/* presets: the bar grows upward into a grid of presets */
-#dock.savebar { flex-wrap: wrap; }
-.pexp { flex: 0 0 100%; display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .45s cubic-bezier(.22,1,.36,1), opacity .25s ease; }
-.pexp-in { min-height: 0; overflow: hidden; }
-#dock.popen .pexp { grid-template-rows: 1fr; opacity: 1; }
-.pgrid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 14px 10px;
-  max-height: min(46vh, 340px); overflow-y: auto; scrollbar-width: none; padding: 14px 11px 12px;
-  margin-bottom: 5px; border-bottom: 1px solid var(--card-line);
-}
-.pgrid::-webkit-scrollbar { display: none; }
-.pcell { display: flex; flex-direction: column; gap: 6px; padding: 0; border: 0; background: none; color: var(--muted); text-align: left; font: 500 11.5px var(--sans); min-width: 0; }
+/* presets: one row of tiles that rises out of the bar, floating just above it (no panel around them) */
+#dock { position: relative; }
+.pexp { position: absolute; left: 0; right: 0; bottom: calc(100% + 12px); pointer-events: none; }
+#dock.popen .pexp { pointer-events: auto; }
+.pgrid { display: flex; gap: 8px; padding: 0 5px; }
+.pcell { position: relative; flex: 1 1 0; min-width: 0; padding: 0; border: 0; background: none; }
 .pcell .pv {
-  display: block; width: 100%; aspect-ratio: 3 / 2; border-radius: 10px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1);
-  transition: transform .45s cubic-bezier(.22,1,.36,1), box-shadow .45s cubic-bezier(.22,1,.36,1);
+  display: block; width: 100%; aspect-ratio: 16 / 10; border-radius: 10px;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 10px 22px -14px rgba(0,0,0,.45);
+  opacity: 0; transform: translateY(14px) scale(.92);
+  transition: transform .45s cubic-bezier(.22,1,.36,1), box-shadow .45s cubic-bezier(.22,1,.36,1), opacity .25s ease;
+  transition-delay: calc((8 - var(--i)) * 14ms);
 }
-.pcell .pn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 2px; transition: color .2s; }
-#dock.popen .pcell { animation: pcellin .45s cubic-bezier(.22,1,.36,1) both; animation-delay: calc(var(--i) * 18ms + 40ms); }
-@keyframes pcellin { from { opacity: 0; transform: translateY(8px); } }
-.pcell:hover .pv, .pcell:focus-visible .pv { transform: translateY(-4px) scale(1.05); box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 12px 18px -10px rgba(0,0,0,.5); }
-.pcell:hover .pn, .pcell:focus-visible .pn, .pcell.on .pn { color: var(--fg); }
-.pcell.on .pv { box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 0 0 2px var(--card), 0 0 0 3.5px var(--fg); }
+#dock.popen .pcell .pv { opacity: 1; transform: none; transition-delay: calc(var(--i) * 22ms); }
+/* hover: the card rises and grows a little with a soft shadow opening beneath it, as in the old presets dock */
+#dock.popen .pcell:hover .pv, #dock.popen .pcell:focus-visible .pv {
+  transform: translateY(-6px) scale(1.07); transition-delay: 0s;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 14px 20px -10px rgba(0,0,0,.55);
+}
+#dock.popen .pcell:active .pv { transform: translateY(-1px) scale(1.01); transition-duration: .1s; }
+.pcell.on .pv { box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 0 0 2px var(--bg), 0 0 0 3.5px var(--fg); }
+#dock.popen .pcell.on:hover .pv { box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 0 0 2px var(--bg), 0 0 0 3.5px var(--fg), 0 14px 20px -10px rgba(0,0,0,.55); }
 .pcell:focus-visible { outline: none; }
-.pcell:active .pv { transform: translateY(-1px) scale(1.01); transition-duration: .1s; }
+/* the name floats above whichever preset is under the pointer */
+.pcell .pn {
+  position: absolute; left: 50%; bottom: calc(100% + 12px); transform: translate(-50%, 4px); opacity: 0;
+  padding: 4px 9px; border-radius: 999px; background: var(--fg); color: var(--on-fg); font: 500 11.5px var(--sans); white-space: nowrap;
+  pointer-events: none; transition: opacity .18s ease, transform .3s cubic-bezier(.22,1,.36,1);
+}
+.pcell:hover .pn, .pcell:focus-visible .pn { opacity: 1; transform: translate(-50%, 0); }
 .barbtn[aria-expanded="true"] { background: var(--card-sel); }
 
 /* a save: a thumbnail of the gradient arcs up into the Library button */
@@ -661,7 +667,10 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
   .savebar { width: auto; gap: 2px; }
   .barbtn { height: 42px; padding: 0 12px; gap: 9px; min-width: 0; }
   .barbtn kbd, .bt2 { display: none; }
-  .pgrid { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+  .pgrid { overflow-x: auto; scrollbar-width: none; padding: 14px 5px 8px; margin-top: -14px; }
+  .pgrid::-webkit-scrollbar { display: none; }
+  .pcell { flex: 0 0 66px; }
+  .pcell .pn { display: none; }
   .dtools { align-items: center; }
   .dtools { border-left: 1px solid var(--card-line); }
 }
@@ -849,21 +858,19 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   <div class="dock-wrap" id="dockWrap">
     <div class="dock card savebar" id="dock" role="toolbar" aria-label="Presets, save and fun mode">
       <div class="pexp" id="pPanel" inert>
-        <div class="pexp-in">
-          <div class="pgrid" id="presets" role="group" aria-label="Presets"></div>
-        </div>
+        <div class="pgrid" id="presets" role="group" aria-label="Presets"></div>
       </div>
-      <button class="barbtn" id="presetBtn" type="button" aria-expanded="false" aria-controls="pPanel" title="Presets (P)">
+      <button class="barbtn" id="presetBtn" type="button" aria-expanded="false" aria-controls="pPanel">
         <span class="bt"><span class="bt1">Presets</span><span class="bt2">Start from a classic</span></span>
         <kbd>P</kbd>
       </button>
       <span class="sbdiv" aria-hidden="true"></span>
-      <button class="barbtn" id="saveBtn" type="button" title="Save to library (S)">
+      <button class="barbtn" id="saveBtn" type="button">
         <span class="bt"><span class="bt1">Save<span class="xl"> to library</span></span><span class="bt2">Keep this gradient</span></span>
         <kbd>S</kbd>
       </button>
       <span class="sbdiv" aria-hidden="true"></span>
-      <button class="barbtn" id="funBtn" type="button" title="Fun mode (F)">
+      <button class="barbtn" id="funBtn" type="button">
         <span class="bt"><span class="bt1">Fun mode</span><span class="bt2">Mix colours in a globe</span></span>
         <kbd>F</kbd>
       </button>
@@ -968,8 +975,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     { name: 'Sunrise arc', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#eceef7', grain: 10, blur: 80,
       stops: [['#b3bdec', 0, 50, 112, 122], ['#bf8fd6', 25, 50, 110, 104], ['#d6559a', 50, 50, 110, 92],
               ['#f3505a', 75, 50, 112, 72], ['#fe9a62', 100, 50, 116, 44]] },
-    { name: 'Cream corners', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#f6efe5', grain: 10, blur: 90,
-      stops: [['#f597ee', 0, -4, 0, 44], ['#f8b9a2', 50, 100, 84, 44], ['#fa5527', 100, 104, 106, 32]] },
     { name: 'Deep blue', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#2f63d1', grain: 6, blur: 90,
       stops: [['#1a237c', 0, 18, 106, 58], ['#2546c2', 15, 62, 96, 50], ['#3a8fe8', 30, 94, 55, 42],
               ['#bfe3fd', 60, 30, 26, 46], ['#ffffff', 75, 48, -12, 62], ['#ffffff', 100, 10, -4, 42]] },
@@ -993,9 +998,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     { name: 'Peach glow', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#f7dcae', grain: 16, blur: 95,
       stops: [['#fbf1dc', 0, 104, 0, 50], ['#f8e08e', 16, 62, 6, 50], ['#f3a848', 32, 30, 40, 74], ['#f4a256', 48, 50, 62, 50],
               ['#f2849a', 64, -6, 74, 36], ['#f4683f', 82, 24, 100, 58], ['#f6c6cc', 100, 106, 92, 46]] },
-    { name: 'Frosted dawn', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#e9e8e2', grain: 8, blur: 100,
-      stops: [['#efcea2', 0, 40, 12, 50], ['#f2eee6', 20, 10, 46, 44], ['#b8cff0', 40, 104, 44, 40], ['#cddbec', 60, 56, 64, 34],
-              ['#b6cdf0', 80, 96, 92, 40], ['#93adf8', 100, 22, 106, 56]] },
   ];
   const fromPreset = p => ({
     mode: p.mode, angle: p.angle, cx: p.cx, cy: p.cy, base: p.base, grain: p.grain,
@@ -1675,7 +1677,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     closeMenu(false); closeSide();
     if (!open) return;
     closePresets();
-    document.documentElement.style.setProperty('--dock-h', ($('dockWrap').offsetHeight - $('pPanel').offsetHeight) + 'px');
+    document.documentElement.style.setProperty('--dock-h', $('dockWrap').offsetHeight + 'px');
     side.classList.add('open'); sideBtn.setAttribute('aria-expanded', 'true');
     segs.forEach(seg => { seg.firstElementChild.classList.add('instant'); placeInd(seg); });
   });
