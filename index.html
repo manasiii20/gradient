@@ -475,6 +475,32 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .barbtn kbd { margin-left: auto; opacity: .45; font-size: 10.5px; padding: 1px 5px; }
 .sbdiv { width: 1px; margin: 9px 0; background: var(--card-line); flex: none; }
 
+/* presets: the bar grows upward into a grid of presets */
+#dock.savebar { flex-wrap: wrap; }
+.pexp { flex: 0 0 100%; display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .45s cubic-bezier(.22,1,.36,1), opacity .25s ease; }
+.pexp-in { min-height: 0; overflow: hidden; }
+#dock.popen .pexp { grid-template-rows: 1fr; opacity: 1; }
+.pgrid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 14px 10px;
+  max-height: min(46vh, 340px); overflow-y: auto; scrollbar-width: none; padding: 14px 11px 12px;
+  margin-bottom: 5px; border-bottom: 1px solid var(--card-line);
+}
+.pgrid::-webkit-scrollbar { display: none; }
+.pcell { display: flex; flex-direction: column; gap: 6px; padding: 0; border: 0; background: none; color: var(--muted); text-align: left; font: 500 11.5px var(--sans); min-width: 0; }
+.pcell .pv {
+  display: block; width: 100%; aspect-ratio: 3 / 2; border-radius: 10px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1);
+  transition: transform .45s cubic-bezier(.22,1,.36,1), box-shadow .45s cubic-bezier(.22,1,.36,1);
+}
+.pcell .pn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 2px; transition: color .2s; }
+#dock.popen .pcell { animation: pcellin .45s cubic-bezier(.22,1,.36,1) both; animation-delay: calc(var(--i) * 18ms + 40ms); }
+@keyframes pcellin { from { opacity: 0; transform: translateY(8px); } }
+.pcell:hover .pv, .pcell:focus-visible .pv { transform: translateY(-4px) scale(1.05); box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 12px 18px -10px rgba(0,0,0,.5); }
+.pcell:hover .pn, .pcell:focus-visible .pn, .pcell.on .pn { color: var(--fg); }
+.pcell.on .pv { box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 0 0 2px var(--card), 0 0 0 3.5px var(--fg); }
+.pcell:focus-visible { outline: none; }
+.pcell:active .pv { transform: translateY(-1px) scale(1.01); transition-duration: .1s; }
+.barbtn[aria-expanded="true"] { background: var(--card-sel); }
+
 /* a save: a thumbnail of the gradient arcs up into the Library button */
 .flycanvas { position: fixed; z-index: 60; left: 0; top: 0; pointer-events: none; transform-origin: 0 0; will-change: transform, opacity; }
 #libBtn { position: relative; overflow: visible; }
@@ -618,55 +644,6 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-/* ---------- Presets drawer: a slim tab on the left edge that slides out into a column of presets ---------- */
-.app { position: relative; }
-.pdrawer { position: absolute; z-index: 12; left: 0; top: 0; bottom: 0; pointer-events: none; }
-.ptab {
-  pointer-events: auto; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
-  width: 30px; padding: 14px 0 12px; border: 0; border-radius: 0 12px 12px 0;
-  background: var(--card); color: var(--fg); box-shadow: 0 0 0 1px var(--card-edge), 0 14px 30px -18px rgba(0,0,0,.35);
-  font: 500 11px var(--sans); text-transform: uppercase; letter-spacing: .1em;
-  transition: transform .35s cubic-bezier(.22,1,.36,1), opacity .2s, width .2s, background .2s;
-}
-.ptab span { writing-mode: vertical-rl; transform: rotate(180deg); }
-.ptab kbd { font-size: 10px; padding: 0 4px; letter-spacing: 0; opacity: .45; }
-.ptab:hover { width: 34px; background: var(--card); }
-.pdrawer.open .ptab { opacity: 0; transform: translate(-100%, -50%); pointer-events: none; }
-.ppanel {
-  pointer-events: auto; position: absolute; top: 10px; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
-  left: max(20px, env(safe-area-inset-left, 0px)); width: 196px;
-  display: flex; flex-direction: column; overflow: hidden;
-  transform: translateX(calc(-100% - 28px)); opacity: 0; visibility: hidden;
-  transition: transform .42s cubic-bezier(.22,1,.36,1), opacity .25s, visibility 0s .42s;
-}
-.pdrawer.open .ppanel { transform: none; opacity: 1; visibility: visible; transition: transform .42s cubic-bezier(.22,1,.36,1), opacity .2s, visibility 0s; }
-.phead { flex: none; display: flex; align-items: center; gap: 8px; padding: 14px 10px 6px 18px; }
-.phead kbd { font-size: 10px; padding: 0 4px; opacity: .4; }
-.phead .ib { margin-left: auto; }
-.pgrid {
-  flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none;
-  display: grid; grid-template-columns: 1fr 1fr; align-content: start; gap: 14px 10px; padding: 10px 16px 18px;
-}
-.pgrid::-webkit-scrollbar { display: none; }
-.pcell { display: flex; flex-direction: column; gap: 6px; padding: 0; border: 0; background: none; color: var(--muted); text-align: left; font: 500 11.5px var(--sans); min-width: 0; }
-.pcell .pv {
-  display: block; width: 100%; aspect-ratio: 3 / 2; border-radius: 10px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1);
-  transition: transform .45s cubic-bezier(.22,1,.36,1), box-shadow .45s cubic-bezier(.22,1,.36,1);
-}
-.pcell .pn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 2px; transition: color .2s; }
-.pdrawer.open .pcell { animation: rowin .4s cubic-bezier(.22,1,.36,1) both; animation-delay: calc(var(--i) * 22ms + 60ms); }
-.pcell:hover .pv, .pcell:focus-visible .pv { transform: translateY(-4px) scale(1.05); box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 12px 18px -10px rgba(0,0,0,.5); }
-.pcell:hover .pn, .pcell:focus-visible .pn, .pcell.on .pn { color: var(--fg); }
-.pcell.on .pv { box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 0 0 2px var(--card), 0 0 0 3.5px var(--fg); }
-.pcell:focus-visible { outline: none; }
-.pcell:active .pv { transform: translateY(-1px) scale(1.01); transition-duration: .1s; }
-body.mixing .pdrawer { display: none; }
-@media (max-width: 860px) {
-  .ppanel { z-index: 16; bottom: calc(var(--dock-h, 150px) + 4px); left: 16px; }
-  .ptab { top: 42%; }
-}
-
 /* ---------- Narrow screens: the dock stacks into rows ---------- */
 @media (max-width: 860px) {
   .app { grid-template-columns: minmax(0, 1fr); }
@@ -684,6 +661,7 @@ body.mixing .pdrawer { display: none; }
   .savebar { width: auto; gap: 2px; }
   .barbtn { height: 42px; padding: 0 12px; gap: 9px; min-width: 0; }
   .barbtn kbd, .bt2 { display: none; }
+  .pgrid { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
   .dtools { align-items: center; }
   .dtools { border-left: 1px solid var(--card-line); }
 }
@@ -755,6 +733,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   .top #randomBtn { padding: 0 10px; }
 }
 @media (max-width: 340px) { .top-actions { flex-wrap: wrap; } }
+@media (max-width: 480px) { .bt1 .xl { display: none; } }
 @media (max-width: 380px) { .sidebtn span { display: none; } .dtools .dbtn { padding: 0 12px; } .barbtn { padding: 0 10px; gap: 7px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -784,14 +763,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       <canvas id="cv" aria-label="Gradient preview"></canvas>
       <div class="handles" id="handles"></div>
     </div>
-  </div>
-
-  <div class="pdrawer" id="pDrawer">
-    <button class="ptab" id="pTab" type="button" aria-expanded="false" aria-controls="pPanel" title="Presets (P)"><span>Presets</span><kbd>P</kbd></button>
-    <section class="ppanel card" id="pPanel" aria-label="Presets" inert>
-      <div class="phead"><span class="lbl">Presets</span><kbd>P</kbd><button class="ib" id="pClose" type="button" aria-label="Close presets"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M12.5 5L7.5 10l5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
-      <div class="pgrid" id="presets" role="group" aria-label="Presets"></div>
-    </section>
   </div>
 
   <aside class="side card" id="side" aria-label="Settings">
@@ -876,9 +847,19 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   </aside>
 
   <div class="dock-wrap" id="dockWrap">
-    <div class="dock card savebar" id="dock" role="toolbar" aria-label="Save and fun mode">
+    <div class="dock card savebar" id="dock" role="toolbar" aria-label="Presets, save and fun mode">
+      <div class="pexp" id="pPanel" inert>
+        <div class="pexp-in">
+          <div class="pgrid" id="presets" role="group" aria-label="Presets"></div>
+        </div>
+      </div>
+      <button class="barbtn" id="presetBtn" type="button" aria-expanded="false" aria-controls="pPanel" title="Presets (P)">
+        <span class="bt"><span class="bt1">Presets</span><span class="bt2">Start from a classic</span></span>
+        <kbd>P</kbd>
+      </button>
+      <span class="sbdiv" aria-hidden="true"></span>
       <button class="barbtn" id="saveBtn" type="button" title="Save to library (S)">
-        <span class="bt"><span class="bt1">Save to library</span><span class="bt2">Keep this gradient</span></span>
+        <span class="bt"><span class="bt1">Save<span class="xl"> to library</span></span><span class="bt2">Keep this gradient</span></span>
         <kbd>S</kbd>
       </button>
       <span class="sbdiv" aria-hidden="true"></span>
@@ -1693,7 +1674,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const open = !side.classList.contains('open');
     closeMenu(false); closeSide();
     if (!open) return;
-    document.documentElement.style.setProperty('--dock-h', $('dockWrap').offsetHeight + 'px');
+    closePresets();
+    document.documentElement.style.setProperty('--dock-h', ($('dockWrap').offsetHeight - $('pPanel').offsetHeight) + 'px');
     side.classList.add('open'); sideBtn.setAttribute('aria-expanded', 'true');
     segs.forEach(seg => { seg.firstElementChild.classList.add('instant'); placeInd(seg); });
   });
@@ -1974,7 +1956,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   // fun mode lines up with the editor: its bar sits exactly where the editor's bar is, and the
   // globe is centred above it, in the space the canvas uses
   function alignMix() {
-    const d = $('dock').getBoundingClientRect(), wrap = document.querySelector('.mxbar-wrap');
+    const r = $('dock').getBoundingClientRect(), b = $('saveBtn').getBoundingClientRect();
+    const d = { left: r.left, width: r.width, bottom: r.bottom, top: b.top - 5 }, wrap = document.querySelector('.mxbar-wrap');
     wrap.style.left = d.left + 'px'; wrap.style.width = d.width + 'px'; wrap.style.right = 'auto';
     wrap.style.bottom = (innerHeight - d.bottom) + 'px';
     const g = document.querySelector('.mxglobe-wrap'), card = document.querySelector('.mxcard'), temp = document.querySelector('.mxtemp');
@@ -1989,7 +1972,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   }
   function openMix() {
     mixReturn = document.activeElement;
-    closeMenu(false);
+    closeMenu(false); closePresets();
     $('mixView').hidden = false;
     document.body.classList.add('mixing');
     $('sizeBtn').disabled = true; $('sizeBtn').title = 'Size is not used in fun mode';
@@ -2116,25 +2099,23 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     }
     return wrap;
   }
-  // ---------- Presets drawer ----------
-  const pDrawer = $('pDrawer'), pTab = $('pTab'), pPanel = $('pPanel');
+  // ---------- Presets: the bottom bar grows upward into a grid ----------
+  const dockEl = $('dock'), presetBtn = $('presetBtn'), pPanel = $('pPanel');
   let presetOn = -1;
+  const presetsOpen = () => dockEl.classList.contains('popen');
   function openPresets() {
+    closeSide();
     const same = presetOn >= 0 && JSON.stringify(S) === JSON.stringify(fromPreset(PRESETS[presetOn]));
     $('presets').querySelectorAll('.pcell').forEach((c, j) => c.classList.toggle('on', same && j === presetOn));
-    pDrawer.classList.add('open'); pPanel.inert = false; pTab.setAttribute('aria-expanded', 'true');
-    const b = $('presets').querySelector('.pcell.on') || $('presets').querySelector('.pcell');
-    if (b) b.focus({ preventScroll: true });
+    dockEl.classList.add('popen'); pPanel.inert = false; presetBtn.setAttribute('aria-expanded', 'true');
   }
   function closePresets(refocus) {
-    if (!pDrawer.classList.contains('open')) return;
-    pDrawer.classList.remove('open'); pPanel.inert = true; pTab.setAttribute('aria-expanded', 'false');
-    if (refocus) pTab.focus();
+    if (!presetsOpen()) return;
+    dockEl.classList.remove('popen'); pPanel.inert = true; presetBtn.setAttribute('aria-expanded', 'false');
+    if (refocus) presetBtn.focus();
   }
-  const presetsOpen = () => pDrawer.classList.contains('open');
-  pTab.onclick = openPresets;
-  $('pClose').onclick = () => closePresets(true);
-  document.addEventListener('pointerdown', e => { if (presetsOpen() && !pDrawer.contains(e.target)) closePresets(); });
+  presetBtn.onclick = () => presetsOpen() ? closePresets() : openPresets();
+  document.addEventListener('pointerdown', e => { if (presetsOpen() && !dockEl.contains(e.target)) closePresets(); });
   function renderLibrary() {
     const p = $('presets'); p.innerHTML = '';
     PRESETS.forEach((pr, i) => {
