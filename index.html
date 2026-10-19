@@ -53,12 +53,10 @@
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-html, body { height: 100%; }
+html, body { height: 100%; overflow: hidden; }
 body {
   margin: 0;
   background-color: var(--bg);
-  background-image: radial-gradient(var(--dot) 1px, transparent 1.2px);
-  background-size: 22px 22px;
   color: var(--fg);
   font: 14px/1.45 var(--sans);
   display: flex;
@@ -112,6 +110,18 @@ button { cursor: pointer; }
 .hist .btn:last-child { border-radius: 0 8px 8px 0; margin-left: -1px; }
 kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 1px solid currentColor; opacity: .55; }
 
+/* ---------- Backdrop: a soft wash of the gradient's own colours glows behind the canvas ---------- */
+.ambient {
+  position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; pointer-events: none;
+  opacity: .85; filter: blur(60px) saturate(1.35);
+  -webkit-mask-image: radial-gradient(ellipse 78% 74% at 40% 48%, #000 0%, rgba(0,0,0,.7) 40%, transparent 85%);
+          mask-image: radial-gradient(ellipse 78% 74% at 40% 48%, #000 0%, rgba(0,0,0,.7) 40%, transparent 85%);
+  transition: opacity .6s ease;
+}
+:root[data-theme="dark"] .ambient { opacity: .5; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ambient { opacity: .5; } }
+@media (max-width: 860px) { .ambient { -webkit-mask-image: radial-gradient(ellipse 80% 50% at 50% 42%, #000 0%, transparent 80%); mask-image: radial-gradient(ellipse 80% 50% at 50% 42%, #000 0%, transparent 80%); } }
+
 /* ---------- Main: canvas in the middle, dock floating at the bottom ---------- */
 .app {
   flex: 1; min-height: 0;
@@ -151,7 +161,10 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .frame { transform-origin: 50% 50%; transition: transform .18s cubic-bezier(.22,1,.36,1); }
 .stage.panning .frame { transition: none; }
 .h { scale: calc(1 / var(--z, 1)); }
-.stage.zoomed { overflow: hidden; cursor: grab; }
+/* zoomed in, the canvas spreads under the top bar, the settings column and the bottom bar,
+   which float over it; the page itself never scrolls */
+.stage { z-index: 1; }
+.stage.zoomed { cursor: grab; }
 .stage.panning { cursor: grabbing; }
 
 /* ---------- Preset tiles ---------- */
@@ -222,7 +235,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 
 /* right column: size, shape and motion settings */
 .side {
-  grid-column: 2; grid-row: 1 / -1; align-self: stretch;
+  grid-column: 2; grid-row: 1 / -1; align-self: stretch; position: relative; z-index: 5;
   display: flex; flex-direction: column; overflow: hidden;
   width: 288px;
   /* runs from just under the top bar down to the same line as the bottom of the presets dock */
@@ -445,6 +458,39 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .pbar { height: 6px; border-radius: 3px; background: var(--chip); overflow: hidden; }
 .pbar i { display: block; height: 100%; width: 0; background: var(--fg); transition: width .15s; }
 
+/* ---------- Onboarding: a welcome card, then a spotlight that glides from part to part ---------- */
+.tour { position: fixed; inset: 0; z-index: 70; }
+.tour-spot {
+  position: fixed; left: 50%; top: 50%; width: 0; height: 0; border-radius: 16px; pointer-events: none;
+  box-shadow: 0 0 0 200vmax rgba(10,10,9,.5), 0 0 0 1.5px rgba(255,255,255,.7), 0 0 28px 4px rgba(255,255,255,.18);
+  transition: left .55s cubic-bezier(.22,1,.36,1), top .55s cubic-bezier(.22,1,.36,1), width .55s cubic-bezier(.22,1,.36,1), height .55s cubic-bezier(.22,1,.36,1), border-radius .55s;
+}
+.tour.welcome .tour-spot { box-shadow: 0 0 0 200vmax rgba(10,10,9,.5); }
+.tour-card {
+  position: fixed; left: 0; top: 0; width: 304px; padding: 18px 18px 14px; z-index: 1;
+  transition: transform .55s cubic-bezier(.22,1,.36,1), opacity .25s ease, width .3s ease;
+}
+.tour-card h3 { margin: 0 0 6px; font: 600 17px/1.25 var(--sans); letter-spacing: -.01em; }
+.tour-text { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.5; }
+.tour-text kbd { opacity: .8; }
+.tour-count { margin: 0 0 6px; color: var(--muted); font: 500 11px var(--sans); text-transform: uppercase; letter-spacing: .08em; }
+.tour-art { display: none; height: 150px; margin: -6px -6px 16px; border-radius: 12px; overflow: hidden; }
+.tour-art canvas { display: block; width: 100%; height: 100%; transform: scale(1.25); animation: tourart 10s ease-in-out infinite alternate; }
+@keyframes tourart { from { transform: scale(1.25) translate(-6%, -4%) rotate(-2deg); } to { transform: scale(1.35) translate(6%, 4%) rotate(2deg); } }
+.tour.welcome .tour-card { width: 380px; padding: 22px 22px 16px; }
+.tour.welcome .tour-art { display: block; }
+.tour.welcome .tour-card h3 { font-size: 22px; }
+.tour.welcome .tour-count { display: none; }
+.tour-foot { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
+.tour-dots { display: flex; gap: 5px; margin-right: auto; }
+.tour-dots i { width: 6px; height: 6px; border-radius: 3px; background: var(--card-line-strong); transition: width .3s ease, background .3s ease; }
+.tour-dots i.on { width: 16px; background: var(--fg); }
+.tour.welcome .tour-dots { visibility: hidden; }
+.tour-card.swap { opacity: 0; }
+@media (hover: none), (pointer: coarse), (max-width: 480px) { .tour-text .kh { display: none; } }
+@media (prefers-reduced-motion: reduce) { .tour-spot, .tour-card { transition: none; } .tour-art { animation: none; } }
+@media (max-width: 480px) { .tour-card, .tour.welcome .tour-card { width: calc(100vw - 32px); } }
+
 /* ---------- Export overlay & toast ---------- */
 .overlay {
   position: fixed; inset: 0; z-index: 30;
@@ -544,7 +590,7 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
 .mxbar-wrap .barbtn { flex: 1; min-width: 0; }
 .mixview {
   position: fixed; inset: 0; z-index: 26; overflow: hidden;
-  background-color: var(--bg); background-image: radial-gradient(var(--dot) 1px, transparent 1.2px); background-size: 22px 22px;
+  background-color: var(--bg);
   animation: libin .28s cubic-bezier(.2,.7,.2,1);
 }
 .mxtop { position: absolute; top: 0; left: 0; right: auto; display: flex; align-items: center; gap: 14px; padding: calc(env(safe-area-inset-top, 0px) + 14px) 20px 0; }
@@ -762,6 +808,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 </head>
 <body>
 
+<canvas class="ambient" id="ambient" width="48" height="30" aria-hidden="true"></canvas>
 <header class="top">
   <div class="brand">Gradient</div>
   <div class="top-actions">
@@ -769,6 +816,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       <button class="btn icon" id="undoBtn" type="button" aria-label="Undo" title="Undo (Ctrl+Z / ⌘Z)" disabled><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M7.5 4.5L4 8l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M4 8h7.5a4.5 4.5 0 0 1 0 9H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
       <button class="btn icon" id="redoBtn" type="button" aria-label="Redo" title="Redo (Shift+Ctrl+Z / ⇧⌘Z)" disabled><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M12.5 4.5L16 8l-3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M16 8H8.5a4.5 4.5 0 0 0 0 9H11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     </div>
+    <button class="btn icon" id="tourBtn" type="button" aria-label="Take the tour" title="Take the tour (?)"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7.9 7.9a2.2 2.2 0 1 1 3.2 2c-.7.4-1.1.9-1.1 1.6v.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="14.2" r=".95" fill="currentColor"/></svg></button>
     <button class="btn icon theme" id="themeBtn" type="button" aria-label="Switch to dark mode" title="Switch to dark mode"><svg class="sun" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M10 2.5v1.6M10 15.9v1.6M2.5 10h1.6M15.9 10h1.6M4.7 4.7l1.1 1.1M14.2 14.2l1.1 1.1M4.7 15.3l1.1-1.1M14.2 5.8l1.1-1.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><svg class="moon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M16.5 12.2A6.6 6.6 0 0 1 7.8 3.5a6.6 6.6 0 1 0 8.7 8.7z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     <button class="btn icon" id="libBtn" type="button" aria-label="Library" title="Library (L) · save with S"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="3" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     <div class="menu-wrap" id="sizeWrap">
@@ -894,6 +942,20 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   </div>
 </main>
 
+<div class="tour" id="tour" hidden>
+  <div class="tour-spot" id="tourSpot"></div>
+  <div class="tour-card card" id="tourCard" role="dialog" aria-modal="true" aria-labelledby="tourTitle" aria-describedby="tourText">
+    <div class="tour-art" aria-hidden="true"><canvas id="tourArt" width="760" height="300"></canvas></div>
+    <p class="tour-count" id="tourCount"></p>
+    <h3 id="tourTitle"></h3>
+    <p class="tour-text" id="tourText"></p>
+    <div class="tour-foot">
+      <div class="tour-dots" id="tourDots" aria-hidden="true"></div>
+      <button class="btn" id="tourSkip" type="button">Skip</button>
+      <button class="btn primary" id="tourNext" type="button">Next</button>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="overlay" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="exTitle">
     <h2 id="exTitle">PNG</h2>
@@ -1322,7 +1384,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   const ZMIN = .5, ZMAX = 3, ZSTEPS = [.5, .75, 1, 1.25, 1.5, 2, 3];
   function clampPan() {
     const fw = +frame.dataset.fw || frame.offsetWidth, fh = +frame.dataset.fh || frame.offsetHeight;
-    const mx = Math.max(0, (fw * zoom - stage.clientWidth) / 2 + 60), my = Math.max(0, (fh * zoom - stage.clientHeight) / 2 + 60);
+    const mx = Math.max(0, (fw * zoom - innerWidth) / 2 + 60), my = Math.max(0, (fh * zoom - innerHeight) / 2 + 60);
     panX = Math.max(-mx, Math.min(mx, panX)); panY = Math.max(-my, Math.min(my, panY));
   }
   function applyZoom() {
@@ -1372,6 +1434,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       render();
       syncUI();
       store.set('gb-current', S);
+      ambientSoon();
       ensureLoop();
       if (restoring) restoring = false; else recordSoon();
       syncHist();
@@ -3001,9 +3064,111 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
   // ---------- Boot ----------
   new ResizeObserver(() => { fit(); draw(); }).observe(stage);
+  // ---------- Onboarding ----------
+  // First visit: a welcome card, then a spotlight glides over each part with a line or two about it.
+  // Enter / → next, ← back, Esc skips. The ? button (or the ? key) plays it again.
+  const TOUR = [
+    { title: 'Welcome to Gradient', text: 'Make soft, grainy gradients, set them moving, and take them anywhere as CSS, an image or a video. Here is a quick look around.', next: 'Show me around' },
+    { el: ['#frame'], title: 'Your canvas', text: 'Drag the dots to move the colours.<span class="kh"> Pinch on a trackpad, or hold <kbd>⌘</kbd> / <kbd>Ctrl</kbd> and scroll, to zoom in.</span>' },
+    { el: ['#side', '#sideBtn'], title: 'Shape it', text: 'Pick linear, radial or mesh, then tune the colours, blur, noise, glass texture and motion.' },
+    { el: ['#presetBtn'], title: 'Presets', text: 'Not sure where to start? Open a row of classics.<span class="kh"> Press <kbd>P</kbd>.</span>' },
+    { el: ['#funBtn'], title: 'Fun mode', text: 'Pour colours into a liquid globe, then turn the mix into a gradient.<span class="kh"> Press <kbd>F</kbd>.</span>' },
+    { el: ['#saveBtn'], title: 'Save to library', text: 'Keep what you make<span class="kh"> with <kbd>S</kbd></span>. Everything you save lives under the Library button up top.' },
+    { el: ['.side-foot', '#sideBtn'], title: 'Take it with you', text: 'Copy the CSS, or export an image or a looping video in the size you need.' },
+    { el: ['#randomBtn'], title: 'Feeling stuck?', text: 'Randomize gives you something new, any time<span class="kh"> (<kbd>R</kbd>)</span>, and undo steps back<span class="kh"> (<kbd>⌘</kbd> / <kbd>Ctrl</kbd> + <kbd>Z</kbd>)</span>.', next: 'Start creating' },
+  ];
+  const tourEl = $('tour'), spot = $('tourSpot'), tcard = $('tourCard');
+  let tourAt = -1, tourBack = null;
+  const visible = el => el && el.getClientRects().length && el.getBoundingClientRect().width > 0;
+  const tourTarget = st => (st.el || []).map(q => document.querySelector(q)).find(visible);
+  function placeTour() {
+    if (tourAt < 0) return;
+    const st = TOUR[tourAt], t = tourTarget(st), vw = innerWidth, vh = innerHeight, m = 14;
+    const cw = tcard.offsetWidth, ch = tcard.offsetHeight;
+    if (!t) {
+      Object.assign(spot.style, { left: vw / 2 + 'px', top: vh / 2 + 'px', width: '0px', height: '0px' });
+      tcard.style.transform = `translate(${Math.round((vw - cw) / 2)}px, ${Math.round((vh - ch) / 2)}px)`;
+      return;
+    }
+    const r = t.getBoundingClientRect(), pad = 8;
+    const round = t.id === 'frame' && S.format === 'circle';
+    const rad = round ? '50%' : (parseFloat(getComputedStyle(t).borderTopLeftRadius) || 8) + pad + 'px';
+    Object.assign(spot.style, { left: r.left - pad + 'px', top: r.top - pad + 'px', width: r.width + pad * 2 + 'px', height: r.height + pad * 2 + 'px', borderRadius: rad });
+    // the card sits beside the spotlight wherever there is room: right, left, above, then below
+    const g = 18, tries = [
+      [r.right + pad + g, r.top + r.height / 2 - ch / 2],
+      [r.left - pad - g - cw, r.top + r.height / 2 - ch / 2],
+      [r.left + r.width / 2 - cw / 2, r.top - pad - g - ch],
+      [r.left + r.width / 2 - cw / 2, r.bottom + pad + g],
+    ];
+    const fit2 = ([x, y]) => [clamp(x, m, vw - cw - m), y];
+    const clear = ([x, y]) => y >= m && y + ch <= vh - m &&
+      (x + cw <= r.left - pad || x >= r.right + pad || y + ch <= r.top - pad || y >= r.bottom + pad);
+    let [x, y] = tries.map(fit2).find(clear) || [(vw - cw) / 2, r.top > vh / 2 ? m : vh - ch - m];
+    x = clamp(x, m, vw - cw - m); y = clamp(y, m, vh - ch - m);
+    tcard.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+  }
+  function showTourStep(i) {
+    tourAt = i;
+    const st = TOUR[i];
+    tourEl.classList.toggle('welcome', i === 0);
+    $('tourTitle').textContent = st.title;
+    $('tourText').innerHTML = st.text;
+    $('tourCount').textContent = `${i} of ${TOUR.length - 1}`;
+    $('tourNext').textContent = st.next || 'Next';
+    $('tourSkip').textContent = i === TOUR.length - 1 ? 'Back' : 'Skip';
+    $('tourDots').innerHTML = TOUR.slice(1).map((_, k) => `<i class="${k + 1 === i ? 'on' : ''}"></i>`).join('');
+    if (i === 0) { const c = $('tourArt'); paint(c.getContext('2d'), c.width, c.height, { ...S, format: '16:9', texture: { ...S.texture, on: false } }); }
+    // the card fades while it moves to its new spot, so the text never jumps under the reader
+    tcard.classList.add('swap');
+    requestAnimationFrame(() => { placeTour(); setTimeout(() => tcard.classList.remove('swap'), 160); });
+    $('tourNext').focus({ preventScroll: true });
+  }
+  function openTour() {
+    closeMenu(false); closePresets(); closeSide();
+    if (!$('libView').hidden) closeLibrary();
+    tourBack = document.activeElement;
+    tourEl.hidden = false;
+    showTourStep(0);
+  }
+  function endTour() {
+    tourAt = -1; tourEl.hidden = true;
+    store.set('gb-onboarded', 1);
+    tourBack && tourBack.focus && tourBack.focus();
+  }
+  function maybeTour() { if (!store.get('gb-onboarded', 0) && $('mixView').hidden) openTour(); }
+  $('tourNext').onclick = () => tourAt < TOUR.length - 1 ? showTourStep(tourAt + 1) : endTour();
+  $('tourSkip').onclick = () => tourAt === TOUR.length - 1 ? showTourStep(tourAt - 1) : endTour();
+  $('tourBtn').onclick = openTour;
+  addEventListener('resize', placeTour);
+  // while the tour is up it owns the keyboard, so R, S, F and friends don't fire underneath it
+  addEventListener('keydown', e => {
+    if (tourAt < 0) {
+      if (e.key === '?' && !/input|textarea|select/i.test(e.target.tagName) && $('overlay').hidden) { e.preventDefault(); if ($('mixView').hidden) openTour(); }
+      return;
+    }
+    e.stopImmediatePropagation();
+    if (e.key === 'Escape') { e.preventDefault(); endTour(); }
+    else if (e.key === 'ArrowRight' || (e.key === 'Enter' && e.target === document.body)) { e.preventDefault(); $('tourNext').click(); }
+    else if (e.key === 'ArrowLeft' && tourAt > 0) { e.preventDefault(); showTourStep(tourAt - 1); }
+    else if (e.key === 'Tab') { e.preventDefault(); (document.activeElement === $('tourNext') ? $('tourSkip') : $('tourNext')).focus(); }
+  }, true);
+
+  // the backdrop: the gradient painted tiny and stretched across the page, so it is soft for free
+  const amb = $('ambient'), ambCtx = amb.getContext('2d');
+  let ambT = 0;
+  function paintAmbient() {
+    ambT = 0;
+    ambCtx.clearRect(0, 0, amb.width, amb.height);
+    paint(ambCtx, amb.width, amb.height, { ...S, format: '16:9', grain: 0, blur: Math.min(S.blur, 100), texture: { ...S.texture, on: false } });
+  }
+  function ambientSoon() { if (!ambT) ambT = setTimeout(paintAmbient, 120); }
+
   renderLibrary();
   fit();
   draw();
+  paintAmbient();
+  setTimeout(maybeTour, 500);
 })();
 </script>
 </body>
