@@ -147,6 +147,25 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .h.center { background: transparent; width: 16px; height: 16px; margin: -8px 0 0 -8px; }
 .h.center::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: #fff; }
 
+/* zoom: a view-only scale on the frame; handles keep their size */
+.frame { transform-origin: 50% 50%; transition: transform .18s cubic-bezier(.22,1,.36,1); }
+.stage.panning .frame { transition: none; }
+.h { scale: calc(1 / var(--z, 1)); }
+.stage.zoomed { overflow: hidden; cursor: grab; }
+.stage.panning { cursor: grabbing; }
+.zoomctl {
+  position: absolute; right: 16px; bottom: 10px; z-index: 2; display: flex; align-items: center; gap: 2px; padding: 3px;
+  border-radius: 10px; background: var(--card); box-shadow: 0 0 0 1px var(--card-edge), 0 8px 20px -14px rgba(0,0,0,.35);
+}
+.zoomctl button {
+  height: 26px; min-width: 26px; padding: 0 6px; border: 0; border-radius: 7px; background: none; color: var(--fg);
+  display: inline-flex; align-items: center; justify-content: center; font: 500 11.5px var(--mono);
+}
+.zoomctl button:hover:not(:disabled) { background: var(--card-hover); }
+.zoomctl button:disabled { opacity: .35; cursor: default; }
+.zoomctl .zpct { min-width: 46px; color: var(--muted); }
+@media (max-width: 860px) { .zoomctl { display: none; } }
+
 /* ---------- Preset tiles ---------- */
 .tile { position: relative; flex: none; }
 .tile > button:first-child {
@@ -765,6 +784,11 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       <canvas id="cv" aria-label="Gradient preview"></canvas>
       <div class="handles" id="handles"></div>
     </div>
+    <div class="zoomctl" role="group" aria-label="Zoom">
+      <button type="button" id="zoomOut" aria-label="Zoom out (−)"><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M5 10h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+      <button type="button" id="zoomPct" class="zpct" aria-label="Fit to screen (0)">100%</button>
+      <button type="button" id="zoomIn" aria-label="Zoom in (+)"><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M5 10h10M10 5v10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
   </div>
 
   <aside class="side card" id="side" aria-label="Settings">
@@ -992,6 +1016,28 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       stops: [['#fbf1dc', 0, 104, 0, 50], ['#f8e08e', 16, 62, 6, 50], ['#f3a848', 32, 30, 40, 74], ['#f4a256', 48, 50, 62, 50],
               ['#f2849a', 64, -6, 74, 36], ['#f4683f', 82, 24, 100, 58], ['#f6c6cc', 100, 106, 92, 46]] },
   ];
+  // A second set of nine; the presets row alternates between the two sets each time it opens.
+  const PRESETS_B = [
+    { name: 'Aurora', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#0b1a2e', grain: 8, blur: 95,
+      stops: [['#123a6b', 0, 60, 96, 70], ['#2ee6b6', 25, 18, 30, 58], ['#7a5cff', 50, 72, 14, 52], ['#ff6fb5', 75, 100, 62, 36], ['#0e2a4a', 100, -4, 100, 50]] },
+    { name: 'Lavender field', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#ece6f8', grain: 6, blur: 95,
+      stops: [['#b9a6f0', 0, 8, 6, 62], ['#f4c6e3', 33, 84, 28, 50], ['#8fb6f2', 66, 40, 102, 58], ['#fff6ec', 100, 58, 52, 34]] },
+    { name: 'Citrus', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#fff1c9', grain: 10, blur: 90,
+      stops: [['#ffd23f', 0, 18, 18, 58], ['#ff8a3d', 33, 86, 76, 56], ['#9be564', 66, 96, 4, 40], ['#fff7e0', 100, 36, 76, 40]] },
+    { name: 'Ember', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#2a0a0a', grain: 12, blur: 90,
+      stops: [['#3b0b2e', 0, 6, 6, 56], ['#8a1538', 25, 88, 16, 56], ['#ff4d1a', 50, 30, 84, 54], ['#ffb347', 75, 54, 106, 40], ['#c2185b', 100, 96, 92, 36]] },
+    { name: 'Lagoon', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#e3f6f4', grain: 6, blur: 95,
+      stops: [['#22c1c3', 0, 12, 84, 62], ['#7fe3d4', 33, 72, 16, 46], ['#2d7dd2', 66, 96, 90, 52], ['#ffffff', 100, 46, 38, 36]] },
+    { name: 'Rose quartz', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#f7e1e6', grain: 6, blur: 95,
+      stops: [['#f2a7b8', 0, 16, 26, 56], ['#d6b4f0', 33, 88, 20, 46], ['#fbe3d4', 66, 48, 98, 56], ['#e87fa0', 100, 74, 72, 34]] },
+    { name: 'Moss', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#1e2b1d', grain: 14, blur: 90,
+      stops: [['#2f4a3a', 0, 62, 96, 56], ['#6b8f4e', 33, 14, 70, 58], ['#c8d68a', 66, 84, 26, 44], ['#ece6b4', 100, 36, 4, 34]] },
+    { name: 'Electric', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#0d0221', grain: 8, blur: 90,
+      stops: [['#3a0ca3', 0, 16, 16, 56], ['#7209b7', 33, 26, 92, 52], ['#f72585', 66, 84, 82, 48], ['#4cc9f0', 100, 90, 10, 40]] },
+    { name: 'Linen', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#f3ede4', grain: 16, blur: 100,
+      stops: [['#e6d4bd', 0, 16, 18, 58], ['#c9b29a', 33, 86, 84, 54], ['#fbf7f0', 66, 62, 30, 46], ['#d9c2a7', 100, 18, 94, 40]] },
+  ];
+  const PRESET_SETS = [PRESETS, PRESETS_B];
   const fromPreset = p => ({
     mode: p.mode, angle: p.angle, cx: p.cx, cy: p.cy, base: p.base, grain: p.grain,
     format: S ? S.format : '16:9', blur: p.blur ?? 100,
@@ -1260,9 +1306,62 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     frame.style.width = fw + 'px'; frame.style.height = fh + 'px';
     frame.classList.toggle('circle', S.format === 'circle');
     const dpr = Math.min(2, devicePixelRatio || 1);
-    const k = Math.min(dpr, 1400 / Math.max(fw, fh));
+    // render sharper when zoomed in, so the grain stays fine
+    const k = Math.min(dpr * Math.max(1, zoom), (zoom > 1 ? 2800 : 1400) / Math.max(fw, fh));
+    frame.dataset.fw = fw; frame.dataset.fh = fh;
     cv.width = Math.round(fw * k); cv.height = Math.round(fh * k);
   }
+  // ---------- Zoom: the canvas can be looked at closer or from further back ----------
+  // A view-only scale on the frame (nothing is saved). Ctrl/⌘ + scroll or a pinch zooms toward the
+  // pointer, scrolling pans while zoomed in, + / − / 0 on the keyboard, and the little pill in the corner.
+  let zoom = 1, panX = 0, panY = 0, zoomSharp;
+  const ZMIN = .5, ZMAX = 3, ZSTEPS = [.5, .75, 1, 1.25, 1.5, 2, 3];
+  function clampPan() {
+    const fw = +frame.dataset.fw || frame.offsetWidth, fh = +frame.dataset.fh || frame.offsetHeight;
+    const mx = Math.max(0, (fw * zoom - stage.clientWidth) / 2 + 60), my = Math.max(0, (fh * zoom - stage.clientHeight) / 2 + 60);
+    panX = Math.max(-mx, Math.min(mx, panX)); panY = Math.max(-my, Math.min(my, panY));
+  }
+  function applyZoom() {
+    clampPan();
+    frame.style.transform = zoom === 1 && !panX && !panY ? '' : `translate(${panX}px, ${panY}px) scale(${zoom})`;
+    frame.style.setProperty('--z', zoom);
+    stage.classList.toggle('zoomed', zoom > 1);
+    $('zoomPct').textContent = Math.round(zoom * 100) + '%';
+    $('zoomOut').disabled = zoom <= ZMIN + 1e-3; $('zoomIn').disabled = zoom >= ZMAX - 1e-3;
+    // re-render at the new sharpness once the zooming settles
+    clearTimeout(zoomSharp); zoomSharp = setTimeout(() => { fit(); draw(); }, 160);
+  }
+  function zoomTo(z, mx = 0, my = 0) {
+    z = Math.max(ZMIN, Math.min(ZMAX, z));
+    if (z <= 1) { panX = panY = 0; } else { panX = mx - (mx - panX) * z / zoom; panY = my - (my - panY) * z / zoom; }
+    zoom = z; applyZoom();
+  }
+  const zoomStep = dir => {
+    const z = dir > 0 ? ZSTEPS.find(v => v > zoom + 1e-3) : [...ZSTEPS].reverse().find(v => v < zoom - 1e-3);
+    if (z) zoomTo(z);
+  };
+  $('zoomIn').onclick = () => zoomStep(1);
+  $('zoomOut').onclick = () => zoomStep(-1);
+  $('zoomPct').onclick = () => { panX = panY = 0; zoomTo(1); };
+  stage.addEventListener('wheel', e => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const r = stage.getBoundingClientRect();
+      zoomTo(zoom * Math.exp(-e.deltaY * .01), e.clientX - r.left - r.width / 2, e.clientY - r.top - r.height / 2);
+    } else if (zoom > 1) {
+      e.preventDefault(); panX -= e.deltaX; panY -= e.deltaY; applyZoom();
+    }
+  }, { passive: false });
+  // while zoomed in, the empty space around the canvas can be dragged to look around
+  stage.addEventListener('pointerdown', e => {
+    if (zoom <= 1 || e.target !== stage) return;
+    const x0 = e.clientX - panX, y0 = e.clientY - panY;
+    stage.setPointerCapture(e.pointerId); stage.classList.add('panning');
+    const mv = ev => { panX = ev.clientX - x0; panY = ev.clientY - y0; applyZoom(); };
+    const up = () => { stage.classList.remove('panning'); stage.removeEventListener('pointermove', mv); stage.removeEventListener('pointerup', up); stage.removeEventListener('pointercancel', up); };
+    stage.addEventListener('pointermove', mv); stage.addEventListener('pointerup', up); stage.addEventListener('pointercancel', up);
+  });
+
 
   let queued = false;
   function draw() {
@@ -1750,6 +1849,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (!$('libView').hidden) return;
     if (k === 'p') { e.preventDefault(); presetsOpen() ? closePresets(true) : openPresets(); return; }
     if (k === 'r') { e.preventDefault(); randomize(); }
+    if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomStep(1); }
+    if (e.key === '-' || e.key === '_') { e.preventDefault(); zoomStep(-1); }
+    if (k === '0') { e.preventDefault(); $('zoomPct').click(); }
     if (['1', '2', '3'].includes(k)) { e.preventDefault(); modeBtns[+k - 1].click(); }
     if (k === 's') { e.preventDefault(); saveToLibrary(); }
   });
@@ -2112,12 +2214,13 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   }
   // ---------- Presets: the bottom bar grows upward into a grid ----------
   const dockEl = $('dock'), presetBtn = $('presetBtn'), pPanel = $('pPanel');
-  let presetOn = -1;
+  let presetOn = null, presetSet = 1;
   const presetsOpen = () => dockEl.classList.contains('popen');
   function openPresets() {
     closeSide();
-    const same = presetOn >= 0 && JSON.stringify(S) === JSON.stringify(fromPreset(PRESETS[presetOn]));
-    $('presets').querySelectorAll('.pcell').forEach((c, j) => c.classList.toggle('on', same && j === presetOn));
+    // each opening shows the other set of nine, in a fresh order
+    presetSet = 1 - presetSet;
+    renderLibrary();
     dockEl.classList.add('popen'); pPanel.inert = false; presetBtn.setAttribute('aria-expanded', 'true');
   }
   function closePresets(refocus) {
@@ -2129,14 +2232,18 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   document.addEventListener('pointerdown', e => { if (presetsOpen() && !dockEl.contains(e.target)) closePresets(); });
   function renderLibrary() {
     const p = $('presets'); p.innerHTML = '';
-    PRESETS.forEach((pr, i) => {
+    const list = PRESET_SETS[presetSet].slice();
+    for (let i = list.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [list[i], list[j]] = [list[j], list[i]]; }
+    const same = presetOn && JSON.stringify(S) === JSON.stringify(fromPreset(presetOn));
+    list.forEach((pr, i) => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'pcell'; b.style.setProperty('--i', i); b.setAttribute('aria-label', `Load ${pr.name}`);
       b.innerHTML = '<span class="pv"></span>';
       b.firstChild.style.background = gradient(fromPreset(pr), false);
+      b.classList.toggle('on', same && pr === presetOn);
       b.onclick = () => {
         S = fromPreset(pr); sel = 0; draw();
-        presetOn = i; p.querySelectorAll('.pcell').forEach((c, j) => c.classList.toggle('on', j === i));
+        presetOn = pr; p.querySelectorAll('.pcell').forEach(c => c.classList.toggle('on', c === b));
       };
       p.appendChild(b);
     });
