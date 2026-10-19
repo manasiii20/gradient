@@ -463,7 +463,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro-top { padding-top: calc(env(safe-area-inset-top, 0px) + 24px); }
 .intro-mark { font: 500 14px var(--sans); letter-spacing: -.01em; opacity: .55; }
 .intro-mid { flex: 1; display: flex; align-items: flex-end; justify-content: center; width: 100%; padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 7vh); }
-.ask { position: relative; width: min(820px, 100%); padding-top: 88px; }
+.ask { position: relative; width: min(820px, 100%); }
 /* the cards tuck behind the top of the glass, like papers in a folder */
 .ask-cards { position: absolute; left: 0; right: 0; top: 0; height: 150px; display: flex; justify-content: center; }
 .ask-slot { flex: none; position: relative; width: 142px; height: 86px; margin: 0 -3px; transform: translate(var(--x, 0px), var(--y, 18px)); }
@@ -549,21 +549,13 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .ask-hint.miss { color: rgba(29,29,34,.75); }
 .intro-bottom { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 26px); }
 .intro-top { padding-top: calc(env(safe-area-inset-top, 0px) + 18px); }
-.intro-skip {
-  display: inline-flex; align-items: center; gap: 2px; height: 34px; padding: 0 14px; border: 0; border-radius: 999px;
-  color: rgba(29,29,34,.6); font: 400 13px var(--sans); background: rgba(255,255,255,.34);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.6), 0 6px 18px -12px rgba(30,30,60,.35); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
-  transition: background .2s, color .2s;
-}
-.intro-skip:hover { color: #1d1d22; background: rgba(255,255,255,.55); }
+.intro-skip { display: inline-flex; align-items: center; border: 0; background: none; color: rgba(29,29,34,.5); font: 400 13px var(--sans); padding: 5px 8px; border-radius: 7px; transition: color .2s; }
+.intro-skip:hover { color: #1d1d22; }
 .intro { transition: opacity .7s ease, transform .9s cubic-bezier(.22,1,.36,1); }
 .intro.dim .ask-hint, .intro.dim .intro-skip { color: rgba(255,255,255,.6); }
 .intro.dim .ask-glass { background: rgba(255,255,255,.14); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 24px 50px -30px rgba(0,0,0,.6); }
 .intro-skip kbd { margin: 0 4px; opacity: .7; }
-.intro-skip .spacek { display: inline-block; min-width: 54px; margin: 0 6px; text-align: center; padding: 2px 8px; border-radius: 6px; font: 500 11px var(--sans); color: rgba(29,29,34,.7); border: 0; opacity: 1;
-  background: rgba(255,255,255,.75); box-shadow: inset 0 -1px 0 rgba(30,30,60,.12), 0 1px 2px rgba(30,30,60,.12); }
-.intro.dim .intro-skip { background: rgba(255,255,255,.1); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
-.intro.dim .intro-skip .spacek { background: rgba(255,255,255,.18); color: rgba(255,255,255,.85); }
+.intro-skip .spacek { display: inline-block; min-width: 54px; margin: 0 6px; text-align: center; padding: 1px 8px; border-radius: 5px; font: 400 11px var(--mono); color: inherit; background: none; border: 1px solid currentColor; opacity: .8; }
 @media (hover: none), (pointer: coarse) { .intro-skip .spacek { min-width: 0; } }
 @media (max-width: 480px) {
   .ask-ph { font-size: 14px; }
@@ -572,7 +564,6 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   .ask-ib svg { width: 18px; height: 18px; }
   .ask-go { width: 40px; height: 40px; }
   .ask-orb { width: 20px; height: 20px; margin-right: 8px; }
-  .ask { padding-top: 62px; }
   .ask-slot { width: 74px; height: 46px; margin: 0 -4px; }
   .ask-bar { height: 54px; padding-left: 14px; }
   .ask-bar input { font-size: 15px; }
@@ -1078,7 +1069,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   <div class="intro-top"><button type="button" class="intro-skip" id="introSkip"><span class="kh">Press <kbd class="spacek">space</kbd> to jump straight in</span><span class="th">Skip</span></button></div>
   <div class="intro-mid">
     <div class="ask">
-      <div class="ask-cards" id="askCards" role="group" aria-label="Start from one of these"></div>
       <form class="ask-glass" id="askForm" autocomplete="off">
         <div class="ask-bar">
           <span class="ask-orb" id="askOrb" aria-hidden="true"></span>
@@ -3542,7 +3532,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     introTyped = null; introPick = null; introCard = null; $('askInput').value = ''; $('askInput').parentElement.classList.remove('filled');
     startPh();
     introBg = bgState(fromPreset(CALM)); setIntroBg(fromPreset(CALM));
-    buildCards();
     cancelAnimationFrame(introRaf); introRaf = requestAnimationFrame(introFrame);
     setTimeout(() => $('askInput').focus({ preventScroll: true }), 400);
   }
