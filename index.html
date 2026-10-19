@@ -490,12 +490,15 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 @keyframes pipout { to { transform: scale(.4); opacity: 0; } }
 
 /* ---------- Fun mode: same parts as the main page ---------- */
+/* the main top bar stays in place above fun mode; its title takes the brand's spot */
+body.mixing .top { z-index: 30; }
+body.mixing .brand { visibility: hidden; }
 .mixview {
   position: fixed; inset: 0; z-index: 26; overflow: hidden;
   background-color: var(--bg); background-image: radial-gradient(var(--dot) 1px, transparent 1.2px); background-size: 22px 22px;
   animation: libin .28s cubic-bezier(.2,.7,.2,1);
 }
-.mxtop { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 14px; padding: calc(env(safe-area-inset-top, 0px) + 14px) 20px 0; }
+.mxtop { position: absolute; top: 0; left: 0; right: auto; display: flex; align-items: center; gap: 14px; padding: calc(env(safe-area-inset-top, 0px) + 14px) 20px 0; }
 .mxtop .btn.icon { width: 34px; height: 34px; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 6px 16px -10px rgba(0,0,0,.25); }
 .mxtitle { display: grid; gap: 1px; }
 .mxtitle h2 { margin: 0; font: 600 15px/19px var(--sans); letter-spacing: -0.01em; }
@@ -512,10 +515,10 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .mxchip { width: 16px; height: 16px; border-radius: 5px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); transition: background-color .2s ease; }
 .mxhex, .mxrgb { font: 500 12px var(--mono); color: var(--fg); font-variant-numeric: tabular-nums; }
 .mxrgb { margin-top: 6px; color: var(--muted); }
-.mxglobe-wrap { position: absolute; inset: 88px 270px; display: grid; place-items: center; pointer-events: none; }
+.mxglobe-wrap { position: absolute; inset: 72px 270px 150px; display: grid; place-items: center; pointer-events: none; }
 .mxglobe { pointer-events: auto; border-radius: 50%; box-shadow: var(--frame-shadow); cursor: crosshair; touch-action: none; }
 .mxglobe.stirring { cursor: grabbing; }
-.mxhint { position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%); font-size: 12px; color: var(--muted); white-space: nowrap; transition: opacity .6s ease; }
+.mxhint { position: absolute; left: 50%; bottom: -31px; transform: translateX(-50%); font-size: 12px; color: var(--muted); white-space: nowrap; transition: opacity .6s ease; }
 .mxhint.gone { opacity: 0; }
 .mxtemp {
   position: absolute; right: 20px; top: 76px; bottom: 23px; width: 72px; border-radius: 18px; padding: 16px 0;
@@ -539,7 +542,9 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   .mxname { height: 28px; font-size: 22px; line-height: 28px; grid-row: 1 / 3; align-self: center; }
   .mxrow { margin-top: 0; }
   .mxrgb { margin-top: 2px; }
-  .mxglobe-wrap { inset: 118px 80px; }
+  .mxglobe-wrap { inset: 128px 80px 104px; }
+  .mxtitle { display: none; }
+  .mxtop { padding-left: 12px; }
   .mxhint { display: none; }
   .mxtemp { right: 12px; top: 140px; bottom: 96px; width: 56px; }
   .mxbar-wrap { left: 12px; right: 12px; }
@@ -1843,6 +1848,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     mixReturn = document.activeElement;
     closeMenu(false);
     $('mixView').hidden = false;
+    document.body.classList.add('mixing');
     fitMix(); seedMix();
     bowl.name = ''; $('mxName').innerHTML = '';
     $('mxHint').classList.remove('gone');
@@ -1853,6 +1859,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   function closeMix() {
     cancelAnimationFrame(bowl.raf); bowl.raf = 0;
     $('mixView').hidden = true;
+    document.body.classList.remove('mixing');
     mixReturn && mixReturn.focus && mixReturn.focus();
   }
   // the Fun mode switch slides on, then the playground opens; it switches off again on the way out
@@ -2468,7 +2475,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (!$('libView').hidden || !flyToLibrary()) toast(`Saved as “${name}”`);
     if (!$('libView').hidden) {
       renderLibView();
-      const fresh = $('libGrid').querySelector('.sleeve:not(.savecard)');
+      const fresh = $('libGrid').querySelector('.sleeve');
       if (fresh) fresh.classList.add('fresh');
     }
   }
@@ -2478,41 +2485,11 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   const MODE_NAME = { linear: 'Linear', radial: 'Radial', mesh: 'Mesh' };
   let libAnims = [];
 
-  // the current design counts as saved when an entry holds exactly the same settings
-  function isSavedAlready() {
-    const cur = JSON.stringify(S);
-    return library.some(e => JSON.stringify(e.state) === cur);
-  }
   function renderLibView() {
     libAnims.forEach(a => cancelAnimationFrame(a.raf)); libAnims = [];
     const grid = $('libGrid'); grid.innerHTML = '';
-    $('libEmpty').hidden = true;
+    $('libEmpty').hidden = library.length > 0;
 
-    // First card: save what's in the editor right now (only when it isn't in the library already)
-    if (!isSavedAlready()) {
-      const [W, H] = FORMATS[S.format];
-      const st = S;
-      const card = document.createElement('button');
-      card.type = 'button'; card.className = 'sleeve savecard';
-      card.setAttribute('aria-label', 'Save the current gradient to the library');
-      card.innerHTML = `
-        <div class="tl"><span class="nm">Save this gradient</span><br>— ${MODE_NAME[S.mode]} · ${S.stops.length} colors<small>${S.motion.on ? `${S.motion.speed}s loop` : 'Still'}${matchMedia('(hover: none), (pointer: coarse)').matches ? '' : ' · press S anytime'}</small></div>
-        <div class="tr">New</div>
-        <div class="bl">${dateStr(Date.now())}</div>
-        <div class="br">Gradient</div>
-        <div class="art"><canvas class="main"></canvas></div>
-        <span class="savepill"><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M10 4v12M4 10h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Save</span>`;
-      grid.appendChild(card);
-      const box = card.getBoundingClientRect();
-      const sc = Math.min(box.width * 0.5 / W, box.height * 0.52 / H);
-      const art = card.querySelector('.art'), cv2 = card.querySelector('canvas');
-      const aw = Math.round(W * sc), ah = Math.round(H * sc), dpr = Math.min(2, devicePixelRatio || 1);
-      art.style.width = aw + 'px'; art.style.height = ah + 'px';
-      art.classList.toggle('circle', st.format === 'circle');
-      cv2.width = Math.round(aw * dpr); cv2.height = Math.round(ah * dpr);
-      paint(cv2.getContext('2d', { willReadFrequently: true }), cv2.width, cv2.height, { ...S, grain: S.grain * 0.45 });
-      card.addEventListener('click', saveToLibrary);
-    }
     $('libSub').textContent = library.length ? `${library.length} saved` : '';
     library.forEach((entry, idx) => {
       const st = entry.state, [W, H, label] = FORMATS[st.format];
@@ -2631,7 +2608,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     document.body.style.overflow = '';
     libReturn && libReturn.focus && libReturn.focus();
   }
-  $('libBtn').onclick = openLibrary;
+  $('libBtn').onclick = () => { if (!$('mixView').hidden) closeMix(); openLibrary(); };
   $('libClose').onclick = closeLibrary;
   addEventListener('resize', () => { if (!$('libView').hidden) renderLibView(); });
   libCount();
