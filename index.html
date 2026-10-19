@@ -464,7 +464,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 /* ---------- Save bar: save to library + fun mode ---------- */
 .savebar { gap: 4px; padding: 5px; border-radius: 16px; align-items: stretch; }
 .barbtn {
-  display: flex; align-items: center; gap: 14px; height: 44px; padding: 0 10px 0 14px; border: 0; border-radius: 12px;
+  display: flex; align-items: center; gap: 32px; min-width: 228px; height: 44px; padding: 0 12px 0 16px; border: 0; border-radius: 12px;
   background: none; color: var(--fg); text-align: left; transition: background-color .2s ease, transform .2s ease;
 }
 .barbtn:hover { background: var(--card-hover); }
@@ -621,7 +621,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   .side.open { display: flex; }
   .dlabel { display: none; }
   .savebar { width: auto; gap: 2px; }
-  .barbtn { height: 42px; padding: 0 12px; gap: 9px; }
+  .barbtn { height: 42px; padding: 0 12px; gap: 9px; min-width: 0; }
   .barbtn kbd, .bt2 { display: none; }
   .dtools { align-items: center; }
   .dtools { border-left: 1px solid var(--card-line); }
