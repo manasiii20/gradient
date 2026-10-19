@@ -470,14 +470,29 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro-arrows button:hover { background: rgba(255,255,255,.16); }
 .intro-arrows button:active { transform: scale(.94); }
 .intro-text { margin: 26px 0 0; font: 400 15px/1.55 var(--sans); text-shadow: 0 1px 14px rgba(0,0,0,.18); }
+.intro-flip { margin: 14px 0 0; font: 400 12.5px var(--sans); opacity: .7; }
 .intro-bottom { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px); }
 .intro-hint { margin: 0 0 14px; font: 400 14px var(--sans); text-shadow: 0 1px 12px rgba(0,0,0,.2); }
-.intro-pill { display: inline-flex; gap: 6px; padding: 6px; border-radius: 16px; background: rgba(255,255,255,.22); box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
-.intro-pill button { height: 48px; padding: 0 20px; border: 0; border-radius: 11px; font: 500 15px var(--sans); transition: transform .2s, background .2s; }
-.intro-pill button:active { transform: scale(.97); }
-.intro-ghost { background: rgba(0,0,0,.16); color: #fff; }
-.intro-ghost:hover { background: rgba(0,0,0,.26); }
-.intro-go { background: #fff; color: #1a1a19; }
+.intro-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px; border-radius: 18px; background: rgba(255,255,255,.28); box-shadow: inset 0 0 0 1px rgba(255,255,255,.35), 0 18px 40px -24px rgba(0,0,0,.45); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
+.intro-tile {
+  position: relative; width: 52px; height: 52px; border: 0; border-radius: 12px; background: rgba(255,255,255,.92); color: #6d6d68;
+  display: grid; place-items: center; transition: transform .25s cubic-bezier(.22,1,.36,1), background .2s, color .2s;
+}
+.intro-tile:hover, .intro-tile:focus-visible { transform: translateY(-3px); background: #fff; color: #1a1a19; }
+.intro-tile:active { transform: translateY(0) scale(.96); }
+/* each tile names itself on hover */
+.intro-tile::after {
+  content: attr(data-tip); position: absolute; left: 50%; bottom: calc(100% + 12px); transform: translate(-50%, 4px); opacity: 0;
+  padding: 5px 9px; border-radius: 7px; background: rgba(20,20,19,.86); color: #fff; font: 500 12px var(--sans); white-space: nowrap; pointer-events: none;
+  transition: opacity .15s ease, transform .25s cubic-bezier(.22,1,.36,1);
+}
+.intro-tile:hover::after, .intro-tile:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
+.intro-go {
+  height: 52px; padding: 0 22px; margin-left: 2px; border: 0; border-radius: 12px; font: 500 16px var(--sans);
+  background: var(--go, #ff4a1c); color: var(--go-ink, #fff); transition: background .6s ease, color .6s ease, transform .2s, filter .2s;
+}
+.intro-go:hover { filter: brightness(1.06); }
+.intro-go:active { transform: scale(.97); }
 .intro-go span { display: inline-block; transition: transform .25s ease; }
 .intro-go:hover span { transform: translateX(3px); }
 /* on pale gradients the type turns dark so it stays readable */
@@ -486,12 +501,9 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro.light .intro-title, .intro.light .intro-text, .intro.light .intro-hint { text-shadow: 0 1px 18px rgba(255,255,255,.35); }
 .intro.light .intro-arrows button { color: #1a1a19; }
 .intro.light .intro-arrows button:hover { background: rgba(0,0,0,.07); }
-.intro.light .intro-pill { background: rgba(255,255,255,.4); box-shadow: inset 0 0 0 1px rgba(255,255,255,.6), 0 10px 30px -18px rgba(0,0,0,.35); }
-.intro.light .intro-ghost { background: rgba(0,0,0,.06); color: #1a1a19; }
-.intro.light .intro-ghost:hover { background: rgba(0,0,0,.11); }
-.intro.light .intro-go { background: #1a1a19; color: #fff; }
+.intro.light .intro-pill { background: rgba(255,255,255,.45); box-shadow: inset 0 0 0 1px rgba(255,255,255,.65), 0 18px 40px -24px rgba(0,0,0,.4); }
 .intro.light::after { background: none; }
-@media (max-width: 480px) { .intro-text { font-size: 14px; } .intro-pill button { padding: 0 14px; font-size: 14px; } .intro-hint { font-size: 13px; padding: 0 20px; } }
+@media (max-width: 480px) { .intro-text { font-size: 14px; } .intro-tile { width: 46px; height: 46px; } .intro-go { height: 46px; padding: 0 14px; font-size: 15px; } .intro-hint { font-size: 13px; padding: 0 20px; } .intro-tile::after { display: none; } }
 @media (prefers-reduced-motion: reduce) { .intro-title.swap .intro-name, .intro-title.swap .intro-num { animation: none; } }
 
 /* ---------- Onboarding: a welcome card, then a spotlight that glides from part to part ---------- */
@@ -992,11 +1004,20 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       <button type="button" id="introPrevBtn" aria-label="Previous gradient"><svg viewBox="0 0 20 20" width="22" height="22" aria-hidden="true"><path d="M10 16.5v-13M4.5 9L10 3.5 15.5 9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
     <p class="intro-text">Soft, grainy gradients that move.<br>Shape them, pour them, set them drifting,<br>and take them anywhere as CSS, an image or a video.</p>
+    <p class="intro-flip">Use the arrows to flip through gradients</p>
   </div>
   <div class="intro-bottom">
-    <p class="intro-hint">Pick one you like with the arrows, then make it yours</p>
+    <p class="intro-hint">Start from a preset, a pour, or a surprise</p>
     <div class="intro-pill">
-      <button type="button" class="intro-ghost" id="introTour">Show me around</button>
+      <button type="button" class="intro-tile" id="introPresets" aria-label="Start from a preset" data-tip="Presets">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="3.5" y="6" width="9" height="12" rx="2.4" transform="rotate(-12 8 12)" fill="none" stroke="currentColor" stroke-width="1.7"/><rect x="11.5" y="6" width="9" height="12" rx="2.4" transform="rotate(10 16 12)" fill="currentColor" opacity=".9"/></svg>
+      </button>
+      <button type="button" class="intro-tile" id="introFun" aria-label="Start in fun mode" data-tip="Fun mode">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M4.2 13.2c2.6-1.9 4.9-1.9 7.3 0s5 1.9 8.3 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M5.6 16.6c2.2-1.3 4.2-1.3 6.2 0s4.2 1.3 6.6 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" opacity=".5"/></svg>
+      </button>
+      <button type="button" class="intro-tile" id="introRandom" aria-label="Surprise me" data-tip="Surprise me">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="8.8" cy="8.8" r="1.35" fill="currentColor"/><circle cx="15.2" cy="8.8" r="1.35" fill="currentColor"/><circle cx="12" cy="12" r="1.35" fill="currentColor"/><circle cx="8.8" cy="15.2" r="1.35" fill="currentColor"/><circle cx="15.2" cy="15.2" r="1.35" fill="currentColor"/></svg>
+      </button>
       <button type="button" class="intro-go" id="introGo">Start creating <span aria-hidden="true">→</span></button>
     </div>
   </div>
@@ -3169,6 +3190,12 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     ti.style.setProperty('--dir', dir > 0 ? '18px' : '-18px');
     ti.classList.remove('swap'); void ti.offsetWidth; ti.classList.add('swap');
     introLast = 0; introTone = true;
+    // Start creating wears the boldest colour in the gradient on screen
+    const hsl = c => { const [r, g, b] = toRgb(c).map(v => v / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2; return [mx === mn ? 0 : (mx - mn) / (1 - Math.abs(2 * l - 1)), l]; };
+    const cols = [INTRO[introAt].base, ...INTRO[introAt].stops.map(x => x[0])];
+    const go = cols.reduce((a, c) => { const [sa, l] = hsl(c), sc = sa * (1 - Math.abs(l - .5) * 1.4); return sc > a[1] ? [c, sc] : a; }, [cols[0], -1])[0];
+    const [r, g, b] = toRgb(go), lum = (.2126 * r + .7152 * g + .0722 * b) / 255;
+    introEl.style.setProperty('--go', go); introEl.style.setProperty('--go-ink', lum > .62 ? '#1a1a19' : '#fff');
   }
   function openIntro() {
     introEl.hidden = false; introEl.classList.remove('leaving');
@@ -3183,16 +3210,26 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     cancelAnimationFrame(introRaf); introRaf = requestAnimationFrame(introFrame);
     $('introGo').focus({ preventScroll: true, focusVisible: false });
   }
-  function leaveIntro(thenTour) {
-    S = fromPreset(INTRO[introAt]); sel = 0; fit(); draw();
+  // every way in lands in the editor and the tour picks up from the part you chose
+  function leaveIntro(way = 'go') {
+    S = fromPreset(INTRO[introAt]); sel = 0;
+    if (way === 'random') randomize(); else { fit(); draw(); }
     store.set('gb-onboarded', 1);
     introEl.classList.add('leaving');
-    setTimeout(() => { introEl.hidden = true; cancelAnimationFrame(introRaf); introRaf = 0; if (thenTour) { openTour(); showTourStep(1); } }, 750);
+    setTimeout(() => {
+      introEl.hidden = true; cancelAnimationFrame(introRaf); introRaf = 0;
+      if (way === 'presets') { openPresets(); openTour(3); }
+      else if (way === 'fun') { openMix(); openTour(4); }
+      else if (way === 'random') openTour(7);
+      else openTour(1);
+    }, 750);
   }
   $('introNext').onclick = () => showIntro(introAt + 1, 1);
   $('introPrevBtn').onclick = () => showIntro(introAt - 1, -1);
-  $('introGo').onclick = () => leaveIntro(false);
-  $('introTour').onclick = () => leaveIntro(true);
+  $('introGo').onclick = () => leaveIntro('go');
+  $('introPresets').onclick = () => leaveIntro('presets');
+  $('introFun').onclick = () => leaveIntro('fun');
+  $('introRandom').onclick = () => leaveIntro('random');
   addEventListener('resize', () => { if (introOpen()) sizeIntro(); });
 
   // ---------- Onboarding ----------
@@ -3277,21 +3314,23 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     requestAnimationFrame(() => { placeTour(); setTimeout(() => tcard.classList.remove('swap'), 160); });
     $('tourNext').focus({ preventScroll: true });
   }
-  function openTour() {
-    closeMenu(false); closePresets(); closeSide();
+  function openTour(at = 0) {
+    closeMenu(false); closeSide();
+    if (at !== 3) closePresets();
     if (!$('libView').hidden) closeLibrary();
     tourBack = document.activeElement;
     tourEl.hidden = false;
-    showTourStep(0);
+    showTourStep(at);
+    tourAway();
   }
   function endTour() {
     tourAt = -1; tourEl.hidden = true; tourEl.classList.remove('away');
     store.set('gb-onboarded', 1);
     tourBack && tourBack.focus && tourBack.focus();
   }
-  // a first visit gets the tour, starting with the welcome card; the intro screen is parked for now
-  // (it still opens from the Gradient name in the corner)
-  function maybeTour() { if (!store.get('gb-onboarded', 0) && $('mixView').hidden) openTour(); }
+  // a first visit opens on the intro screen, and the tour follows once you are in;
+  // the Gradient name in the corner opens the intro again
+  function maybeTour() { if (!store.get('gb-onboarded', 0) && $('mixView').hidden) openIntro(); }
   document.querySelector('.top .brand').addEventListener('click', () => { if ($('mixView').hidden && $('libView').hidden && tourAt < 0) openIntro(); });
   $('tourNext').onclick = () => tourAt < TOUR.length - 1 ? showTourStep(tourAt + 1) : endTour();
   $('tourSkip').onclick = () => tourAt === TOUR.length - 1 ? showTourStep(tourAt - 1) : endTour();
@@ -3313,7 +3352,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       e.stopImmediatePropagation();
       if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); showIntro(introAt + 1, 1); }
       else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); showIntro(introAt - 1, -1); }
-      else if (e.key === 'Escape') { e.preventDefault(); leaveIntro(false); }
+      else if (e.key === 'Escape') { e.preventDefault(); leaveIntro('go'); }
       return;
     }
     if (tourAt < 0) {
