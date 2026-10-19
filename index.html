@@ -462,7 +462,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro-top, .intro-mid, .intro-bottom { position: relative; z-index: 1; text-align: center; }
 .intro-top { padding-top: calc(env(safe-area-inset-top, 0px) + 24px); }
 .intro-mark { font: 500 14px var(--sans); letter-spacing: -.01em; opacity: .55; }
-.intro-mid { flex: 1; display: flex; align-items: flex-end; justify-content: center; width: 100%; padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 7vh); }
+.intro-mid { flex: 1; display: flex; align-items: flex-end; justify-content: center; width: 100%; padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 7vh + 34px); }
 .ask { position: relative; width: min(820px, 100%); }
 /* the cards tuck behind the top of the glass, like papers in a folder */
 .ask-cards { position: absolute; left: 0; right: 0; top: 0; height: 150px; display: flex; justify-content: center; }
@@ -529,6 +529,8 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .ask-go:hover { transform: translateY(-1px); }
 .ask-go:active { transform: scale(.95); }
 /* what the words were read as: each word with dots of the colours it brought */
+/* tags and messages hang below the bar without taking space, so the bar never moves */
+.ask-read, .ask-hint { position: absolute; left: 0; right: 0; top: 100%; }
 .ask-read { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 14px; }
 .ask-read:empty { display: none; }
 .ask-chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 6px; border-radius: 8px; font: 500 12px var(--sans); color: rgba(29,29,34,.72);
