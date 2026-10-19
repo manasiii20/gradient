@@ -515,7 +515,9 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 
 /* ---------- Fun mode: same parts as the main page ---------- */
 /* the main top bar stays in place above fun mode; its title takes the brand's spot */
-body.mixing .top { z-index: 30; }
+body.mixing .top { z-index: 30; pointer-events: none; }
+body.mixing .top > * { pointer-events: auto; }
+body.mixing .top > .brand { pointer-events: none; }
 body.mixing .brand { visibility: hidden; }
 body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
 .mxbar-wrap .dock { width: 100%; }
@@ -1830,24 +1832,38 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   function mixStep(dt) {
     bowl.time += dt;
     const B = bowl.blobs, t = bowl.time;
-    // the water never quite settles: three slow eddies wander around the bowl and the whole body
-    // turns gently, so even at rest the colours keep folding into one another
-    const ed = [0, 1, 2].map(k => {
-      const a = t * (.11 + k * .04) + k * 2.1, rr = .38 + .14 * Math.sin(t * .17 + k * 1.7);
-      return [Math.cos(a) * rr, Math.sin(a) * rr, (k % 2 ? -1 : 1) * (.16 + .05 * Math.sin(t * .23 + k))];
+    // the water never settles, but it doesn't spin as one body either: a drifting, curling current
+    // (the curl of a few travelling waves) folds the colours through each other, a couple of eddies
+    // wander about, and every drop has its own restless wobble, so the ink keeps dispersing
+    const W = bowl.waves || (bowl.waves = [0, 1, 2, 3].map(k => ({
+      kx: (Math.random() - .5) * 5, ky: (Math.random() - .5) * 5, w: (.18 + Math.random() * .22) * (Math.random() < .5 ? -1 : 1),
+      p: Math.random() * 6.28, a: .05 + Math.random() * .04, s: .05 + Math.random() * .06,
+    })));
+    const ed = [0, 1].map(k => {
+      const a = t * (.09 + k * .05) + k * 2.6 + Math.sin(t * .13 + k) * 1.4, rr = .3 + .25 * Math.sin(t * .11 + k * 1.9);
+      return [Math.cos(a) * rr, Math.sin(a) * rr, (k ? -1 : 1) * (.09 + .07 * Math.sin(t * .21 + k * 2))];
     });
     for (const b of B) {
-      let fx = -b.y * .14, fy = b.x * .14;
+      let fx = -b.y * .03, fy = b.x * .03;
+      for (const v of W) {
+        // the wave directions themselves slowly turn, so the current never repeats
+        const kx = v.kx * Math.cos(t * v.s) - v.ky * Math.sin(t * v.s), ky = v.kx * Math.sin(t * v.s) + v.ky * Math.cos(t * v.s);
+        const c = Math.cos(kx * b.x + ky * b.y + v.w * t * 6 + v.p) * v.a * 3;
+        fx += ky * c; fy -= kx * c;
+      }
       for (const [ex, ey, st] of ed) {
-        const dx = b.x - ex, dy = b.y - ey, q = st / (dx * dx + dy * dy + .12);
+        const dx = b.x - ex, dy = b.y - ey, q = st / (dx * dx + dy * dy + .15);
         fx += -dy * q; fy += dx * q;
       }
-      fx += Math.sin(t * .5 + b.seed) * .05; fy += Math.cos(t * .43 + b.seed * 1.7) * .05;
+      // a restless wobble per drop: random kicks that fade, so no two drops move alike
+      b.wx = (b.wx || 0) * Math.exp(-dt * 1.4) + (Math.random() - .5) * 1.1 * Math.sqrt(dt);
+      b.wy = (b.wy || 0) * Math.exp(-dt * 1.4) + (Math.random() - .5) * 1.1 * Math.sqrt(dt);
+      fx += b.wx * .35; fy += b.wy * .35;
       // drift toward the flow, while splashes from new drops still carry their own push
       const k = Math.min(1, dt * 1.6);
       b.vx += (fx - b.vx) * k; b.vy += (fy - b.vy) * k;
       // each drop breathes a little, like ink slowly spreading and gathering
-      const target = b.dying ? 0 : b.R * (1 + .12 * Math.sin(t * .55 + b.seed * 3));
+      const target = b.dying ? 0 : b.R * (1 + .14 * Math.sin(t * (.4 + (b.seed % 1) * .4) + b.seed * 3));
       b.r += (target - b.r) * Math.min(1, dt * (b.dying ? 1.2 : 2.4));
     }
     for (let i = 0; i < B.length; i++) for (let j = i + 1; j < B.length; j++) {
@@ -1912,6 +1928,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     mxCv.width = mxCv.height = Math.round(size * dpr);
   }
   function seedMix() {
+    bowl.waves = null;
     // start the bowl from the colours of the gradient you were working on
     bowl.blobs = []; bowl.time = 0;
     const cols = S.stops.slice(0, 6).map(s => s.c);
