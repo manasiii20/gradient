@@ -464,54 +464,26 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 /* ---------- Save bar: save to library + the switch into fun mode ---------- */
 .savebar { gap: 6px; padding: 6px; border-radius: 20px; align-items: stretch; }
 .savebtn {
-  display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 14px 0 8px; border: 0; border-radius: 15px;
+  display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 14px 0 18px; border: 0; border-radius: 15px;
   background: none; color: var(--fg); text-align: left; transition: background-color .25s ease;
 }
 .savebtn:hover { background: var(--card-hover); }
-.savebtn:active .sthumb { transform: scale(.94); }
-.sthumb {
-  position: relative; display: grid; place-items: center; width: 52px; height: 40px; border-radius: 11px; flex: none; color: #fff;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.08), 0 6px 14px -8px rgba(0,0,0,.45);
-  transition: transform .45s cubic-bezier(.22,1,.36,1), border-radius .3s ease, width .3s ease;
-}
-.sthumb.round { width: 40px; border-radius: 50%; }
-.savebtn:hover .sthumb { transform: translateY(-2px) rotate(-3deg); }
-.sthumb .stick { opacity: 0; transform: scale(.4); transition: opacity .25s ease, transform .4s cubic-bezier(.3,1.6,.5,1); filter: drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
-.sthumb::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: rgba(0,0,0,.28); opacity: 0; transition: opacity .25s ease; }
-.savebtn.saved .sthumb { animation: thumbpop .7s cubic-bezier(.22,1,.36,1); }
-.savebtn.saved .sthumb::after { opacity: 1; }
-.savebtn.saved .stick { opacity: 1; transform: none; position: relative; z-index: 1; }
-@keyframes thumbpop { 0% { transform: none; } 35% { transform: translateY(-7px) scale(1.08) rotate(-4deg); } 100% { transform: none; } }
 .stext { display: grid; gap: 1px; min-width: 0; }
-.st1 { position: relative; display: block; height: 19px; overflow: hidden; font: 600 14.5px/19px var(--sans); min-width: 150px; }
-.st1 span { position: absolute; left: 0; top: 0; white-space: nowrap; }
-.st1 span.in { animation: wordin .45s cubic-bezier(.22,1,.36,1) both; }
-.st1 span.out { animation: wordout .25s cubic-bezier(.5,0,.75,0) both; }
-.st1 span:only-child { animation: none; }
-.st2 { font-size: 12px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.st1 { position: relative; display: block; height: 19px; overflow: hidden; font: 600 14.5px/19px var(--sans); width: 8.2em; transition: width .4s cubic-bezier(.22,1,.36,1); }
+.st1 .ok { color: #2f9e5b; }
+.st1 > span { position: absolute; left: 0; top: 0; white-space: nowrap; }
+.st1 > span.in { animation: wordin .45s cubic-bezier(.22,1,.36,1) both; }
+.st1 > span.out { animation: wordout .25s cubic-bezier(.5,0,.75,0) both; }
+.st1 > span:only-child { animation: none; }
 .savebtn kbd { margin-left: 4px; }
-.sbdiv { width: 1px; margin: 12px 2px; background: var(--card-line); flex: none; }
+.sbdiv { width: 1px; margin: 10px 2px; background: var(--card-line); flex: none; }
 .funbtn {
-  display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 14px 0 10px; border: 0; border-radius: 15px;
+  display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 14px 0 18px; border: 0; border-radius: 15px;
   background: none; color: var(--fg); text-align: left; transition: background-color .25s ease;
 }
 .funbtn:hover { background: var(--card-hover); }
-.fico {
-  position: relative; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; flex: none; overflow: hidden;
-  background: conic-gradient(from var(--fa, 0deg), #ff3d00, #f9bc29, #ecc9f3, #6586f6, #ff3d00);
-  box-shadow: 0 6px 14px -8px rgba(0,0,0,.5);
-}
-.fico svg { position: relative; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
-.funbtn:hover .fico, .funbtn[aria-checked="true"] .fico { animation: fspin 2.4s linear infinite; }
-@property --fa { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
-@keyframes fspin { to { --fa: 360deg; } }
 .ftext { display: grid; gap: 1px; }
 .ft1 { font: 600 14.5px/19px var(--sans); }
-.ft2 { font-size: 12px; color: var(--muted); white-space: nowrap; }
-.fsw { position: relative; width: 34px; height: 20px; border-radius: 999px; background: var(--card-line-strong); flex: none; margin-left: 4px; transition: background-color .25s ease; }
-.fsw::after { content: ""; position: absolute; top: 2.5px; left: 2.5px; width: 15px; height: 15px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .3s cubic-bezier(.22,1,.36,1); }
-.funbtn[aria-checked="true"] .fsw { background: var(--fg); }
-.funbtn[aria-checked="true"] .fsw::after { transform: translateX(14px); background: var(--card); }
 
 /* ---------- Mix: a playground where colours pour into a globe ---------- */
 .mixview {
@@ -634,15 +606,13 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   .side.open { display: flex; }
   .dlabel { display: none; }
   .savebar { width: auto; }
-  .savebtn, .funbtn { height: 48px; padding: 0 10px 0 6px; gap: 9px; }
-  .st2, .ft2, .savebtn kbd, .fsw { display: none; }
-  .st1 { min-width: 0; width: 3.3em; font-size: 14px; }
+  .savebtn, .funbtn { height: 44px; padding: 0 14px; gap: 9px; }
+  .savebtn kbd, .funbtn kbd { display: none; }
+  .st1 { min-width: 0; font-size: 14px; }
+  .dtools { align-items: center; }
   .ft1 { white-space: nowrap; font-size: 14px; }
   .savebar { gap: 2px; }
   .dtools .dbtn { padding: 0 10px; }
-  .sthumb { width: 40px; height: 32px; }
-  .sthumb.round { width: 32px; }
-  .fico { width: 30px; height: 30px; }
   .dtools { border-left: 1px solid var(--card-line); }
 }
 /* ---------- Touch screens: bigger targets, no keyboard hints ---------- */
@@ -713,7 +683,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   .top #randomBtn { padding: 0 10px; }
 }
 @media (max-width: 340px) { .top-actions { flex-wrap: wrap; } }
-@media (max-width: 380px) { .sidebtn span { display: none; } .dtools .dbtn { padding: 0 12px; } .savebtn, .funbtn { padding: 0 8px 0 5px; gap: 7px; } }
+@media (max-width: 380px) { .sidebtn span { display: none; } .dtools .dbtn { padding: 0 12px; } .savebtn, .funbtn { padding: 0 10px; gap: 7px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -830,18 +800,15 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       <span class="dlabel" aria-hidden="true" hidden>Presets</span>
       <div class="tiles" id="presets" role="group" aria-label="Presets" hidden></div>
       <button class="savebtn" id="saveBtn" type="button" title="Save to library (S)">
-        <span class="sthumb" id="saveThumb" aria-hidden="true"><svg class="stick" viewBox="0 0 20 20" width="16" height="16"><path d="M5 10.5l3.2 3.2L15 6.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         <span class="stext">
           <span class="st1" id="saveTitle"><span class="in">Save to library</span></span>
-          <span class="st2" id="saveSub"></span>
         </span>
         <kbd>S</kbd>
       </button>
       <span class="sbdiv" aria-hidden="true"></span>
-      <button class="funbtn" id="funBtn" type="button" role="switch" aria-checked="false" title="Fun mode (M)">
-        <span class="fico" aria-hidden="true"><svg viewBox="0 0 20 20" width="15" height="15"><path d="M10 2.8c2.7 3.3 4.8 6 4.8 8.6a4.8 4.8 0 0 1-9.6 0c0-2.6 2.1-5.3 4.8-8.6z" fill="#fff"/></svg></span>
-        <span class="ftext"><span class="ft1">Fun mode</span><span class="ft2">Mix colours in a globe</span></span>
-        <span class="fsw" aria-hidden="true"></span>
+      <button class="funbtn" id="funBtn" type="button" title="Fun mode (F)">
+        <span class="ftext"><span class="ft1">Fun mode</span></span>
+        <kbd>F</kbd>
       </button>
       <div class="dtools">
         <button class="dbtn sidebtn" type="button" id="sideBtn" aria-expanded="false" aria-controls="side" title="Settings"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4 6h7M15 6h1M4 14h1M9 14h7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="13" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="7" cy="14" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span>Settings</span></button>
@@ -1387,7 +1354,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     });
 
     renderHandles();
-    syncSaveBar();
   }
 
   // ---------- Canvas handles ----------
@@ -1707,8 +1673,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (e.key === 'Escape' && !$('libView').hidden) { closeLibrary(); return; }
     if (e.key === 'Escape' && !$('mixView').hidden) { closeMix(); return; }
     const k = e.key.toLowerCase();
-    if (!$('mixView').hidden) { if (k === 'm') { e.preventDefault(); closeMix(); } return; }
-    if (k === 'm' && $('libView').hidden) { e.preventDefault(); openMix(); return; }
+    if (!$('mixView').hidden) { if (k === 'f') { e.preventDefault(); closeMix(); } return; }
+    if (k === 'f' && $('libView').hidden) { e.preventDefault(); openMix(); return; }
     if (k === 'l') { e.preventDefault(); $('libView').hidden ? openLibrary() : closeLibrary(); return; }
     if (!$('libView').hidden) return;
     if (k === 'r') { e.preventDefault(); randomize(); }
@@ -1866,15 +1832,11 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   }
   function closeMix() {
     cancelAnimationFrame(bowl.raf); bowl.raf = 0;
-    $('funBtn').setAttribute('aria-checked', 'false');
     $('mixView').hidden = true;
     mixReturn && mixReturn.focus && mixReturn.focus();
   }
   // the Fun mode switch slides on, then the playground opens; it switches off again on the way out
-  $('funBtn').onclick = () => {
-    $('funBtn').setAttribute('aria-checked', 'true');
-    setTimeout(openMix, 260);
-  };
+  $('funBtn').onclick = openMix;
   $('mixClose').onclick = closeMix;
   addEventListener('resize', () => { if (!$('mixView').hidden) fitMix(); });
 
@@ -2437,24 +2399,22 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   function rollSaveTitle(text) {
     const box = $('saveTitle');
     box.querySelectorAll('span.in').forEach(sp => { sp.className = 'out'; setTimeout(() => sp.remove(), 260); });
-    const sp = document.createElement('span'); sp.className = 'in'; sp.textContent = text; box.appendChild(sp);
+    const sp = document.createElement('span'); sp.className = 'in';
+    if (text.startsWith('Saved')) { const ok = document.createElement('span'); ok.className = 'ok'; ok.textContent = '✓ '; sp.append(ok, text); }
+    else sp.textContent = text;
+    box.appendChild(sp);
+    box.style.width = Math.ceil(sp.offsetWidth) + 1 + 'px';   // the label eases to fit its new text
   }
   const narrowBar = () => matchMedia('(max-width: 860px)').matches;
   const saveLabel = () => narrowBar() ? 'Save' : 'Save to library';
   $('saveTitle').firstElementChild.textContent = saveLabel();
+  requestAnimationFrame(() => { $('saveTitle').style.width = Math.ceil($('saveTitle').firstElementChild.offsetWidth) + 1 + 'px'; });
   function savedFeedback(name) {
     const btn = $('saveBtn');
     btn.classList.remove('saved'); void btn.offsetWidth; btn.classList.add('saved');
     rollSaveTitle(narrowBar() ? 'Saved' : `Saved · ${name}`);
-    syncSaveBar();
     clearTimeout(savedTimer);
     savedTimer = setTimeout(() => { btn.classList.remove('saved'); rollSaveTitle(saveLabel()); }, 2200);
-  }
-  function syncSaveBar() {
-    $('saveThumb').style.background = gradient(S, false);
-    $('saveThumb').classList.toggle('round', S.format === 'circle');
-    const n = library.length;
-    $('saveSub').textContent = n ? `${n} in your library` : 'Keep this gradient';
   }
   $('saveBtn').onclick = () => saveToLibrary();
   function saveToLibrary() {
