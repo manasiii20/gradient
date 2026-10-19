@@ -1905,9 +1905,13 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const live = bowl.blobs.filter(b => !b.dying);
     if (live.length > 16) { live[0].dying = true; }
   }
-  function mixPour() {
-    const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * .45;
-    mixDrop(mixColorAt(curT()), Math.cos(a) * r, Math.sin(a) * r);
+  function mixPour(stream) {
+    // a drag keeps pouring into roughly the same spot, so it reads as one growing pool, not scattered drops
+    let x, y;
+    if (stream && bowl.pourAt) { x = bowl.pourAt[0] + (Math.random() - .5) * .1; y = bowl.pourAt[1] + (Math.random() - .5) * .1; }
+    else { const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * .45; x = Math.cos(a) * r; y = Math.sin(a) * r; }
+    bowl.pourAt = [x, y];
+    mixDrop(mixColorAt(curT()), x, y);
     bowl.lastDropT = curT(); bowl.lastDropAt = performance.now();
   }
   function mixStep(dt) {
@@ -1947,6 +1951,23 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       const target = b.dying ? 0 : b.R * (1 + .14 * Math.sin(t * (.4 + (b.seed % 1) * .4) + b.seed * 3));
       b.r += (target - b.r) * Math.min(1, dt * (b.dying ? 1.2 : 2.4));
     }
+    // where drops touch, their colours bleed into each other like wet ink (each keeps a little of its own)
+    for (const b of B) { if (!b.rgb) { b.rgb = toRgb(b.c); b.own = b.rgb.slice(); } b.mix = [0, 0, 0, 0]; }
+    for (let i = 0; i < B.length; i++) for (let j = i + 1; j < B.length; j++) {
+      const a = B[i], b = B[j], d = Math.hypot(b.x - a.x, b.y - a.y), reach = (a.r + b.r) * 1.1;
+      if (d >= reach) continue;
+      const w = 1 - d / reach;
+      for (let q = 0; q < 3; q++) { a.mix[q] += b.rgb[q] * w; b.mix[q] += a.rgb[q] * w; }
+      a.mix[3] += w; b.mix[3] += w;
+    }
+    for (const b of B) {
+      const m = b.mix, rate = Math.min(1, dt * .07 * Math.min(1, m[3])), back = Math.min(1, dt * .045);
+      for (let q = 0; q < 3; q++) {
+        if (m[3]) b.rgb[q] += (m[q] / m[3] - b.rgb[q]) * rate;
+        b.rgb[q] += (b.own[q] - b.rgb[q]) * back;
+      }
+      b.c = toHex(b.rgb);
+    }
     for (let i = 0; i < B.length; i++) for (let j = i + 1; j < B.length; j++) {
       const a = B[i], b = B[j], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || .001;
       const min = (a.r + b.r) * .62;
@@ -1973,17 +1994,14 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     mxOx.fillRect(0, 0, W, W);
     for (const b of B) {
       const cx = half + b.x * half, cy = half + b.y * half, rr = Math.max(1, b.r * half * 1.5);
-      // drops stretch along the way they are flowing and leave a soft trail behind them
-      const sp = Math.hypot(b.vx, b.vy), ang = Math.atan2(b.vy, b.vx), st = 1 + Math.min(.7, sp * 1.4);
-      for (const [off, al] of [[-.55, '55'], [0, '']]) {
-        mxOx.save();
-        mxOx.translate(cx + Math.cos(ang) * rr * off * (st - 1), cy + Math.sin(ang) * rr * off * (st - 1));
-        mxOx.rotate(ang); mxOx.scale(st, 1 / Math.sqrt(st));
-        const g = mxOx.createRadialGradient(0, 0, 0, 0, 0, rr);
-        g.addColorStop(0, b.c + al); g.addColorStop(.38, b.c + al); g.addColorStop(1, b.c + '00');
-        mxOx.fillStyle = g; mxOx.fillRect(-rr, -rr, rr * 2, rr * 2);
-        mxOx.restore();
-      }
+      // each drop is one soft pool, leaning a little along the way it flows
+      const sp = Math.hypot(b.vx, b.vy), ang = Math.atan2(b.vy, b.vx), st = 1 + Math.min(.22, sp * .5);
+      mxOx.save();
+      mxOx.translate(cx, cy); mxOx.rotate(ang); mxOx.scale(st, 1 / st);
+      const g = mxOx.createRadialGradient(0, 0, 0, 0, 0, rr);
+      g.addColorStop(0, b.c); g.addColorStop(.32, b.c); g.addColorStop(.72, b.c + 'a0'); g.addColorStop(1, b.c + '00');
+      mxOx.fillStyle = g; mxOx.fillRect(-rr, -rr, rr * 2, rr * 2);
+      mxOx.restore();
     }
     const S2 = mxCv.width;
     mxCtx.clearRect(0, 0, S2, S2);
@@ -2094,7 +2112,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     bowl.sc = sc; bowl.ts[sc] = clamp((e.clientY - r.top) / r.height, 0, 1);
     syncMixReadout();
     const moved = bowl.lastDropT === null || Math.abs(curT() - bowl.lastDropT) > .045;
-    if (moved && performance.now() - bowl.lastDropAt > 140) mixPour();
+    if (moved && performance.now() - bowl.lastDropAt > 140) mixPour(bowl.lastDropT !== null);
   }
   mxCols.forEach(col => {
     const track = col.querySelector('.mxtrack'), knob = col.querySelector('.mxknob'), sc = col.dataset.sc;
@@ -2107,7 +2125,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const end = () => {
       if (!dragging) return;
       dragging = false; track.classList.remove('drag');
-      if (performance.now() - bowl.lastDropAt > 200) mixPour();
+      // only pour again if the colour has moved on since the last drop
+      if (bowl.lastDropT !== null && Math.abs(curT() - bowl.lastDropT) > .045) mixPour(true);
       bowlCommit();
     };
     track.addEventListener('pointerup', end);
