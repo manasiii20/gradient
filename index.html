@@ -479,39 +479,24 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 #dock { position: relative; }
 .pexp { position: absolute; left: 0; right: 0; bottom: calc(100% + 12px); pointer-events: none; }
 #dock.popen .pexp { pointer-events: auto; }
-.pgrid { display: flex; justify-content: center; gap: 8px; padding: 0 5px; }
-.pcell { position: relative; flex: 0 1 62px; min-width: 0; padding: 0; border: 0; background: none; }
+.pgrid { display: flex; gap: 8px; padding: 0 5px; }
+.pcell { position: relative; flex: 1 1 0; min-width: 0; padding: 0; border: 0; background: none; }
 .pcell .pv {
   display: block; width: 100%; aspect-ratio: 16 / 10; border-radius: 10px;
   box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 10px 22px -14px rgba(0,0,0,.45);
-  opacity: 0; transform: translateY(14px) scale(.92);
-  transition: transform .45s cubic-bezier(.22,1,.36,1), box-shadow .45s cubic-bezier(.22,1,.36,1), opacity .25s ease;
-  transition-delay: calc((8 - var(--i)) * 14ms);
+  opacity: 0; transform: translateY(26px);
+  transition: transform .3s cubic-bezier(.55,0,.75,.2), box-shadow .45s cubic-bezier(.22,1,.36,1), opacity .22s ease;
 }
-#dock.popen .pcell .pv { opacity: 1; transform: none; transition-delay: calc(var(--i) * 22ms); }
+#dock.popen .pcell .pv { opacity: 1; transform: none; transition: transform .5s cubic-bezier(.22,1,.36,1), box-shadow .45s cubic-bezier(.22,1,.36,1), opacity .25s ease; }
 /* hover: the card rises and grows a little with a soft shadow opening beneath it, as in the old presets dock */
 #dock.popen .pcell:hover .pv, #dock.popen .pcell:focus-visible .pv {
-  transform: translateY(-6px) scale(1.07); transition-delay: 0s;
+  transform: translateY(-6px) scale(1.07);
   box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 14px 20px -10px rgba(0,0,0,.55);
 }
 #dock.popen .pcell:active .pv { transform: translateY(-1px) scale(1.01); transition-duration: .1s; }
 .pcell.on .pv { box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 0 0 2px var(--bg), 0 0 0 3.5px var(--fg); }
 #dock.popen .pcell.on:hover .pv { box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 0 0 2px var(--bg), 0 0 0 3.5px var(--fg), 0 14px 20px -10px rgba(0,0,0,.55); }
 .pcell:focus-visible { outline: none; }
-/* the name floats above whichever preset is under the pointer: a small card with a pointer notch */
-.pcell .pn {
-  position: absolute; left: 50%; bottom: calc(100% + 14px); transform: translate(-50%, 6px) scale(.96); transform-origin: 50% 100%; opacity: 0;
-  padding: 6px 11px; border-radius: 9px; background: var(--card); color: var(--fg);
-  font: 500 12px/1 var(--sans); letter-spacing: -.005em; white-space: nowrap;
-  box-shadow: 0 0 0 1px var(--card-edge), 0 8px 20px -8px rgba(0,0,0,.35);
-  pointer-events: none; transition: opacity .16s ease, transform .35s cubic-bezier(.22,1,.36,1);
-}
-.pcell .pn::after {
-  content: ""; position: absolute; left: 50%; top: 100%; width: 8px; height: 8px; margin: -4px 0 0 -4px;
-  background: var(--card); transform: rotate(45deg); border-radius: 0 0 2px 0;
-  box-shadow: 1px 1px 0 0 var(--card-edge);
-}
-.pcell:hover .pn, .pcell:focus-visible .pn { opacity: 1; transform: translate(-50%, 0) scale(1); }
 .barbtn[aria-expanded="true"] { background: var(--card-sel); }
 
 /* a save: a thumbnail of the gradient arcs up into the Library button */
@@ -677,7 +662,6 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
   .pgrid { overflow-x: auto; scrollbar-width: none; padding: 14px 5px 8px; margin-top: -14px; }
   .pgrid::-webkit-scrollbar { display: none; }
   .pcell { flex: 0 0 66px; }
-  .pcell .pn { display: none; }
   .dtools { align-items: center; }
   .dtools { border-left: 1px solid var(--card-line); }
 }
@@ -938,7 +922,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   </aside>
   <div class="mxbar-wrap">
     <div class="dock card savebar" role="toolbar" aria-label="Mix actions">
-      <button class="barbtn" id="mxClear" type="button"><span class="bt"><span class="bt1">Clear</span><span class="bt2">Start a fresh bowl</span></span></button>
+      <button class="barbtn" id="mxClear" type="button"><span class="bt"><span class="bt1">Clear</span><span class="bt2">Start a fresh bowl</span></span><kbd>C</kbd></button>
       <span class="sbdiv" aria-hidden="true"></span>
       <button class="barbtn" id="mxUse" type="button"><span class="bt"><span class="bt1">Use in editor</span><span class="bt2">Open it as a mesh gradient</span></span><kbd>↵</kbd></button>
     </div>
@@ -1755,6 +1739,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       if (k === 'f') { e.preventDefault(); closeMix(); }
       else if (k === 'r') { e.preventDefault(); mixRandom(); }
       else if (k === 's') { e.preventDefault(); saveBowl(); }
+      else if (k === 'c') { e.preventDefault(); $('mxClear').click(); }
       else if (e.key === 'Enter' && !e.target.closest('button')) { e.preventDefault(); $('mxUse').click(); }
       return;
     }
@@ -2130,9 +2115,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     PRESETS.forEach((pr, i) => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'pcell'; b.style.setProperty('--i', i); b.setAttribute('aria-label', `Load ${pr.name}`);
-      b.innerHTML = '<span class="pv"></span><span class="pn"></span>';
+      b.innerHTML = '<span class="pv"></span>';
       b.firstChild.style.background = gradient(fromPreset(pr), false);
-      b.lastChild.textContent = pr.name;
       b.onclick = () => {
         S = fromPreset(pr); sel = 0; draw();
         presetOn = i; p.querySelectorAll('.pcell').forEach((c, j) => c.classList.toggle('on', j === i));
