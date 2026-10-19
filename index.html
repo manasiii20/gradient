@@ -601,12 +601,153 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 }
 @media (max-width: 340px) { .top-actions { flex-wrap: wrap; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* ===================== v4: full-bleed canvas, glass panels ===================== */
+:root {
+  --glass: rgba(255,255,255,.58); --glass-edge: rgba(255,255,255,.7); --glass-line: rgba(20,18,30,.08);
+  --glass-btn: rgba(255,255,255,.55); --glass-btn-edge: rgba(20,18,30,.08); --glass-hover: rgba(255,255,255,.8);
+  --glass-shadow: 0 1px 0 rgba(255,255,255,.5) inset, 0 20px 50px -24px rgba(20,10,40,.35);
+  --sec: rgba(30,28,40,.5);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --glass: rgba(14,12,20,.66); --glass-edge: rgba(255,255,255,.1); --glass-line: rgba(255,255,255,.08);
+    --glass-btn: rgba(255,255,255,.07); --glass-btn-edge: rgba(255,255,255,.1); --glass-hover: rgba(255,255,255,.13);
+    --glass-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 24px 60px -24px rgba(0,0,0,.6);
+    --sec: rgba(236,235,231,.5);
+  }
+}
+:root[data-theme="dark"] {
+  --glass: rgba(14,12,20,.66); --glass-edge: rgba(255,255,255,.1); --glass-line: rgba(255,255,255,.08);
+  --glass-btn: rgba(255,255,255,.07); --glass-btn-edge: rgba(255,255,255,.1); --glass-hover: rgba(255,255,255,.13);
+  --glass-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 24px 60px -24px rgba(0,0,0,.6);
+  --sec: rgba(236,235,231,.5);
+}
+.glass, .card.glass, .top .btn, .menu, .dock.card {
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(28px) saturate(1.5); backdrop-filter: blur(28px) saturate(1.5);
+  border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow);
+}
+
+/* the gradient sits underneath everything */
+body { overflow: hidden; }
+.app { position: fixed; inset: 0; display: block; }
+.stage { position: absolute; inset: 0; padding: 0; overflow: hidden; }
+body.filled .frame, body.filled .frame canvas { border-radius: 0; }
+body.filled .frame { box-shadow: none; }
+body:not(.filled) .stage { padding: 84px 368px 28px 340px; }
+
+/* top: floating pills */
+.top { position: fixed; top: 0; left: 0; right: 0; z-index: 20; pointer-events: none; padding-top: calc(env(safe-area-inset-top, 0px) + 18px); }
+.top > * { pointer-events: auto; }
+.brand { height: 40px; padding: 0 8px 0 16px; border-radius: 14px; gap: 10px; font-size: 15px; }
+.brand .tag { font: 600 10.5px var(--sans); letter-spacing: .06em; padding: 3px 7px; border-radius: 7px; background: var(--glass-btn); border: 1px solid var(--glass-btn-edge); color: var(--muted); }
+.top-actions { gap: 8px; }
+.top .btn { height: 40px; border-radius: 13px; color: var(--fg); padding: 0 14px; }
+.top .btn.icon { width: 40px; padding: 0; }
+.top .btn:hover:not(:disabled) { background: var(--glass-hover); border-color: var(--glass-edge); }
+.top .btn.primary { background: var(--fg); color: var(--on-fg); border-color: transparent; padding: 0 16px; }
+.top .btn.primary:hover { background: var(--fg); opacity: .9; }
+.hist .btn:first-child { border-radius: 13px 0 0 13px; }
+.hist .btn:last-child { border-radius: 0 13px 13px 0; }
+#viewBtn .vfill { display: none; }
+#viewBtn.is-fit .vfill { display: block; }
+#viewBtn.is-fit .vfit { display: none; }
+.menu { border-radius: 16px; }
+
+/* shared glass panel shape */
+.lpanel, .side.card {
+  position: fixed; z-index: 15; top: calc(env(safe-area-inset-top, 0px) + 74px); bottom: 20px;
+  margin: 0; border-radius: 22px; overflow: hidden; display: flex; flex-direction: column;
+}
+.lpanel { left: 20px; width: 300px; }
+.side.card { right: 20px; width: 330px; align-self: auto; }
+.lscroll { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; padding: 18px 12px 12px; }
+.lscroll::-webkit-scrollbar { display: none; }
+
+/* section heads: small caps like the reference */
+.sec-h, .side .lbl { font: 500 11px var(--sans); text-transform: uppercase; letter-spacing: .1em; color: var(--sec); }
+.sec-h { display: flex; align-items: center; gap: 8px; padding: 0 8px 12px; }
+.sec-h .count { font: 600 10px var(--sans); letter-spacing: 0; padding: 2px 6px; border-radius: 6px; background: var(--glass-btn); border: 1px solid var(--glass-btn-edge); color: var(--muted); }
+
+/* preset list */
+.plist { display: grid; gap: 2px; }
+.prow {
+  display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  height: 46px; padding: 0 12px 0 6px; border: 0; border-radius: 12px; background: none; color: var(--fg);
+  font: 500 14px var(--sans); text-align: left; transition: background .2s ease;
+}
+.prow:hover, .prow:focus-visible { background: var(--glass-hover); outline: none; }
+.pswatch { width: 34px; height: 34px; border-radius: 9px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), 0 2px 6px -2px rgba(0,0,0,.3); transition: transform .3s cubic-bezier(.22,1,.36,1); }
+.prow:hover .pswatch { transform: scale(1.08); }
+.pname { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ptype { font: 500 10.5px var(--sans); text-transform: uppercase; letter-spacing: .08em; color: var(--sec); }
+
+/* right panel */
+.side .side-scroll { padding: 18px 0 8px; }
+.side .row { padding: 0 20px; }
+.mdesc { margin: 2px 20px 12px; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.side .lbl + .icons, .side .row:has(> .lbl) { min-height: 30px; }
+
+/* segmented controls become separate pills; the chosen one turns solid */
+.card .seg, .side .seg { background: none; padding: 0; gap: 6px; display: grid; }
+.card .seg button { height: 36px; border-radius: 11px; background: var(--glass-btn); border: 1px solid var(--glass-btn-edge); color: var(--fg); font-size: 13px; }
+.card .seg button:hover:not(:disabled) { background: var(--glass-hover); }
+.card .seg button[aria-pressed="true"] { color: var(--on-fg); background: none; border-color: transparent; }
+.seg-ind { top: 0; height: 100%; border-radius: 11px; background: var(--fg); box-shadow: 0 6px 16px -8px rgba(0,0,0,.45); }
+.card .seg button:disabled { opacity: .45; }
+
+/* colours: big square swatches in a grid */
+.side .colorline { display: block; padding: 6px 20px 12px; }
+.side .colorline .swrow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.side .colorline .sw, .side .colorline .swi.add button { width: 100%; height: auto; aspect-ratio: 1; border-radius: 12px; }
+.side .colorline .swi.add button { border-color: var(--glass-btn-edge); background: var(--glass-btn); }
+.side .colorline .baseswi { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 13px; color: var(--muted); }
+.side .colorline .baseswi .cdiv { display: none; }
+.side .colorline .baseswi::after { content: "Background"; }
+.side .colorline .sw.base { width: 26px; height: 26px; aspect-ratio: auto; border-radius: 50%; }
+.swi.sel .sw { box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 0 0 2px var(--glass-edge), 0 0 0 3.5px var(--fg); }
+
+/* sliders: label and value above a thin track with a round knob */
+.card .row.slide { display: grid; grid-template-columns: 1fr auto; row-gap: 6px; padding: 7px 20px; }
+.card .row.slide label, .card .row.slide output { position: static; transform: none; font-size: 13px; pointer-events: none; }
+.card .row.slide label { color: var(--fg); grid-row: 1; grid-column: 1; }
+.card .row.slide output { grid-row: 1; grid-column: 2; color: var(--muted); font-variant-numeric: tabular-nums; }
+.card .row.slide input[type="range"] { grid-row: 2; grid-column: 1 / -1; height: 18px; border-radius: 0; cursor: pointer; }
+.card input[type="range"]::-webkit-slider-runnable-track { height: 3px; border-radius: 2px; background: linear-gradient(to right, var(--fg) var(--p, 50%), var(--glass-line) var(--p, 50%)); }
+.card input[type="range"]::-webkit-slider-thumb { width: 16px; height: 16px; margin-top: -6.5px; border-radius: 50%; background: #fff; opacity: 1; box-shadow: 0 0 0 .5px rgba(0,0,0,.2), 0 2px 6px rgba(0,0,0,.3); }
+.card input[type="range"]::-moz-range-track { height: 3px; border-radius: 2px; background: var(--glass-line); }
+.card input[type="range"]::-moz-range-progress { height: 3px; border-radius: 2px; background: var(--fg); }
+.card input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: #fff; opacity: 1; box-shadow: 0 0 0 .5px rgba(0,0,0,.2), 0 2px 6px rgba(0,0,0,.3); }
+.card .switch span { background: var(--glass-line); }
+
+/* export row at the foot */
+.side-foot { padding: 10px 20px 18px; border-top: 1px solid var(--glass-line); }
+.fbtn { height: 38px; border-radius: 12px; background: var(--glass-btn); border: 1px solid var(--glass-btn-edge); }
+.fbtn:hover:not(:disabled) { background: var(--glass-hover); }
+.side-scroll > .psep { max-height: 22px; }
+
+/* the dock is only for phones now */
+.dock-wrap { display: none; }
+
+@media (max-width: 860px) {
+  body:not(.filled) .stage { padding: 76px 16px 104px; }
+  .top { padding-left: 12px; padding-right: 12px; }
+  .dock-wrap { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 16; }
+  .dock { width: auto; padding: 6px; border-radius: 18px; }
+  .dtools { border: 0; padding: 0; gap: 6px; }
+  .lpanel, .side.card {
+    display: none; top: auto; left: 12px; right: 12px; width: auto;
+    bottom: calc(var(--dock-h, 80px) + 4px); max-height: 62vh; animation: popin .2s ease-out;
+  }
+  .lpanel.open, .side.card.open { display: flex; }
+}
 </style>
 </head>
 <body>
 
 <header class="top">
-  <div class="brand">Gradient</div>
+  <div class="brand glass"><span>Gradient</span><span class="tag">V4</span></div>
   <div class="top-actions">
     <div class="hist" role="group" aria-label="History">
       <button class="btn icon" id="undoBtn" type="button" aria-label="Undo" title="Undo (Ctrl+Z / ⌘Z)" disabled><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M7.5 4.5L4 8l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M4 8h7.5a4.5 4.5 0 0 1 0 9H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
@@ -614,6 +755,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     </div>
     <button class="btn icon theme" id="themeBtn" type="button" aria-label="Switch to dark mode" title="Switch to dark mode"><svg class="sun" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M10 2.5v1.6M10 15.9v1.6M2.5 10h1.6M15.9 10h1.6M4.7 4.7l1.1 1.1M14.2 14.2l1.1 1.1M4.7 15.3l1.1-1.1M14.2 5.8l1.1-1.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><svg class="moon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M16.5 12.2A6.6 6.6 0 0 1 7.8 3.5a6.6 6.6 0 1 0 8.7 8.7z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     <button class="btn icon" id="libBtn" type="button" aria-label="Library" title="Library (L) · save with S"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="3" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
+    <button class="btn icon" id="viewBtn" type="button" aria-label="Fit canvas" title="Fit canvas (F)"><svg class="vfit" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M7 3H4a1 1 0 0 0-1 1v3M13 3h3a1 1 0 0 1 1 1v3M7 17H4a1 1 0 0 1-1-1v-3M13 17h3a1 1 0 0 0 1-1v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><svg class="vfill" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M3 7V4a1 1 0 0 1 1-1h3M17 7V4a1 1 0 0 0-1-1h-3M3 13v3a1 1 0 0 0 1 1h3M17 13v3a1 1 0 0 1-1 1h-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><rect x="7" y="7" width="6" height="6" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
     <div class="menu-wrap" id="sizeWrap">
       <button class="btn" id="sizeBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sizeMenu" title="Size"><span class="szi" id="sizeIcon" aria-hidden="true"></span><span class="szl" id="sizeName"></span><svg class="chev" viewBox="0 0 11 7" width="11" height="7" aria-hidden="true"><path d="M1 1l4.5 4.5L10 1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <div class="pop card menu" id="sizeMenu" role="menu" aria-label="Size" hidden></div>
@@ -630,8 +772,17 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     </div>
   </div>
 
-  <aside class="side card" id="side" aria-label="Settings">
+  <aside class="lpanel glass" id="lpanel" aria-label="Presets">
+    <div class="lscroll">
+      <div class="sec-h">Presets <span class="count" id="presetCount"></span></div>
+      <div class="plist" id="presets" role="list"></div>
+    </div>
+  </aside>
+
+  <aside class="side card glass" id="side" aria-label="Settings">
     <div class="side-scroll">
+      <div class="row"><span class="lbl">Type</span></div>
+      <p class="mdesc" id="modeDesc"></p>
       <div class="row">
         <div class="seg" id="modes" role="group" aria-label="Gradient type">
           <button type="button" data-mode="linear">Linear</button>
@@ -650,6 +801,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       </div>
       <div class="bar" id="bar" title="Click to add a color"></div>
       <div class="psep"></div>
+      <div class="row"><span class="lbl">Adjust</span></div>
       <div class="row slide" id="sizeField">
         <label for="selSize">Spread</label>
         <input type="range" id="selSize" min="15" max="120" step="1"><output id="sizeOut"></output>
@@ -713,9 +865,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
   <div class="dock-wrap" id="dockWrap">
     <div class="dock card" id="dock" role="toolbar" aria-label="Presets">
-      <span class="dlabel" aria-hidden="true">Presets</span>
-      <div class="tiles" id="presets" role="group" aria-label="Presets"></div>
       <div class="dtools">
+        <button class="dbtn sidebtn" type="button" id="presetBtn" aria-expanded="false" aria-controls="lpanel" title="Presets"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="3" width="6" height="6" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="11" width="6" height="6" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="6" height="6" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span>Presets</span></button>
         <button class="dbtn sidebtn" type="button" id="sideBtn" aria-expanded="false" aria-controls="side" title="Settings"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4 6h7M15 6h1M4 14h1M9 14h7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="13" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="7" cy="14" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span>Settings</span></button>
       </div>
     </div>
@@ -773,6 +924,11 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const r1 = v => Math.round(v * 10) / 10;
 
+  const MODE_DESC = {
+    linear: 'Colours run in a straight line across the frame. Drag the stops on the bar, turn it with Angle.',
+    radial: 'Colours ring out from a centre point. Drag the centre on the canvas to move the glow.',
+    mesh: 'Soft blobs of colour over a background. Drag each dot on the canvas, set its size with Spread.',
+  };
   const TEXTURES = { fluted: 'Fluted', ripple: 'Ripple', grid: 'Grid' };
   const FORMATS = {
     '16:9': [1920, 1080, 'Desktop 16:9'],
@@ -844,6 +1000,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     return st;
   };
   let S = null;
+  let view = store.get('gb-view', 'fill');   // 'fill' covers the window, 'fit' shows the whole canvas
   S = migrate(store.get('gb-current', null) || fromPreset(PRESETS[0]));
   let sel = 0;
 
@@ -1075,12 +1232,18 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   const stage = $('stage'), frame = $('frame'), cv = $('cv'), ctx = cv.getContext('2d', { willReadFrequently: true });
   function fit() {
     const [W, H] = FORMATS[S.format];
+    const filled = view === 'fill' && S.format !== 'circle';
+    document.body.classList.toggle('filled', filled);
+    $('viewBtn').classList.toggle('is-fit', !filled);
+    $('viewBtn').setAttribute('aria-label', filled ? 'Fit canvas' : 'Fill window');
+    $('viewBtn').title = (filled ? 'Fit canvas' : 'Fill window') + ' (F)';
+    $('viewBtn').disabled = S.format === 'circle';
     const cs = getComputedStyle(stage);
     const aw = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
     const ah = stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
     // breathing room so the canvas floats between the top controls and the dock (less on phones)
-    const room = matchMedia('(max-width: 860px)').matches ? 0.94 : 0.88;
-    const sc = Math.min(aw / W, ah / H) * room;
+    const room = matchMedia('(max-width: 860px)').matches ? 0.94 : 0.96;
+    const sc = filled ? Math.max(aw / W, ah / H) : Math.min(aw / W, ah / H) * room;
     const fw = Math.max(40, Math.floor(W * sc)), fh = Math.max(40, Math.floor(H * sc));
     frame.style.width = fw + 'px'; frame.style.height = fh + 'px';
     frame.classList.toggle('circle', S.format === 'circle');
@@ -1172,6 +1335,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     sel = clamp(sel, 0, S.stops.length - 1);
     const cur = S.stops[sel];
     modeBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === S.mode)));
+    $('modeDesc').textContent = MODE_DESC[S.mode];
 
     // bar
     const bar = $('bar');
@@ -1484,22 +1648,34 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (!$('sizeWrap').contains(e.target)) closeMenu(false);
   });
 
-  // On phones the right column folds into a card that opens from the dock.
-  const side = $('side'), sideBtn = $('sideBtn');
-  function closeSide() { side.classList.remove('open'); sideBtn.setAttribute('aria-expanded', 'false'); }
-  sideBtn.addEventListener('click', () => {
-    const open = !side.classList.contains('open');
+  // On phones the two panels fold into sheets that open from the dock, one at a time.
+  const side = $('side'), sideBtn = $('sideBtn'), lpanel = $('lpanel'), presetBtn = $('presetBtn');
+  const sheets = [[side, sideBtn], [lpanel, presetBtn]];
+  function closeSide() { sheets.forEach(([el, btn]) => { el.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }); }
+  sheets.forEach(([el, btn]) => btn.addEventListener('click', () => {
+    const open = !el.classList.contains('open');
     closeMenu(false); closeSide();
     if (!open) return;
     document.documentElement.style.setProperty('--dock-h', $('dockWrap').offsetHeight + 'px');
-    side.classList.add('open'); sideBtn.setAttribute('aria-expanded', 'true');
-    segs.forEach(seg => { seg.firstElementChild.classList.add('instant'); placeInd(seg); });
+    el.classList.add('open'); btn.setAttribute('aria-expanded', 'true');
+    if (el === side) segs.forEach(seg => { seg.firstElementChild.classList.add('instant'); placeInd(seg); });
+  }));
+  document.addEventListener('pointerdown', e => {
+    if (!sheets.some(([el, btn]) => el.contains(e.target) || btn.contains(e.target))) closeSide();
   });
-  document.addEventListener('pointerdown', e => { if (!side.contains(e.target) && !sideBtn.contains(e.target)) closeSide(); });
   addEventListener('resize', () => { if (!matchMedia('(max-width: 860px)').matches) closeSide(); });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && side.classList.contains('open')) { e.stopPropagation(); closeSide(); sideBtn.focus(); }
+    const o = sheets.find(([el]) => el.classList.contains('open'));
+    if (e.key === 'Escape' && o) { e.stopPropagation(); closeSide(); o[1].focus(); }
   }, true);
+
+  // View: Fill lets the gradient cover the whole window behind the panels; Fit shows the whole
+  // canvas at its export shape. Circles always fit.
+  function setView(v) {
+    view = v; store.set('gb-view', v);
+    fit(); draw();
+  }
+  $('viewBtn').onclick = () => setView(view === 'fill' ? 'fit' : 'fill');
 
   // Texture: the kind of glass, how big its ribs or tiles are, and how strongly it bends.
   const texBtns = [...document.querySelectorAll('#texKinds button')];
@@ -1559,6 +1735,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (k === 'l') { e.preventDefault(); $('libView').hidden ? openLibrary() : closeLibrary(); return; }
     if (!$('libView').hidden) return;
     if (k === 'r') { e.preventDefault(); randomize(); }
+    if (k === 'f') { e.preventDefault(); if (S.format !== 'circle') setView(view === 'fill' ? 'fit' : 'fill'); }
     if (['1', '2', '3'].includes(k)) { e.preventDefault(); modeBtns[+k - 1].click(); }
     if (k === 's') { e.preventDefault(); saveToLibrary(); }
   });
@@ -1579,18 +1756,16 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     }
     return wrap;
   }
-  // The dock label reads "Presets" and turns into the name of whichever preset is under the pointer.
-  const dlabel = document.querySelector('.dlabel');
-  function showPresetName(e) {
-    const t = e.target && e.target.closest('.tile');
-    dlabel.textContent = t ? t.dataset.name : 'Presets';
-    dlabel.classList.toggle('name', !!t);
-  }
-  ['pointerover', 'focusin'].forEach(ev => $('presets').addEventListener(ev, showPresetName));
-  ['pointerleave', 'focusout'].forEach(ev => $('presets').addEventListener(ev, () => showPresetName({ target: null })));
   function renderLibrary() {
     const p = $('presets'); p.innerHTML = '';
-    PRESETS.forEach(pr => p.appendChild(tile(fromPreset(pr), pr.name, () => { S = fromPreset(pr); sel = 0; draw(); })));
+    $('presetCount').textContent = PRESETS.length;
+    PRESETS.forEach(pr => {
+      const st = fromPreset(pr), b = document.createElement('button');
+      b.type = 'button'; b.className = 'prow'; b.setAttribute('role', 'listitem');
+      b.innerHTML = `<span class="pswatch" style="background:${gradient(st, false)}"></span><span class="pname">${pr.name}</span><span class="ptype">${MODE_NAME[pr.mode]}</span>`;
+      b.onclick = () => { S = fromPreset(pr); sel = 0; draw(); };
+      p.appendChild(b);
+    });
   }
 
   // ---------- Copy + export ----------
