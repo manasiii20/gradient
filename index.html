@@ -512,7 +512,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .mxchip { width: 16px; height: 16px; border-radius: 5px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); transition: background-color .2s ease; }
 .mxhex, .mxrgb { font: 500 12px var(--mono); color: var(--fg); font-variant-numeric: tabular-nums; }
 .mxrgb { margin-top: 6px; color: var(--muted); }
-.mxglobe-wrap { position: absolute; inset: 70px 120px 88px 270px; display: grid; place-items: center; pointer-events: none; }
+.mxglobe-wrap { position: absolute; inset: 88px 270px; display: grid; place-items: center; pointer-events: none; }
 .mxglobe { pointer-events: auto; border-radius: 50%; box-shadow: var(--frame-shadow); cursor: crosshair; touch-action: none; }
 .mxglobe.stirring { cursor: grabbing; }
 .mxhint { position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%); font-size: 12px; color: var(--muted); white-space: nowrap; transition: opacity .6s ease; }
@@ -532,14 +532,14 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   transition: transform .2s cubic-bezier(.22,1,.36,1);
 }
 .mxknob:active, .mxtrack.drag .mxknob { transform: scale(1.15); cursor: grabbing; }
-.mxbar-wrap { position: absolute; left: 270px; right: 120px; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); display: flex; justify-content: center; }
+.mxbar-wrap { position: absolute; left: 270px; right: 270px; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); display: flex; justify-content: center; }
 @media (max-width: 860px) {
   .mxcard { left: 12px; right: 12px; top: 60px; width: auto; padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; column-gap: 12px; }
   .mxlbl { display: none; }
   .mxname { height: 28px; font-size: 22px; line-height: 28px; grid-row: 1 / 3; align-self: center; }
   .mxrow { margin-top: 0; }
   .mxrgb { margin-top: 2px; }
-  .mxglobe-wrap { inset: 140px 80px 96px 12px; }
+  .mxglobe-wrap { inset: 118px 80px; }
   .mxhint { display: none; }
   .mxtemp { right: 12px; top: 140px; bottom: 96px; width: 56px; }
   .mxbar-wrap { left: 12px; right: 12px; }
@@ -2468,7 +2468,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (!$('libView').hidden || !flyToLibrary()) toast(`Saved as “${name}”`);
     if (!$('libView').hidden) {
       renderLibView();
-      const fresh = $('libGrid').children[1];
+      const fresh = $('libGrid').querySelector('.sleeve:not(.savecard)');
       if (fresh) fresh.classList.add('fresh');
     }
   }
@@ -2478,13 +2478,18 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   const MODE_NAME = { linear: 'Linear', radial: 'Radial', mesh: 'Mesh' };
   let libAnims = [];
 
+  // the current design counts as saved when an entry holds exactly the same settings
+  function isSavedAlready() {
+    const cur = JSON.stringify(S);
+    return library.some(e => JSON.stringify(e.state) === cur);
+  }
   function renderLibView() {
     libAnims.forEach(a => cancelAnimationFrame(a.raf)); libAnims = [];
     const grid = $('libGrid'); grid.innerHTML = '';
     $('libEmpty').hidden = true;
 
-    // First card: save what's in the editor right now
-    {
+    // First card: save what's in the editor right now (only when it isn't in the library already)
+    if (!isSavedAlready()) {
       const [W, H] = FORMATS[S.format];
       const st = S;
       const card = document.createElement('button');
