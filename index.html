@@ -499,6 +499,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 #saveTopBtn { display: none; }
 @media (max-width: 860px) {
   #saveTopBtn { display: inline-flex; }
+  body.mixing #sizeWrap { display: none; }
   #dock #saveBtn, #dock #saveBtn + .sbdiv, #dock .sbdiv:has(+ #saveBtn) { display: none; }
 }
 
@@ -601,13 +602,18 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
   .mxname { height: 28px; font-size: 22px; line-height: 28px; grid-row: 1 / 3; align-self: center; }
   .mxrow { margin-top: 0; }
   .mxrgb { margin-top: 2px; }
-  .mxglobe-wrap { inset: 128px 124px 104px 12px; }
+  .mxglobe-wrap { inset: 128px 12px 206px 12px; }
   .mxtop { padding-left: 12px; }
-  .mxtemp { right: 12px; top: 140px; bottom: 96px; width: 104px; padding: 8px; }
+  /* on phones the two scales lie flat under the globe, so the globe can sit in the middle */
+  .mxtemp { left: 12px; right: 12px; top: auto; bottom: 96px; width: auto; padding: 6px; }
   .mxtemp > .mxlbl { display: none; }
-  .mxcols { margin-top: 0; gap: 4px; }
-  .mxcol { padding: 8px 0; font-size: 11px; }
-  .mxtrack { width: 14px; }
+  .mxcols { margin-top: 0; gap: 2px; grid-template-columns: 1fr; }
+  .mxcol { flex-direction: row; gap: 14px; padding: 13px 14px; font-size: 11.5px; }
+  .mxcol > span { flex: none; width: 34px; }
+  .mxcol > span:last-child { text-align: right; }
+  .mxtrack { flex: 1; width: auto; height: 14px; }
+  .mxcol[data-sc="warm"] .mxtrack { background: linear-gradient(90deg, #ff1500, #ff3d00 16%, #ff7a00 32%, #f9bc29 46%, #f6dcc0 60%, #ecc9f3 74%, #b3aef8 87%, #6586f6); }
+  .mxcol[data-sc="fresh"] .mxtrack { background: linear-gradient(90deg, #c3e83f, #6fe0a8 14%, #23c48e 28%, #10a6a6 42%, #1ec1e0 55%, #2a6fe0 68%, #3a33b8 80%, #7b2fd6 90%, #d42fb0); }
   .mxbar-wrap { left: 12px; right: 12px; }
   .mxbar-wrap .barbtn kbd { display: none; }
 }
@@ -1934,6 +1940,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   const bowl = { src: [], stirs: [], fade: null, fadeT: 0, pending: null, ts: { warm: .46, fresh: .42 }, sc: 'warm', raf: 0, last: 0, time: 0, seed: 0, lastDropT: null, lastDropAt: 0, name: '' };
   const mxCv = $('mxGlobe'), mxCtx = mxCv.getContext('2d');
   const mxCols = [...document.querySelectorAll('.mxcol')];
+  // phones lay the scales flat (left to right); larger screens stand them up (top to bottom)
+  const mixFlat = () => matchMedia('(max-width: 860px)').matches;
   const mxOff = document.createElement('canvas'); mxOff.width = mxOff.height = 128;
   const mxOx = mxOff.getContext('2d');
   const mxNoise = (() => {
@@ -1974,7 +1982,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     mxCols.forEach(col => {
       const sc = col.dataset.sc, t = bowl.ts[sc], kc = mixColorAt(t, sc), knob = col.querySelector('.mxknob');
       col.classList.toggle('on', sc === bowl.sc);
-      knob.style.top = (t * 100) + '%'; knob.style.setProperty('--knob', kc);
+      if (mixFlat()) { knob.style.left = (t * 100) + '%'; knob.style.top = '50%'; }
+      else { knob.style.top = (t * 100) + '%'; knob.style.left = ''; }
+      knob.style.setProperty('--knob', kc);
       knob.setAttribute('aria-valuenow', Math.round(t * 100));
       knob.setAttribute('aria-valuetext', `${mixName(t, sc)} ${kc}`);
     });
@@ -2186,12 +2196,12 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   // the Fun mode switch slides on, then the playground opens; it switches off again on the way out
   $('funBtn').onclick = openMix;
   $('mixClose').onclick = closeMix;
-  addEventListener('resize', () => { if (!$('mixView').hidden) { alignMix(); fitMix(); } });
+  addEventListener('resize', () => { if (!$('mixView').hidden) { alignMix(); fitMix(); syncMixReadout(); } });
 
   // the sliders: dragging either one pours a little of each colour you pass through
   function mixSetT(e, track, sc) {
     const r = track.getBoundingClientRect();
-    bowl.sc = sc; bowl.ts[sc] = clamp((e.clientY - r.top) / r.height, 0, 1);
+    bowl.sc = sc; bowl.ts[sc] = clamp(mixFlat() ? (e.clientX - r.left) / r.width : (e.clientY - r.top) / r.height, 0, 1);
     syncMixReadout();
     const moved = bowl.lastDropT === null || Math.abs(curT() - bowl.lastDropT) > .045;
     if (moved && performance.now() - bowl.lastDropAt > 140) mixPour(bowl.lastDropT !== null);
@@ -2214,7 +2224,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     track.addEventListener('pointerup', end);
     track.addEventListener('pointercancel', end);
     knob.addEventListener('keydown', e => {
-      const d = { ArrowUp: -.04, ArrowDown: .04, PageUp: -.15, PageDown: .15 }[e.key];
+      const d = { ArrowUp: -.04, ArrowDown: .04, ArrowLeft: -.04, ArrowRight: .04, PageUp: -.15, PageDown: .15 }[e.key];
       if (d !== undefined) { e.preventDefault(); bowl.sc = sc; bowl.ts[sc] = clamp(bowl.ts[sc] + d, 0, 1); syncMixReadout(); }
       else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); bowl.sc = sc; mixPour(); bowlCommit(); }
     });
@@ -2915,7 +2925,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     return true;
   }
   $('saveBtn').onclick = () => saveToLibrary();
-  $('saveTopBtn').onclick = () => saveToLibrary();
+  $('saveTopBtn').onclick = () => mixing() ? saveBowl() : saveToLibrary();
   function saveToLibrary(st = S, from) {
     if (st instanceof Event) st = S;
     const name = funName(st, library.map(x => x.name));
