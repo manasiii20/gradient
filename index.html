@@ -467,23 +467,18 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 /* the cards tuck behind the top of the glass, like papers in a folder */
 .ask-cards { position: absolute; left: 0; right: 0; top: 0; height: 150px; display: flex; justify-content: center; }
 .ask-card {
-  position: relative; width: 132px; height: 96px; margin: 0 -10px; padding: 0; border: 0; border-radius: 14px; cursor: pointer;
-  box-shadow: 0 0 0 1px rgba(255,255,255,.7), 0 10px 26px -14px rgba(30,30,60,.45);
+  position: relative; width: 124px; height: 92px; margin: 0 -14px; padding: 0; border: 0; border-radius: 12px; cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.45), 0 0 0 .5px rgba(30,30,60,.12), 0 1px 2px rgba(30,30,60,.08), 0 14px 28px -16px rgba(30,30,60,.5);
   transform: translateY(var(--y, 18px)) rotate(var(--r, 0deg));
   transition: transform .5s cubic-bezier(.22,1,.36,1), box-shadow .5s ease;
   animation: cardin .8s cubic-bezier(.22,1,.36,1) both; animation-delay: calc(var(--i) * 70ms + 150ms);
 }
 @keyframes cardin { from { transform: translateY(70px) rotate(0deg); opacity: 0; } }
-.ask-card:hover, .ask-card:focus-visible { transform: translateY(-16px) rotate(0deg); z-index: 2; box-shadow: 0 0 0 1px rgba(255,255,255,.85), 0 22px 34px -16px rgba(30,30,60,.5); outline: none; }
-.ask-card span {
-  position: absolute; left: 50%; bottom: calc(100% + 10px); transform: translate(-50%, 4px); opacity: 0; white-space: nowrap;
-  padding: 4px 9px; border-radius: 7px; background: rgba(255,255,255,.75); color: #1d1d22; font: 500 11.5px var(--sans);
-  box-shadow: 0 4px 14px -6px rgba(30,30,60,.3); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-  transition: opacity .18s ease, transform .3s cubic-bezier(.22,1,.36,1); pointer-events: none;
-}
-.ask-card:hover span, .ask-card:focus-visible span { opacity: 1; transform: translate(-50%, 0); }
+.ask-card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(180deg, rgba(255,255,255,.32), rgba(255,255,255,0) 38%); }
+.ask-card:hover, .ask-card:focus-visible { transform: translateY(-18px) rotate(0deg) scale(1.04); z-index: 2; box-shadow: inset 0 0 0 1px rgba(255,255,255,.55), 0 0 0 .5px rgba(30,30,60,.12), 0 24px 36px -18px rgba(30,30,60,.55); outline: none; }
 .ask-glass {
-  position: relative; z-index: 3; margin: 0; padding: 10px; border-radius: 26px;
+  isolation: isolate;
+  position: relative; z-index: 3; margin: 0; padding: 9px; border-radius: 22px;
   background: rgba(255,255,255,.3); box-shadow: inset 0 0 0 1px rgba(255,255,255,.55), 0 30px 60px -36px rgba(40,40,80,.45);
   -webkit-backdrop-filter: blur(22px) saturate(1.2); backdrop-filter: blur(22px) saturate(1.2);
   animation: askin .8s cubic-bezier(.22,1,.36,1) both;
@@ -493,19 +488,20 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .ask-glass::before { content: ""; position: absolute; left: 18%; right: 58%; top: -1px; height: 1.5px; border-radius: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.95), transparent); }
 .ask-glass::after { content: ""; position: absolute; left: 62%; right: 18%; bottom: -1px; height: 1.5px; border-radius: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.8), transparent); }
 .ask-bar {
-  display: flex; align-items: center; gap: 4px; height: 60px; padding: 0 8px 0 18px; border-radius: 17px;
+  display: flex; align-items: center; gap: 4px; height: 60px; padding: 0 9px 0 18px; border-radius: 14px;
   background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(250,250,253,.82));
   box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(30,30,60,.06), 0 8px 20px -12px rgba(30,30,60,.25);
 }
 .ask-orb { flex: none; width: 22px; height: 22px; margin-right: 8px; border-radius: 50%; background: var(--orb, conic-gradient(from 200deg, #c9c3ea, #b7c8ee, #f2c9dc, #c9c3ea)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.6), 0 2px 6px -2px rgba(40,40,90,.4); transition: background .6s ease; }
 .ask-bar input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: none; color: #1d1d22; font: 400 16px var(--sans); }
 .ask-bar input::placeholder { color: #8c8b96; }
-.ask-ib, .ask-go { flex: none; width: 38px; height: 38px; border: 0; border-radius: 11px; display: grid; place-items: center; transition: background .2s, color .2s, transform .2s; }
+.ask-ib, .ask-go { flex: none; width: 38px; height: 38px; border: 0; border-radius: 9px; display: grid; place-items: center; transition: background .2s, color .2s, transform .2s; }
 .ask-ib { position: relative; background: none; color: #8c8b96; }
 .ask-ib:hover, .ask-ib:focus-visible { background: rgba(30,30,60,.06); color: #1d1d22; outline: none; }
 .ask-ib::after {
-  content: attr(data-tip); position: absolute; left: 50%; top: calc(100% + 10px); transform: translate(-50%, -4px); opacity: 0; white-space: nowrap;
-  padding: 4px 8px; border-radius: 7px; background: rgba(29,29,34,.86); color: #fff; font: 500 11.5px var(--sans); pointer-events: none;
+  content: attr(data-tip); position: absolute; z-index: 10; left: 50%; bottom: calc(100% + 14px); transform: translate(-50%, 4px); opacity: 0; white-space: nowrap;
+  padding: 6px 10px; border-radius: 8px; background: #1d1d22; color: #fff; font: 500 12px var(--sans); letter-spacing: .01em; pointer-events: none;
+  box-shadow: 0 6px 18px -6px rgba(20,20,40,.45);
   transition: opacity .15s ease, transform .25s cubic-bezier(.22,1,.36,1);
 }
 .ask-ib:hover::after, .ask-ib:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
@@ -514,6 +510,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .ask-go:active { transform: scale(.95); }
 .ask-hint { margin: 18px 0 0; font: 400 13px var(--sans); color: rgba(29,29,34,.5); transition: color .3s; }
 .ask-hint kbd { opacity: .7; }
+@media (hover: none), (pointer: coarse), (max-width: 480px) { .ask-hint .kh { display: none; } }
 .ask-hint.miss { color: rgba(29,29,34,.75); }
 .intro-bottom { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 26px); }
 .intro-skip { border: 0; background: none; color: rgba(29,29,34,.45); font: 400 13px var(--sans); padding: 6px 10px; border-radius: 8px; }
@@ -521,10 +518,10 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro-skip kbd { margin-left: 4px; opacity: .6; }
 @media (max-width: 480px) {
   .ask { padding-top: 76px; }
-  .ask-card { width: 96px; height: 70px; margin: 0 -8px; }
+  .ask-card { width: 84px; height: 62px; margin: 0 -10px; }
   .ask-bar { height: 54px; padding-left: 14px; }
   .ask-bar input { font-size: 15px; }
-  .ask-ib::after, .ask-card span { display: none; }
+  .ask-ib::after { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .ask-card, .ask-glass { animation: none; } }
 
@@ -1024,7 +1021,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   <canvas class="intro-cv" id="introCv"></canvas>
   <canvas class="intro-cv intro-prev" id="introPrev"></canvas>
   <div class="intro-grain" aria-hidden="true"></div>
-  <div class="intro-top"><span class="intro-mark">Gradient</span></div>
   <div class="intro-mid">
     <div class="ask">
       <div class="ask-cards" id="askCards" role="group" aria-label="Start from one of these"></div>
@@ -1032,12 +1028,12 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
         <div class="ask-bar">
           <span class="ask-orb" id="askOrb" aria-hidden="true"></span>
           <input id="askInput" type="text" spellcheck="false" placeholder="Describe a gradient, like “misty lavender morning”" aria-label="Describe a gradient">
-          <button type="button" class="ask-ib" id="askDice" aria-label="Surprise me" data-tip="Surprise me"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8.8" cy="8.8" r="1.25" fill="currentColor"/><circle cx="15.2" cy="8.8" r="1.25" fill="currentColor"/><circle cx="12" cy="12" r="1.25" fill="currentColor"/><circle cx="8.8" cy="15.2" r="1.25" fill="currentColor"/><circle cx="15.2" cy="15.2" r="1.25" fill="currentColor"/></svg></button>
-          <button type="button" class="ask-ib" id="askFun" aria-label="Fun mode" data-tip="Fun mode"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4.2 13.2c2.6-1.9 4.9-1.9 7.3 0s5 1.9 8.3 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
-          <button type="submit" class="ask-go" id="askGo" aria-label="Create"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 15.5v-11M5 9l5-5 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button type="button" class="ask-ib" id="askDice" aria-label="Surprise me" data-tip="Surprise me"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M10 3.8l1.55 4.15a2.4 2.4 0 0 0 1.5 1.5L17.2 11l-4.15 1.55a2.4 2.4 0 0 0-1.5 1.5L10 18.2l-1.55-4.15a2.4 2.4 0 0 0-1.5-1.5L2.8 11l4.15-1.55a2.4 2.4 0 0 0 1.5-1.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M18 3.5l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6z" fill="currentColor"/><path d="M18.2 15.6l.45 1.15 1.15.45-1.15.45-.45 1.15-.45-1.15-1.15-.45 1.15-.45z" fill="currentColor"/></svg></button>
+          <button type="button" class="ask-ib" id="askFun" aria-label="Fun mode" data-tip="Fun mode"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 2.8c1.9 2.4 3 4.1 3 5.5a3 3 0 0 1-6 0c0-1.4 1.1-3.1 3-5.5z" fill="currentColor" opacity=".85"/><path d="M4.5 13.2a7.5 7.5 0 0 0 15 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7.4 15.4c1.5-.9 3-.9 4.6 0s3.1.9 4.6 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".55"/></svg></button>
+          <button type="submit" class="ask-go" id="askGo" aria-label="Create"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4.5 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         </div>
       </form>
-      <p class="ask-hint" id="askHint">Type and press <kbd>↵</kbd> &nbsp;·&nbsp; or pick a card</p>
+      <p class="ask-hint" id="askHint">Type<span class="kh"> and press <kbd>↵</kbd></span> &nbsp;·&nbsp; or pick a card</p>
     </div>
   </div>
   <div class="intro-bottom"><button type="button" class="intro-skip" id="introSkip">Skip <kbd>esc</kbd></button></div>
@@ -3253,12 +3249,11 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
   function buildCards() {
     const box = $('askCards'); box.innerHTML = '';
-    const pick = [...INTRO].sort(() => Math.random() - .5).slice(0, 4), rot = [-9, -3, 3, 9], lift = [26, 10, 10, 26];
+    const pick = [...INTRO].sort(() => Math.random() - .5).slice(0, 5), rot = [-12, -6, 0, 6, 12], lift = [34, 16, 8, 16, 34];
     pick.forEach((pr, i) => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'ask-card'; b.setAttribute('aria-label', `Start from ${pr.name}`);
       b.style.cssText = `--i:${i}; --r:${rot[i]}deg; --y:${lift[i]}px`; b.style.background = gradient(fromPreset(pr), false);
-      b.innerHTML = `<span>${pr.name}</span>`;
       b.onclick = () => { introPick = fromPreset(pr); leaveIntro('go'); };
       b.onmouseenter = b.onfocus = () => setIntroBg(calmed(fromPreset(pr), .35));
       b.onmouseleave = b.onblur = () => setIntroBg(introTyped || calmed(fromPreset(CALM), 0));
@@ -3269,7 +3264,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   $('askInput').addEventListener('input', () => {
     clearTimeout(typeT);
     $('askHint').classList.remove('miss');
-    $('askHint').innerHTML = 'Type and press <kbd>↵</kbd> &nbsp;·&nbsp; or pick a card';
+    $('askHint').innerHTML = 'Type<span class="kh"> and press <kbd>↵</kbd></span> &nbsp;·&nbsp; or pick a card';
     typeT = setTimeout(() => {
       const st = readPrompt($('askInput').value);
       introTyped = st ? calmed(st, .4) : null;
