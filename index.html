@@ -459,10 +459,19 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro-prev { opacity: 0; transition: opacity 1.2s ease; }
 .intro-prev.show { opacity: 1; transition: none; }
 .intro-grain { position: absolute; inset: 0; pointer-events: none; opacity: .32; mix-blend-mode: overlay; background-size: 160px 160px; }
-.intro-top, .intro-mid, .intro-bottom { position: relative; z-index: 1; text-align: center; }
+.intro-top, .intro-mid, .intro-bottom, .intro-head { position: relative; z-index: 1; text-align: center; }
+/* a quiet serif headline; the word "paint" is filled with whatever colours are in play */
+.intro-head { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 24px; }
+.intro-h1 { margin: 0 0 4vh; font: 400 clamp(40px, 6.4vw, 92px)/1.02 "Instrument Serif", Georgia, serif; letter-spacing: -.015em; color: #23212b; }
+.intro-h1 span { display: block; animation: headin 1s cubic-bezier(.22,1,.36,1) both; }
+.intro-h1 .l2 { animation-delay: .12s; }
+@keyframes headin { from { opacity: 0; transform: translateY(14px); filter: blur(6px); } }
+.intro-h1 em { display: inline-block; font-style: italic; padding: 0 .14em 0 .04em; margin-right: -.08em; background: var(--paint, linear-gradient(100deg, #ff9a6a, #f472b6, #8b8cf6)); -webkit-background-clip: text; background-clip: text; color: transparent; transition: background .6s ease; }
+.intro.dim .intro-h1 { color: #f5f2ee; }
+@media (prefers-reduced-motion: reduce) { .intro-h1 span { animation: none; } }
 .intro-top { padding-top: calc(env(safe-area-inset-top, 0px) + 24px); }
 .intro-mark { font: 500 14px var(--sans); letter-spacing: -.01em; opacity: .55; }
-.intro-mid { flex: 1; display: flex; align-items: flex-end; justify-content: center; width: 100%; padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 7vh + 34px); }
+.intro-mid { flex: none; display: flex; align-items: flex-end; justify-content: center; width: 100%; padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 7vh + 34px); }
 .ask { position: relative; width: min(820px, 100%); }
 /* the cards tuck behind the top of the glass, like papers in a folder */
 .ask-cards { position: absolute; left: 0; right: 0; top: 0; height: 150px; display: flex; justify-content: center; }
@@ -557,7 +566,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro.dim .ask-hint, .intro.dim .intro-skip { color: rgba(255,255,255,.6); }
 .intro.dim .ask-glass { background: rgba(255,255,255,.14); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 24px 50px -30px rgba(0,0,0,.6); }
 .intro-skip kbd { margin: 0 4px; opacity: .7; }
-.intro-skip .spacek { display: inline-block; min-width: 54px; margin: 0 6px; text-align: center; padding: 1px 8px; border-radius: 5px; font: 400 11px var(--mono); color: inherit; background: none; border: 1px solid currentColor; opacity: .8; }
+.intro-skip .spacek { display: inline-flex; align-items: center; justify-content: center; height: 20px; min-width: 54px; margin: 0 7px; padding: 0 8px; border-radius: 5px; font: 400 11.5px/1 var(--sans); color: inherit; background: none; border: 1px solid currentColor; opacity: .8; vertical-align: middle; position: relative; top: -1px; }
 @media (hover: none), (pointer: coarse) { .intro-skip .spacek { min-width: 0; } }
 @media (max-width: 480px) {
   .ask-ph { font-size: 14px; }
@@ -1069,6 +1078,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   <canvas class="intro-cv intro-prev" id="introPrev"></canvas>
   <div class="intro-grain" aria-hidden="true"></div>
   <div class="intro-top"><button type="button" class="intro-skip" id="introSkip"><span class="kh">Press <kbd class="spacek">space</kbd> to jump straight in</span><span class="th">Skip</span></button></div>
+  <div class="intro-head" aria-hidden="true">
+    <h1 class="intro-h1"><span class="l1">Describe a feeling,</span><span class="l2">and we’ll <em id="introPaint">paint</em> it.</span></h1>
+  </div>
   <div class="intro-mid">
     <div class="ask">
       <form class="ask-glass" id="askForm" autocomplete="off">
@@ -3224,8 +3236,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   let introRaf = 0, introT0 = 0, introLast = 0, introBg = null, introPick = null;
   const introOpen = () => !introEl.hidden && !introEl.classList.contains('leaving');
   // the resting backdrop: pale lavender, blue and blush, barely moving
-  const CALM = { name: 'Calm', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#e9e8f0', grain: 0, blur: 100,
-    stops: [['#f4f3f7', 0, 18, 20, 62], ['#c9c6e8', 33, 26, 88, 56], ['#b9caf0', 66, 92, 40, 60], ['#ecdcea', 100, 70, 96, 44]] };
+  const CALM = { name: 'Calm', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#f4f1ec', grain: 0, blur: 100,
+    stops: [['#f6f3ee', 0, 50, 10, 70], ['#ffd2bd', 25, 22, 104, 46], ['#cfe1ff', 50, 52, 112, 46], ['#f7cfe0', 75, 80, 104, 42], ['#fff1df', 100, 50, 86, 30]] };
   // soften a gradient toward the paper colour so the backdrop never shouts
   const calmed = (st, k = .5) => {
     const mix = c => { const a = toRgb(c), w = [243, 242, 247]; return toHex(a.map((v, i) => v + (w[i] - v) * k)); };
@@ -3253,6 +3265,13 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     introEl.classList.toggle('dim', avg < 110);
     const cs = st.stops.map(x => x.c);
     $('askOrb').style.setProperty('--orb', `conic-gradient(from 200deg, ${[...cs, cs[0]].join(', ')})`);
+    // "paint" takes the most colourful three of the palette
+    const sat = c => { const [r, g, b] = toRgb(c); return Math.max(r, g, b) - Math.min(r, g, b); };
+    const lumOf = c => { const [r, g, b] = toRgb(c); return .2126 * r + .7152 * g + .0722 * b; };
+    // vivid, and never so pale it disappears into the paper
+    const pk = [...new Set(cs)].sort((a, b) => sat(b) - sat(a)).slice(0, 3).map(c => { let v = applyMod(c, 'vivid', 1.4), n = 0; const darkBg = cs.reduce((t, x) => t + lumOf(x), 0) / cs.length < 110;
+      while (n++ < 6 && (darkBg ? lumOf(v) < 120 : lumOf(v) > 150)) v = applyMod(v, darkBg ? 'light' : 'dark', .5); return v; });
+    $('introPaint').style.setProperty('--paint', `linear-gradient(100deg, ${pk.length > 1 ? pk.join(', ') : pk[0] + ', ' + pk[0]})`);
   }
 
   // ---- reading a description: colour words and moods become a palette ----
