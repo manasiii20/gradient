@@ -495,10 +495,13 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 @media (prefers-reduced-motion: reduce) { .intro-title.swap .intro-name, .intro-title.swap .intro-num { animation: none; } }
 
 /* ---------- Onboarding: a welcome card, then a spotlight that glides from part to part ---------- */
-.tour { position: fixed; inset: 0; z-index: 70; }
+.tour { position: fixed; inset: 0; z-index: 70; pointer-events: none; }
+.tour-block { position: fixed; pointer-events: auto; }
+.tour-card { pointer-events: auto; }
+.tour.away { visibility: hidden; }
 .tour-spot {
   position: fixed; left: 50%; top: 50%; width: 0; height: 0; border-radius: 16px; pointer-events: none;
-  box-shadow: 0 0 0 200vmax rgba(10,10,9,.5), 0 0 0 1.5px rgba(255,255,255,.7), 0 0 28px 4px rgba(255,255,255,.18);
+  box-shadow: 0 0 0 200vmax rgba(10,10,9,.5), 0 0 0 1px rgba(255,255,255,.28), 0 0 24px 2px rgba(255,255,255,.08);
   transition: left .55s cubic-bezier(.22,1,.36,1), top .55s cubic-bezier(.22,1,.36,1), width .55s cubic-bezier(.22,1,.36,1), height .55s cubic-bezier(.22,1,.36,1), border-radius .55s;
 }
 .tour.welcome .tour-spot { box-shadow: 0 0 0 200vmax rgba(10,10,9,.5); }
@@ -1000,6 +1003,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 </div>
 <div class="tour" id="tour" hidden>
   <div class="tour-spot" id="tourSpot"></div>
+  <div class="tour-block" aria-hidden="true"></div><div class="tour-block" aria-hidden="true"></div><div class="tour-block" aria-hidden="true"></div><div class="tour-block" aria-hidden="true"></div>
   <div class="tour-card card" id="tourCard" role="dialog" aria-modal="true" aria-labelledby="tourTitle" aria-describedby="tourText">
     <div class="tour-art" aria-hidden="true"><canvas id="tourArt" width="760" height="300"></canvas></div>
     <p class="tour-count" id="tourCount"></p>
@@ -1188,6 +1192,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   };
   let S = null;
   S = migrate(store.get('gb-current', null) || fromPreset(PRESETS[0]));
+  S.format = '16:9';   // the tool always opens on the desktop size
   let sel = 0;
 
   // ---------- Color helpers ----------
@@ -3194,32 +3199,54 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   // First visit: a welcome card, then a spotlight glides over each part with a line or two about it.
   // Enter / → next, ← back, Esc skips. The ? button (or the ? key) plays it again.
   const TOUR = [
-    { title: 'Welcome to Gradient', text: 'Make soft, grainy gradients, set them moving, and take them anywhere as CSS, an image or a video. Here is a quick look around.', next: 'Show me around' },
-    { el: ['#frame'], title: 'Your canvas', text: 'Drag the dots to move the colours.<span class="kh"> Pinch on a trackpad, or hold <kbd>⌘</kbd> / <kbd>Ctrl</kbd> and scroll, to zoom in.</span>' },
-    { el: ['#side', '#sideBtn'], title: 'Shape it', text: 'Pick linear, radial or mesh, then tune the colours, blur, noise, glass texture and motion.' },
-    { el: ['#presetBtn'], title: 'Presets', text: 'Not sure where to start? Open a row of classics.<span class="kh"> Press <kbd>P</kbd>.</span>' },
-    { el: ['#funBtn'], title: 'Fun mode', text: 'Pour colours into a liquid globe, then turn the mix into a gradient.<span class="kh"> Press <kbd>F</kbd>.</span>' },
-    { el: ['#saveBtn'], title: 'Save to library', text: 'Keep what you make<span class="kh"> with <kbd>S</kbd></span>. Everything you save lives under the Library button up top.' },
+    { title: 'Welcome to Gradient', text: 'Make soft, grainy gradients, set them moving, and take them anywhere as CSS, an image or a video. Here is a quick look around, and you can try each part as you go.', next: 'Show me around' },
+    { el: ['#frame'], title: 'Your canvas', text: 'Drag a dot to move its colour around. Go on, try it.<span class="kh"> Pinch on a trackpad, or hold <kbd>⌘</kbd> / <kbd>Ctrl</kbd> and scroll, to zoom in.</span>' },
+    { el: ['#side', '#sideBtn'], title: 'Shape it', text: 'Pick linear, radial or mesh, then tune the colours, blur, noise, glass texture and motion. Have a play.' },
+    { el: ['#presetBtn'], also: ['#pPanel'], key: 'p', title: 'Presets', text: 'Not sure where to start? Open the row of classics and pick one to try it.<span class="kh"> Or press <kbd>P</kbd>.</span>' },
+    { el: ['#funBtn'], key: 'f', title: 'Fun mode', text: 'Pour colours into a liquid globe, then turn the mix into a gradient. Open it for a go; the tour waits here until you are back.' },
+    { el: ['#saveBtn'], key: 's', title: 'Save to library', text: 'Keep what you make. Try it and watch it fly into your Library, up top.<span class="kh"> Or press <kbd>S</kbd>.</span>' },
     { el: ['.side-foot', '#sideBtn'], title: 'Take it with you', text: 'Copy the CSS, or export an image or a looping video in the size you need.' },
-    { el: ['#randomBtn'], title: 'Feeling stuck?', text: 'Randomize gives you something new, any time<span class="kh"> (<kbd>R</kbd>)</span>, and undo steps back<span class="kh"> (<kbd>⌘</kbd> / <kbd>Ctrl</kbd> + <kbd>Z</kbd>)</span>.', next: 'Start creating' },
+    { el: ['#randomBtn'], key: 'r', title: 'Feeling stuck?', text: 'Randomize gives you something new any time. Press it a few times and keep the one you like.<span class="kh"> Or press <kbd>R</kbd>.</span>', next: 'Start creating' },
   ];
   const tourEl = $('tour'), spot = $('tourSpot'), tcard = $('tourCard');
   let tourAt = -1, tourBack = null;
   const visible = el => el && el.getClientRects().length && el.getBoundingClientRect().width > 0;
   const tourTarget = st => (st.el || []).map(q => document.querySelector(q)).find(visible);
+  // everything outside the highlight is covered, so only the part being shown can be used
+  const blocks = [...document.querySelectorAll('.tour-block')];
+  function setBlocks(h) {
+    const vw = innerWidth, vh = innerHeight, px = v => Math.max(0, Math.round(v)) + 'px';
+    const R = [[0, 0, vw, h.t], [0, h.b, vw, vh - h.b], [0, h.t, h.l, h.b - h.t], [h.r, h.t, vw - h.r, h.b - h.t]];
+    R.forEach(([x, y, w, hh], i) => Object.assign(blocks[i].style, { left: px(x), top: px(y), width: px(w), height: px(hh) }));
+  }
   function placeTour() {
     if (tourAt < 0) return;
     const st = TOUR[tourAt], t = tourTarget(st), vw = innerWidth, vh = innerHeight, m = 14;
     const cw = tcard.offsetWidth, ch = tcard.offsetHeight;
     if (!t) {
       Object.assign(spot.style, { left: vw / 2 + 'px', top: vh / 2 + 'px', width: '0px', height: '0px' });
+      setBlocks({ l: vw / 2, t: vh / 2, r: vw / 2, b: vh / 2 });
       tcard.style.transform = `translate(${Math.round((vw - cw) / 2)}px, ${Math.round((vh - ch) / 2)}px)`;
       return;
     }
-    const r = t.getBoundingClientRect(), pad = 8;
+    // the highlight hugs the part with a little room, but never spills past the panel it lives in
+    let pad = 8, b = t.getBoundingClientRect();
+    let h = { l: b.left - pad, t: b.top - pad, r: b.right + pad, b: b.bottom + pad };
+    const host = t.parentElement && t.parentElement.closest('.card');
+    if (host) {
+      const c = host.getBoundingClientRect(), k = 5;
+      h = { l: Math.max(h.l, c.left + k), t: Math.max(h.t, c.top + k), r: Math.min(h.r, c.right - k), b: Math.min(h.b, c.bottom - k) };
+    }
+    // presets: once the row is open, the highlight grows to take it in, so it can be clicked
+    if (st.also && dockEl.classList.contains('popen')) st.also.map(q => document.querySelector(q)).filter(visible).forEach(el => {
+      const c = el.getBoundingClientRect();
+      h = { l: Math.min(h.l, c.left - pad), t: Math.min(h.t, c.top - pad - 8), r: Math.max(h.r, c.right + pad), b: Math.max(h.b, c.bottom + pad) };
+    });
+    const r = { left: h.l + pad, top: h.t + pad, right: h.r - pad, bottom: h.b - pad, width: h.r - h.l - pad * 2, height: h.b - h.t - pad * 2 };
     const round = t.id === 'frame' && S.format === 'circle';
-    const rad = round ? '50%' : (parseFloat(getComputedStyle(t).borderTopLeftRadius) || 8) + pad + 'px';
-    Object.assign(spot.style, { left: r.left - pad + 'px', top: r.top - pad + 'px', width: r.width + pad * 2 + 'px', height: r.height + pad * 2 + 'px', borderRadius: rad });
+    const rad = round ? '50%' : Math.min(18, (parseFloat(getComputedStyle(t).borderTopLeftRadius) || 8) + 6) + 'px';
+    Object.assign(spot.style, { left: h.l + 'px', top: h.t + 'px', width: h.r - h.l + 'px', height: h.b - h.t + 'px', borderRadius: rad });
+    setBlocks(h);
     // the card sits beside the spotlight wherever there is room: right, left, above, then below
     const g = 18, tries = [
       [r.right + pad + g, r.top + r.height / 2 - ch / 2],
@@ -3258,7 +3285,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     showTourStep(0);
   }
   function endTour() {
-    tourAt = -1; tourEl.hidden = true;
+    tourAt = -1; tourEl.hidden = true; tourEl.classList.remove('away');
     store.set('gb-onboarded', 1);
     tourBack && tourBack.focus && tourBack.focus();
   }
@@ -3270,6 +3297,16 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   $('tourSkip').onclick = () => tourAt === TOUR.length - 1 ? showTourStep(tourAt - 1) : endTour();
   $('tourBtn').onclick = openTour;
   addEventListener('resize', placeTour);
+  const tourSettle = () => { if (tourAt >= 0) { setTimeout(placeTour, 60); setTimeout(placeTour, 520); } };
+  document.addEventListener('click', tourSettle, true);
+  // an export sheet, fun mode or the library opened from the tour: it steps aside, then comes back
+  const tourAway = () => {
+    if (tourAt < 0) return;
+    const away = !$('overlay').hidden || !$('mixView').hidden || !$('libView').hidden;
+    tourEl.classList.toggle('away', away);
+    if (!away) { placeTour(); $('tourNext').focus({ preventScroll: true }); }
+  };
+  ['overlay', 'mixView', 'libView'].forEach(id => new MutationObserver(tourAway).observe($(id), { attributes: true, attributeFilter: ['hidden'] }));
   // while the tour is up it owns the keyboard, so R, S, F and friends don't fire underneath it
   addEventListener('keydown', e => {
     if (introOpen()) {
@@ -3283,11 +3320,15 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       if (e.key === '?' && !/input|textarea|select/i.test(e.target.tagName) && $('overlay').hidden) { e.preventDefault(); if ($('mixView').hidden) openTour(); }
       return;
     }
+    if (tourEl.classList.contains('away')) return;
+    const st = TOUR[tourAt], t = tourTarget(st), typing = /input|textarea|select/i.test(e.target.tagName);
+    if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); endTour(); return; }
+    if (st.key && e.key.toLowerCase() === st.key && !e.metaKey && !e.ctrlKey && !e.altKey && !typing) { tourSettle(); return; }
+    if (t && t.contains(e.target) && e.target !== document.body) { if (e.key !== 'Tab') return; }
     e.stopImmediatePropagation();
-    if (e.key === 'Escape') { e.preventDefault(); endTour(); }
-    else if (e.key === 'ArrowRight' || (e.key === 'Enter' && e.target === document.body)) { e.preventDefault(); $('tourNext').click(); }
+    if (typing) return;
+    if (e.key === 'ArrowRight' || (e.key === 'Enter' && e.target === document.body)) { e.preventDefault(); $('tourNext').click(); }
     else if (e.key === 'ArrowLeft' && tourAt > 0) { e.preventDefault(); showTourStep(tourAt - 1); }
-    else if (e.key === 'Tab') { e.preventDefault(); (document.activeElement === $('tourNext') ? $('tourSkip') : $('tourNext')).focus(); }
   }, true);
 
   renderLibrary();
