@@ -873,7 +873,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 <div class="mixview" id="mixView" hidden role="dialog" aria-modal="true" aria-labelledby="mxTitle">
   <header class="mxtop">
     <button class="btn icon" id="mixClose" type="button" aria-label="Back" title="Back (Esc or F)"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M16 10H4M9 5l-5 5 5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
-    <div class="mxtitle"><h2 id="mxTitle">Fun mode</h2><span>Pour colours into the globe and watch them mix</span></div>
+    <div class="mxtitle"><h2 id="mxTitle">Fun mode</h2></div>
   </header>
   <aside class="mxcard card" aria-label="Current colour">
     <div class="mxlbl">Pouring</div>
@@ -1712,6 +1712,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (!$('mixView').hidden) {
       if (k === 'f') { e.preventDefault(); closeMix(); }
       else if (k === 'r') { e.preventDefault(); mixRandom(); }
+      else if (k === 's') { e.preventDefault(); saveBowl(); }
       else if (e.key === 'Enter' && !e.target.closest('button')) { e.preventDefault(); $('mxUse').click(); }
       return;
     }
@@ -2003,13 +2004,24 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     bowlCommit();
   };
   // turn the bowl into a real mesh gradient: each drop becomes a colour you can keep editing
-  $('mxUse').onclick = () => {
+  // the bowl as a mesh gradient: each drop becomes a colour, the overall mix becomes the background
+  function bowlState(extra = {}) {
     const live = bowl.blobs.filter(b => !b.dying && b.r > .05).slice(-8);
-    if (!live.length) return;
+    if (!live.length) return null;
     let tw = 0; const acc = [0, 0, 0];
     bowl.blobs.forEach(b => { const w = b.r * b.r, c = toRgb(b.c); tw += w; acc[0] += c[0] * w; acc[1] += c[1] * w; acc[2] += c[2] * w; });
-    S = { ...S, mode: 'mesh', base: toHex(acc.map(v => v / tw)),
+    return { ...S, ...extra, mode: 'mesh', base: toHex(acc.map(v => v / tw)),
       stops: live.map((b, i) => ({ c: b.c, p: r1(i / Math.max(1, live.length - 1) * 100), x: r1(50 + b.x * 50), y: r1(50 + b.y * 50), s: clamp(Math.round(b.r * 95), 15, 120) })) };
+  }
+  // S in fun mode saves the globe itself (as a round mesh gradient) and sends it flying into Library
+  function saveBowl() {
+    const st = bowlState({ format: 'circle', motion: { ...S.motion } });
+    if (st) saveToLibrary(st, { el: mxCv, src: mxCv, round: true, pip: gradient(st, false) });
+  }
+  $('mxUse').onclick = () => {
+    const st = bowlState();
+    if (!st) return;
+    S = st;
     sel = 0;
     closeMix(); fit(); draw();
     toast('Your mix is now a mesh gradient');
@@ -2501,13 +2513,13 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   // canvas, glides along a gentle curve into the Library button and melts into it; the Library
   // button gives a small bounce and briefly wears the thumbnail on its corner.
   let pipTimer = 0;
-  function flyToLibrary() {
-    const fr = frame.getBoundingClientRect(), to = $('libBtn').getBoundingClientRect();
+  function flyToLibrary(from = { el: frame, src: cv, round: S.format === 'circle' }) {
+    const srcEl = from.el, fr = srcEl.getBoundingClientRect(), to = $('libBtn').getBoundingClientRect();
     if (!to.width || !fr.width) return false;
-    const round = S.format === 'circle';
+    const round = from.round;
     const copy = document.createElement('canvas');
-    copy.width = cv.width; copy.height = cv.height;
-    copy.getContext('2d').drawImage(cv, 0, 0);
+    copy.width = from.src.width; copy.height = from.src.height;
+    copy.getContext('2d').drawImage(from.src, 0, 0);
     copy.className = 'flycanvas';
     copy.style.width = fr.width + 'px'; copy.style.height = fr.height + 'px';
     document.body.appendChild(copy);
@@ -2518,7 +2530,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const cx = fr.left + fr.width / 2, cy = fr.top + fr.height / 2;
     const tx = to.left + to.width / 2, ty = to.top + to.height / 2;
     const at = (x, y, sc) => `translate(${x - fr.width * sc / 2}px, ${y - fr.height * sc / 2}px) scale(${sc})`;
-    const r0 = round ? '50%' : getComputedStyle(cv).borderRadius, rCard = round ? '50%' : (10 / k) + 'px';
+    const r0 = round ? '50%' : getComputedStyle(from.src).borderRadius, rCard = round ? '50%' : (10 / k) + 'px';
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     // each stage has its own easing: shrink into a card, a brief hover, then the glide into Library
     const sh = (y) => `0 ${y / k}px ${2.2 * y / k}px -${y / k}px rgba(0,0,0,.42)`;
@@ -2531,24 +2543,25 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       { transform: at(tx, ty, k * .3), borderRadius: rCard, opacity: 0, boxShadow: sh(0) },
     ], { duration: reduce ? 1 : 1250, fill: 'forwards' });
     // the canvas gives a soft nod as its copy lifts away
-    if (!reduce) frame.animate([{ transform: 'scale(1)' }, { transform: 'scale(.985)', offset: .35 }, { transform: 'scale(1)' }], { duration: 520, easing: 'cubic-bezier(.3,.7,.3,1)' });
+    if (!reduce) srcEl.animate([{ transform: 'scale(1)' }, { transform: 'scale(.985)', offset: .35 }, { transform: 'scale(1)' }], { duration: 520, easing: 'cubic-bezier(.3,.7,.3,1)' });
     fly.onfinish = () => {
       copy.remove();
       const lib = $('libBtn');
       lib.classList.remove('got'); void lib.offsetWidth; lib.classList.add('got');
       lib.querySelectorAll('.libpip').forEach(e => e.remove());
-      const pip = document.createElement('span'); pip.className = 'libpip'; pip.style.background = gradient(S, false); lib.appendChild(pip);
+      const pip = document.createElement('span'); pip.className = 'libpip'; pip.style.background = from.pip || gradient(S, false); lib.appendChild(pip);
       clearTimeout(pipTimer);
       pipTimer = setTimeout(() => { pip.classList.add('bye'); setTimeout(() => pip.remove(), 360); }, 2400);
     };
     return true;
   }
   $('saveBtn').onclick = () => saveToLibrary();
-  function saveToLibrary() {
-    const name = funName(S, library.map(x => x.name));
-    library.unshift({ id: Date.now(), savedAt: Date.now(), name, state: JSON.parse(JSON.stringify(S)) });
+  function saveToLibrary(st = S, from) {
+    if (st instanceof Event) st = S;
+    const name = funName(st, library.map(x => x.name));
+    library.unshift({ id: Date.now(), savedAt: Date.now(), name, state: JSON.parse(JSON.stringify(st)) });
     persistLib(); libCount();
-    if (!$('libView').hidden || !flyToLibrary()) toast(`Saved as “${name}”`);
+    if (!$('libView').hidden || !flyToLibrary(from)) toast(`Saved as “${name}”`);
     if (!$('libView').hidden) {
       renderLibView();
       const fresh = $('libGrid').querySelector('.sleeve');
