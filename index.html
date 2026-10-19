@@ -503,9 +503,6 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
 }
 .mxtop { position: absolute; top: 0; left: 0; right: auto; display: flex; align-items: center; gap: 14px; padding: calc(env(safe-area-inset-top, 0px) + 14px) 20px 0; }
 .mxtop .btn.icon { width: 34px; height: 34px; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 6px 16px -10px rgba(0,0,0,.25); }
-.mxtitle { display: grid; gap: 1px; }
-.mxtitle h2 { margin: 0; font: 600 15px/19px var(--sans); letter-spacing: -0.01em; }
-.mxtitle span { font-size: 12px; color: var(--muted); }
 .mxcard { position: absolute; right: 20px; top: 76px; width: 288px; padding: 16px 18px 18px; border-radius: 18px; }
 .mxlbl { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
 .mxname { position: relative; height: 34px; font: 600 28px/34px var(--sans); letter-spacing: -0.02em; color: var(--fg); overflow: hidden; perspective: 400px; }
@@ -552,7 +549,6 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
   .mxrow { margin-top: 0; }
   .mxrgb { margin-top: 2px; }
   .mxglobe-wrap { inset: 128px 124px 104px 12px; }
-  .mxtitle { display: none; }
   .mxtop { padding-left: 12px; }
   .mxtemp { right: 12px; top: 140px; bottom: 96px; width: 104px; padding: 8px; }
   .mxtemp > .mxlbl { display: none; }
@@ -870,10 +866,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     </div>
   </div>
 </div>
-<div class="mixview" id="mixView" hidden role="dialog" aria-modal="true" aria-labelledby="mxTitle">
+<div class="mixview" id="mixView" hidden role="dialog" aria-modal="true" aria-label="Fun mode">
   <header class="mxtop">
     <button class="btn icon" id="mixClose" type="button" aria-label="Back" title="Back (Esc or F)"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M16 10H4M9 5l-5 5 5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
-    <div class="mxtitle"><h2 id="mxTitle">Fun mode</h2></div>
   </header>
   <aside class="mxcard card" aria-label="Current colour">
     <div class="mxlbl">Pouring</div>
@@ -1786,7 +1781,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   function mixDrop(c, x, y, R = .34 + Math.random() * .14) {
     // the new drop pushes its neighbours outward as it lands
     bowl.blobs.forEach(b => {
-      const dx = b.x - x, dy = b.y - y, d = Math.hypot(dx, dy) || .001, f = Math.max(0, 1 - d / 1.3) * .9;
+      const dx = b.x - x, dy = b.y - y, d = Math.hypot(dx, dy) || .001, f = Math.max(0, 1 - d / 1.5) * 1.25;
       b.vx += dx / d * f; b.vy += dy / d * f;
     });
     bowl.blobs.push({ c, x, y, r: .02, R, vx: 0, vy: 0, seed: Math.random() * 100 });
@@ -1804,8 +1799,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const B = bowl.blobs, t = bowl.time;
     for (const b of B) {
       // a slow swirl around the middle plus a gentle wander
-      b.vx += (-b.y * .22 + Math.sin(t * .7 + b.seed) * .07) * dt;
-      b.vy += (b.x * .22 + Math.cos(t * .55 + b.seed * 1.3) * .07) * dt;
+      b.vx += (-b.y * .26 + Math.sin(t * .7 + b.seed) * .095) * dt;
+      b.vy += (b.x * .26 + Math.cos(t * .55 + b.seed * 1.3) * .095) * dt;
       const target = b.dying ? 0 : b.R;
       b.r += (target - b.r) * Math.min(1, dt * (b.dying ? 1.2 : 2.4));
     }
@@ -2619,14 +2614,17 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       };
       drawAt(0);
 
-      // saved motion plays while you hover
+      // saved motion plays in the library, just as it does on the canvas (about 30 fps per card)
       const anim = { raf: 0 };
       libAnims.push(anim);
       if (st.motion.on) {
-        const t0 = { v: 0 };
-        const step = now => { if (!t0.v) t0.v = now; drawAt(((now - t0.v) / 1000 / st.motion.speed) % 1); anim.raf = requestAnimationFrame(step); };
-        card.addEventListener('mouseenter', () => { t0.v = 0; anim.raf = requestAnimationFrame(step); });
-        card.addEventListener('mouseleave', () => { cancelAnimationFrame(anim.raf); drawAt(0); });
+        let t0 = 0, last = 0;
+        const step = now => {
+          if (!t0) t0 = now;
+          if (now - last > 33) { last = now; drawAt(((now - t0) / 1000 / st.motion.speed) % 1); }
+          anim.raf = requestAnimationFrame(step);
+        };
+        anim.raf = requestAnimationFrame(step);
       }
 
       const open = () => {
