@@ -493,7 +493,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 /* the main top bar stays in place above fun mode; its title takes the brand's spot */
 body.mixing .top { z-index: 30; }
 body.mixing .brand { visibility: hidden; }
-body.mixing #sizeWrap { display: none; }
+body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
 .mxbar-wrap .dock { width: 100%; }
 .mxbar-wrap .barbtn { flex: 1; min-width: 0; }
 .mixview {
@@ -521,8 +521,6 @@ body.mixing #sizeWrap { display: none; }
 .mxglobe-wrap { position: absolute; inset: 72px 270px 150px; display: grid; place-items: center; pointer-events: none; }
 .mxglobe { pointer-events: auto; border-radius: 50%; box-shadow: var(--frame-shadow); cursor: crosshair; touch-action: none; }
 .mxglobe.stirring { cursor: grabbing; }
-.mxhint { position: absolute; left: 50%; bottom: -31px; transform: translateX(-50%); font-size: 12px; color: var(--muted); white-space: nowrap; transition: opacity .6s ease; }
-.mxhint.gone { opacity: 0; }
 .mxtemp {
   position: absolute; right: 20px; top: 76px; bottom: 23px; width: 72px; border-radius: 18px; padding: 16px 0;
   display: flex; flex-direction: column; align-items: center; gap: 12px; font-size: 12px; color: var(--muted);
@@ -548,7 +546,6 @@ body.mixing #sizeWrap { display: none; }
   .mxglobe-wrap { inset: 128px 80px 104px; }
   .mxtitle { display: none; }
   .mxtop { padding-left: 12px; }
-  .mxhint { display: none; }
   .mxtemp { right: 12px; top: 140px; bottom: 96px; width: 56px; }
   .mxbar-wrap { left: 12px; right: 12px; }
   .mxbar-wrap .barbtn kbd { display: none; }
@@ -874,7 +871,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   </aside>
   <div class="mxglobe-wrap">
     <canvas class="mxglobe" id="mxGlobe" aria-label="Colour mix. Click to drop the current colour, drag to stir."></canvas>
-    <div class="mxhint" id="mxHint">Drag the slider to pour · click the globe to drop · drag to stir</div>
   </div>
   <aside class="mxtemp card" aria-label="Warm to cold">
     <span>Warm</span>
@@ -1771,7 +1767,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     // the bowl holds about sixteen drops; the oldest fade away
     const live = bowl.blobs.filter(b => !b.dying);
     if (live.length > 16) { live[0].dying = true; }
-    $('mxHint').classList.add('gone');
   }
   function mixPour() {
     const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * .45;
@@ -1887,23 +1882,17 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (matchMedia('(max-width: 860px)').matches) { g.removeAttribute('style'); return; }
     const cx = d.left + d.width / 2, half = Math.max(120, Math.min(cx - 270, innerWidth - 112 - cx));
     g.style.left = (cx - half) + 'px'; g.style.right = (innerWidth - cx - half) + 'px';
-    g.style.bottom = (innerHeight - d.top + 70) + 'px';
-  }
-  // the hint sits halfway between the globe and the bar, so both gaps match
-  function placeHint() {
-    const h = $('mxHint'), g = mxCv.getBoundingClientRect(), bar = document.querySelector('.mxbar-wrap .dock').getBoundingClientRect(), w = h.parentElement.getBoundingClientRect();
-    h.style.bottom = 'auto';
-    h.style.top = ((g.bottom + bar.top) / 2 - h.offsetHeight / 2 - w.top) + 'px';
+    g.style.bottom = (innerHeight - d.top + 18) + 'px';
   }
   function openMix() {
     mixReturn = document.activeElement;
     closeMenu(false);
     $('mixView').hidden = false;
     document.body.classList.add('mixing');
-    alignMix(); fitMix(); placeHint(); seedMix();
+    $('sizeBtn').disabled = true; $('sizeBtn').title = 'Size is not used in fun mode';
+    alignMix(); fitMix(); seedMix();
     bowlHist = []; bowlHi = -1; bowlCommit();
     bowl.name = ''; $('mxName').innerHTML = '';
-    $('mxHint').classList.remove('gone');
     syncMixReadout();
     bowl.last = 0; cancelAnimationFrame(bowl.raf); bowl.raf = requestAnimationFrame(mixLoop);
     $('mixClose').focus({ focusVisible: false });
@@ -1912,13 +1901,14 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     cancelAnimationFrame(bowl.raf); bowl.raf = 0;
     $('mixView').hidden = true;
     document.body.classList.remove('mixing');
+    $('sizeBtn').disabled = false; $('sizeBtn').title = 'Size';
     syncHist();
     mixReturn && mixReturn.focus && mixReturn.focus();
   }
   // the Fun mode switch slides on, then the playground opens; it switches off again on the way out
   $('funBtn').onclick = openMix;
   $('mixClose').onclick = closeMix;
-  addEventListener('resize', () => { if (!$('mixView').hidden) { alignMix(); fitMix(); placeHint(); } });
+  addEventListener('resize', () => { if (!$('mixView').hidden) { alignMix(); fitMix(); } });
 
   // the slider: dragging pours a little of each colour you pass through
   const mxTrack = $('mxTrack');
