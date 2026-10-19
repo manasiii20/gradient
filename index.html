@@ -521,18 +521,6 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .ask-go { margin-left: 4px; background: #1d1d22; color: #fff; }
 .ask-go:hover { transform: translateY(-1px); }
 .ask-go:active { transform: scale(.95); }
-/* what the words were read as: a dot of colour per word, and the descriptive words in plain text */
-.ask-read { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; min-height: 0; margin-top: 14px; }
-.ask-read:empty { margin-top: 0; }
-.ask-chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 6px; border-radius: 8px; font: 500 12px var(--sans); color: rgba(29,29,34,.72);
-  background: rgba(255,255,255,.5); box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: chipin .35s cubic-bezier(.22,1,.36,1) both; }
-.ask-chip.mod { padding-left: 10px; color: rgba(29,29,34,.5); font-style: italic; font-weight: 400; }
-.ask-chip.unk { padding-left: 10px; color: rgba(29,29,34,.42); font-weight: 400; }
-.ask-chip i { display: inline-flex; }
-.ask-chip i b { width: 12px; height: 12px; border-radius: 50%; margin-left: -3px; box-shadow: 0 0 0 1.5px rgba(255,255,255,.9); }
-.ask-chip i b:first-child { margin-left: 0; }
-@keyframes chipin { from { opacity: 0; transform: translateY(4px); } }
-.ask-read:not(:empty) + .ask-hint { display: none; }
 .ask-hint { margin: 18px 0 0; font: 400 13px var(--sans); color: rgba(29,29,34,.5); transition: color .3s; }
 .ask-hint kbd { opacity: .7; }
 @media (hover: none), (pointer: coarse), (max-width: 480px) { .ask-hint .kh { display: none; } }
@@ -542,8 +530,6 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro-skip:hover { color: #1d1d22; background: rgba(255,255,255,.4); }
 .intro { transition: opacity .7s ease, transform .9s cubic-bezier(.22,1,.36,1); }
 .intro.dim .ask-hint, .intro.dim .intro-skip { color: rgba(255,255,255,.6); }
-.intro.dim .ask-chip { color: rgba(255,255,255,.85); background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
-.intro.dim .ask-chip.mod, .intro.dim .ask-chip.unk { color: rgba(255,255,255,.6); }
 .intro.dim .ask-glass { background: rgba(255,255,255,.14); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 24px 50px -30px rgba(0,0,0,.6); }
 .intro-skip kbd { margin: 0 4px; opacity: .7; }
 .intro-skip .spacek { display: inline-block; min-width: 46px; text-align: center; padding: 1px 6px; border-radius: 5px; font-size: 10px; }
@@ -1068,7 +1054,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
           <button type="submit" class="ask-go" id="askGo" aria-label="Create"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4.5 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         </div>
       </form>
-      <div class="ask-read" id="askRead" aria-live="polite"></div>
       <p class="ask-hint" id="askHint">Type<span class="kh"> and press <kbd>↵</kbd></span> &nbsp;·&nbsp; or pick a card</p>
     </div>
   </div>
@@ -3469,15 +3454,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     typeT = setTimeout(() => {
       const v = $('askInput').value;
       const st = readPrompt(v, true);
-      // show what was understood, word by word
-      const { read } = interpret(v, true), box = $('askRead');
-      const key = JSON.stringify(read.map(r => [r.w, r.mod, !!r.unknown]));
-      if (box.dataset.key !== key) {
-        box.dataset.key = key;
-        box.innerHTML = read.slice(0, 7).map(r => r.mod ? `<span class="ask-chip mod">${r.w}</span>`
-          : r.unknown ? `<span class="ask-chip unk">${r.w}</span>`
-          : `<span class="ask-chip"><i>${r.cols.map(c => `<b style="background:${c}"></b>`).join('')}</i>${r.hint ? 'hint of ' : ''}${r.w}</span>`).join('');
-      }
       introTyped = st ? calmed(st, .12) : null;   // shown close to true, so dark words really look dark
       setIntroBg(introTyped || fromPreset(CALM));
     }, 140);
@@ -3504,7 +3480,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     document.querySelector('.intro-grain').style.backgroundImage = `url(${g.toDataURL()})`;
     sizeIntro(); introT0 = performance.now();
     introTyped = null; introPick = null; $('askInput').value = ''; $('askInput').parentElement.classList.remove('filled');
-    $('askRead').innerHTML = ''; $('askRead').dataset.key = '';
     startPh();
     introBg = bgState(fromPreset(CALM)); setIntroBg(fromPreset(CALM));
     buildCards();
@@ -3537,10 +3512,10 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     { title: 'Welcome to Gradient', text: 'Make soft, grainy gradients, set them moving, and take them anywhere as CSS, an image or a video. Here is a quick look around, and you can try each part as you go.', next: 'Show me around' },
     { el: ['#frame'], title: 'Your canvas', text: 'Drag a dot to move its colour around. Go on, try it.<span class="kh"> Pinch on a trackpad, or hold <kbd>⌘</kbd> / <kbd>Ctrl</kbd> and scroll, to zoom in.</span>' },
     { el: ['#side', '#sideBtn'], title: 'Shape it', text: 'Pick linear, radial or mesh, then tune the colours, blur, noise, glass texture and motion. Have a play.' },
-    { el: ['#dock'], also: ['#pPanel'], key: 'p', title: 'Presets', text: 'Not sure where to start? Open the row of classics and pick one to try it.<span class="kh"> Or press <kbd>P</kbd>.</span>' },
+    { el: ['#presetBtn'], also: ['#pPanel'], key: 'p', title: 'Presets', text: 'Not sure where to start? Open the row of classics and pick one to try it.<span class="kh"> Or press <kbd>P</kbd>.</span>' },
     { el: ['#funBtn'], key: 'f', title: 'Fun mode', text: 'Pour colours into a liquid globe, then turn the mix into a gradient. Open it for a go; the tour waits here until you are back.' },
     { el: ['#saveBtn'], key: 's', title: 'Save to library', text: 'Keep what you make. Try it and watch it fly into your Library, up top.<span class="kh"> Or press <kbd>S</kbd>.</span>' },
-    { el: ['.side-foot', '#sideBtn'], title: 'Take it with you', text: 'Copy the CSS, or export an image or a looping video in the size you need.' },
+    { el: ['.side-foot', '#sideBtn'], hug: true, title: 'Take it with you', text: 'Copy the CSS, or export an image or a looping video in the size you need.' },
     { el: ['#randomBtn'], key: 'r', title: 'Feeling stuck?', text: 'Randomize gives you something new any time. Press it a few times and keep the one you like.<span class="kh"> Or press <kbd>R</kbd>.</span>', next: 'Start creating' },
   ];
   const tourEl = $('tour'), spot = $('tourSpot'), tcard = $('tourCard');
@@ -3571,6 +3546,11 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     }
     // the highlight hugs the part with a little room, but never spills past the panel it lives in
     let pad = 8, b = t.getBoundingClientRect();
+    if (st.hug && t.children.length) {
+      const rs = [...t.children].map(c => c.getBoundingClientRect());
+      b = { left: Math.min(...rs.map(r => r.left)), top: Math.min(...rs.map(r => r.top)), right: Math.max(...rs.map(r => r.right)), bottom: Math.max(...rs.map(r => r.bottom)) };
+      b.width = b.right - b.left; b.height = b.bottom - b.top;
+    }
     let h = { l: b.left - pad, t: b.top - pad, r: b.right + pad, b: b.bottom + pad };
     const host = t.parentElement && t.parentElement.closest('.card');
     if (host) {
