@@ -888,7 +888,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     <div class="mxlbl">Pick a colour to pour</div>
     <div class="mxcols">
       <div class="mxcol" data-sc="warm"><span>Warm</span><div class="mxtrack"><button class="mxknob" type="button" role="slider" aria-label="Warm to cold" aria-valuemin="0" aria-valuemax="100"></button></div><span>Cold</span></div>
-      <div class="mxcol" data-sc="fresh"><span>Fresh</span><div class="mxtrack"><button class="mxknob" type="button" role="slider" aria-label="Fresh to deep" aria-valuemin="0" aria-valuemax="100"></button></div><span>Deep</span></div>
+      <div class="mxcol" data-sc="fresh"><span>Lush</span><div class="mxtrack"><button class="mxknob" type="button" role="slider" aria-label="Lush to dusk" aria-valuemin="0" aria-valuemax="100"></button></div><span>Dusk</span></div>
     </div>
   </aside>
   <div class="mxbar-wrap">
@@ -1744,7 +1744,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 22; }
     x.putImageData(d, 0, 0); return c;
   })();
-  // two scales: warm to cold, and fresh greens through blues to deep violets
+  // two scales: warm to cold, and lush greens through blues to dusky violets
   const SCALES = { warm: [MIX_SCALE, MIX_NAMES], fresh: [FRESH_SCALE, FRESH_NAMES] };
   function mixColorAt(t, sc = bowl.sc) {
     const SC = SCALES[sc][0];
@@ -1906,9 +1906,10 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const g = document.querySelector('.mxglobe-wrap'), card = document.querySelector('.mxcard'), temp = document.querySelector('.mxtemp');
     if (matchMedia('(max-width: 860px)').matches) { [g, card, temp].forEach(el => el.removeAttribute('style')); return; }
     const sr = $('side').getBoundingClientRect();
-    Object.assign(card.style, { left: sr.left + 'px', width: sr.width + 'px', right: 'auto', top: sr.top + 'px' });
-    Object.assign(temp.style, { left: sr.left + 'px', width: sr.width + 'px', right: 'auto', top: (sr.top + card.offsetHeight + 12) + 'px', bottom: (innerHeight - sr.bottom) + 'px' });
-    const cx = d.left + d.width / 2, half = Math.max(120, Math.min(cx - 24, sr.left - 24 - cx));
+    // the colour card sits on the left for balance; the scales fill the editor's settings column
+    Object.assign(card.style, { left: '20px', width: '230px', right: 'auto', top: sr.top + 'px' });
+    Object.assign(temp.style, { left: sr.left + 'px', width: sr.width + 'px', right: 'auto', top: sr.top + 'px', bottom: (innerHeight - sr.bottom) + 'px' });
+    const cx = d.left + d.width / 2, half = Math.max(120, Math.min(cx - 270, sr.left - 24 - cx));
     g.style.left = (cx - half) + 'px'; g.style.right = (innerWidth - cx - half) + 'px';
     g.style.bottom = (innerHeight - d.top + 18) + 'px';
   }
