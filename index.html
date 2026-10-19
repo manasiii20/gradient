@@ -497,9 +497,9 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .ask-field { position: relative; flex: 1; min-width: 0; height: 100%; }
 .ask-bar input { width: 100%; height: 100%; border: 0; outline: 0; background: none; color: #1d1d22; font: 400 16px var(--sans); }
 /* the placeholder: "Try" stays put while the suggestion after it changes every few seconds */
-.ask-ph { position: absolute; inset: 0; display: flex; align-items: center; pointer-events: none; white-space: nowrap; overflow: hidden; color: #8c8b96; font: 400 16px var(--sans); }
+.ask-ph { position: absolute; inset: 0; display: flex; align-items: center; pointer-events: none; white-space: nowrap; overflow: hidden; color: rgba(120,119,132,.55); font: 400 16px var(--sans); }
 .ph-win { position: relative; display: inline-block; height: 1.5em; margin-left: .3em; overflow: hidden; vertical-align: middle; transition: width .4s cubic-bezier(.4,0,.2,1); }
-.ph-win > span { position: absolute; left: 0; top: 0; line-height: 1.5em; color: rgba(140,139,150,.62); transition: transform .42s cubic-bezier(.4,0,.2,1), opacity .3s ease; }
+.ph-win > span { position: absolute; left: 0; top: 0; line-height: 1.5em; color: rgba(120,119,132,.78); transition: transform .42s cubic-bezier(.4,0,.2,1), opacity .3s ease; }
 .ph-win > span.below { transform: translateY(100%); opacity: 0; }
 .ph-win > span.above { transform: translateY(-100%); opacity: 0; }
 .ask-ph .tabk { margin-left: 10px; font: 500 10.5px var(--mono); padding: 1px 5px; border-radius: 4px; border: 1px solid currentColor; opacity: .45; }
@@ -518,6 +518,18 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .ask-go { margin-left: 4px; background: #1d1d22; color: #fff; }
 .ask-go:hover { transform: translateY(-1px); }
 .ask-go:active { transform: scale(.95); }
+/* what the words were read as: a dot of colour per word, and the descriptive words in plain text */
+.ask-read { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; min-height: 0; margin-top: 14px; }
+.ask-read:empty { margin-top: 0; }
+.ask-chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 6px; border-radius: 8px; font: 500 12px var(--sans); color: rgba(29,29,34,.72);
+  background: rgba(255,255,255,.5); box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: chipin .35s cubic-bezier(.22,1,.36,1) both; }
+.ask-chip.mod { padding-left: 10px; color: rgba(29,29,34,.5); font-style: italic; font-weight: 400; }
+.ask-chip.unk { padding-left: 10px; color: rgba(29,29,34,.42); font-weight: 400; }
+.ask-chip i { display: inline-flex; }
+.ask-chip i b { width: 12px; height: 12px; border-radius: 50%; margin-left: -3px; box-shadow: 0 0 0 1.5px rgba(255,255,255,.9); }
+.ask-chip i b:first-child { margin-left: 0; }
+@keyframes chipin { from { opacity: 0; transform: translateY(4px); } }
+.ask-read:not(:empty) + .ask-hint { display: none; }
 .ask-hint { margin: 18px 0 0; font: 400 13px var(--sans); color: rgba(29,29,34,.5); transition: color .3s; }
 .ask-hint kbd { opacity: .7; }
 @media (hover: none), (pointer: coarse), (max-width: 480px) { .ask-hint .kh { display: none; } }
@@ -1044,11 +1056,12 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
             <input id="askInput" type="text" spellcheck="false" aria-label="Describe a gradient" aria-describedby="askPh">
             <span class="ask-ph" id="askPh" aria-hidden="true">Try <span class="ph-win" id="phWin"></span><span class="tabk">tab</span></span>
           </div>
-          <button type="button" class="ask-ib" id="askDice" aria-label="Surprise me" data-tip="Surprise me"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M10 3.8l1.55 4.15a2.4 2.4 0 0 0 1.5 1.5L17.2 11l-4.15 1.55a2.4 2.4 0 0 0-1.5 1.5L10 18.2l-1.55-4.15a2.4 2.4 0 0 0-1.5-1.5L2.8 11l4.15-1.55a2.4 2.4 0 0 0 1.5-1.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M18 3.5l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6z" fill="currentColor"/><path d="M18.2 15.6l.45 1.15 1.15.45-1.15.45-.45 1.15-.45-1.15-1.15-.45 1.15-.45z" fill="currentColor"/></svg></button>
-          <button type="button" class="ask-ib" id="askFun" aria-label="Fun mode" data-tip="Fun mode"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 2.8c1.9 2.4 3 4.1 3 5.5a3 3 0 0 1-6 0c0-1.4 1.1-3.1 3-5.5z" fill="currentColor" opacity=".85"/><path d="M4.5 13.2a7.5 7.5 0 0 0 15 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7.4 15.4c1.5-.9 3-.9 4.6 0s3.1.9 4.6 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".55"/></svg></button>
+          <button type="button" class="ask-ib" id="askDice" aria-label="Surprise me" data-tip="Surprise me"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3.5 7.5h3.2c1.9 0 3 .9 4 2.4l2.6 4.2c1 1.5 2.1 2.4 4 2.4h3.2M3.5 16.5h3.2c1.4 0 2.4-.5 3.2-1.3M14.1 8.8c.8-.8 1.8-1.3 3.2-1.3h3.2M18 5l2.5 2.5L18 10M18 14l2.5 2.5L18 19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button type="button" class="ask-ib" id="askFun" aria-label="Fun mode" data-tip="Fun mode"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M9.2 3.5h5.6M10.4 3.6v5.3l-4.9 8.4a2 2 0 0 0 1.7 3h9.6a2 2 0 0 0 1.7-3l-4.9-8.4V3.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.3 14.2c1.6-.8 3.1-.8 4.7 0s3.1.8 4.7 0l1.8 3.1a1.3 1.3 0 0 1-1.1 2H6.6a1.3 1.3 0 0 1-1.1-2z" fill="currentColor" opacity=".38"/><circle cx="11" cy="11.6" r=".9" fill="currentColor"/><circle cx="13.4" cy="9.6" r=".6" fill="currentColor"/></svg></button>
           <button type="submit" class="ask-go" id="askGo" aria-label="Create"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4.5 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         </div>
       </form>
+      <div class="ask-read" id="askRead" aria-live="polite"></div>
       <p class="ask-hint" id="askHint">Type<span class="kh"> and press <kbd>↵</kbd></span> &nbsp;·&nbsp; or pick a card</p>
     </div>
   </div>
@@ -3238,56 +3251,132 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     christmas: ['#b3123a', '#11714a', '#f2c14e'], halloween: ['#ff7a1a', '#2b1a3a', '#7b3fd6'], wedding: ['#fffaf2', '#f2dfd3', '#e8d6b8'], snow: ['#f5f8fc', '#d6e4f2', '#b7cbe6'], rain: ['#5a6a7a', '#9aaabb', '#d6dde6'], storm: ['#1f2633', '#4a5a6e', '#9aa8bb'], thunder: ['#1a1d33', '#5a4fa0', '#e6e08a'],
     jazz: ['#1a1440', '#b5502a', '#f2c14e'], disco: ['#ff2bd6', '#ffd23f', '#2bf2ff', '#5a2a9a'], arcade: ['#ff2bd6', '#2bf2ff', '#1a1440'], vaporwave: ['#ff71ce', '#01cdfe', '#b967ff', '#fffb96'], lofi: ['#c9a7a0', '#8a9ab8', '#e9dcc7'],
     zen: ['#e6efe9', '#b9d3c4', '#8ab0a0'], peaceful: ['#e6efe9', '#b9d3c4', '#cfe0ec'], cozy: ['#d0714a', '#f2c14e', '#7a4a2a'], energy: ['#ff2e63', '#ffb800', '#08d9d6'], vibrant: ['#ff2e63', '#ffb800', '#08d9d6'], northern: ['#0b1a2e', '#2ee6b6', '#7a5cff'], lights: ['#ffe9a8', '#ffb86b', '#ff7ab6'],
+    sun: ['#ffd84a', '#ff9f43', '#fff1c4'], sunny: ['#ffe066', '#ffb347', '#fff6d6'], moon: ['#e8e6f2', '#9aa0c8', '#2a2f5a'], moonlight: ['#dfe3f5', '#8a94c8', '#1d2350'], star: ['#fff6c8', '#9aa6ff', '#141a40'], stars: ['#fff6c8', '#9aa6ff', '#141a40'], sky: ['#8ccaf6', '#d6ecff', '#5a9be8'], clouds: ['#f5f5f8', '#dde3ef', '#ece6f2'],
+    mountain: ['#5a6a7a', '#a9b8c8', '#e8eef4'], lake: ['#2a6f8a', '#8fc9d6', '#e8f4f2'], river: ['#3a7a9a', '#9fd6d0', '#e6f2ee'], island: ['#16c79a', '#2ec5e8', '#f5e2bd'], garden: ['#7da45a', '#f49ac1', '#fff07a'], flower: ['#f49ac1', '#ffd166', '#c9b6ff'], flowers: ['#f49ac1', '#ffd166', '#c9b6ff'], leaf: ['#5a9a4a', '#b8e04a'], grass: ['#4f9a3a', '#a8d86a'], tulip: ['#ff4d6d', '#ffb3c1', '#7da45a'],
+    city: ['#2b2b38', '#ff7a3d', '#4a6fa5'], tokyo: ['#ff2bd6', '#2bf2ff', '#1a1440'], paris: ['#f2c4cf', '#c8b590', '#a9c6ea'], london: ['#5a6a7a', '#b3123a', '#d6dde6'], positano: ['#ffb38a', '#2ec5e8', '#f5e2bd', '#ff7a66'], bali: ['#16c79a', '#f5e2bd', '#ff9f43'], kyoto: ['#ffc6d9', '#b3123a', '#7da45a'],
+    mango: ['#ffb31a', '#ff7a1a', '#b8e04a'], banana: ['#fff07a', '#ffe9a8'], grape: ['#6e2c6e', '#a85fc9', '#d7b8f0'], blueberry: ['#3a3f9a', '#6a7ad6', '#c6cdf7'], watermelon: ['#ff4d6d', '#7ee081', '#1f7a4a'], lemonade: ['#fff07a', '#ffd6e0', '#fffbe6'], icecream: ['#ffd6e0', '#fff3e6', '#c6f0e0'], cake: ['#ffd6e0', '#fff3e6', '#c8a582'], candle: ['#ffd166', '#ff9f43', '#2b1a3a'], balloon: ['#ff4d6d', '#3ad1ff', '#ffd23f'], balloons: ['#ff4d6d', '#3ad1ff', '#ffd23f'], gift: ['#e8352b', '#f2c14e', '#11714a'],
+    baby: ['#cfe8ff', '#ffd6e6', '#fff7d6'], chill: ['#a9d6e5', '#e6f2f5', '#89c2d9'], fresh: ['#b8f2e6', '#aed9e0', '#faf3dd'], hot: ['#ff2e1f', '#ff8c1a', '#ffd84a'], cold: ['#cfe8ff', '#7aa9e8', '#3a5a9a'], mysterious: ['#1a1440', '#4a2a6e', '#2a6f8a'], elegant: ['#1d1d22', '#c8b590', '#f3ede4'], luxury: ['#0f0f14', '#c9a24a', '#f2e3b8'], royal: ['#2a1a6e', '#c9a24a', '#7b3fd6'], sweet: ['#ffc6e0', '#fff1a8', '#c6e8ff'],
+    evening: ['#3a33b8', '#c94fa0', '#ffb38a'], noon: ['#ffffff', '#8ccaf6', '#ffd84a'], twilight: ['#2a2a7a', '#7a5cff', '#ff9ad5'], horizon: ['#ffb38a', '#f7d6c8', '#8ccaf6'], golden: ['#f2c14e', '#ffb347', '#fff1c4'],
     earth: ['#7a4a2a', '#b08a5a', '#6b8f4e'], desert: ['#e9c18f', '#d0714a', '#f5e2bd'], berry: ['#7a1f5c', '#c2185b', '#f49ac1'], wine: ['#5a0f2e', '#8a1538', '#c94f6a'], ice: ['#eaf6ff', '#bfe3f5', '#8ccaf6'], mermaid: ['#2ad1c9', '#8a4fe0', '#f49ac1'], peacock: ['#0b6e6e', '#1a4fa0', '#4a2a8a'],
   };
-  const DARK = /\b(dark|deep|night|midnight|moody|shadow|noir|space|galaxy)\b/, LIGHT = /\b(soft|pastel|light|pale|airy|dreamy|gentle|calm|misty|cloud)\b/;
+  // descriptive words change every colour a little: lighter, deeper, brighter, quieter, warmer, cooler
+  const MODS = {
+    pastel: 'light', soft: 'light', light: 'light', pale: 'light', airy: 'light', gentle: 'light', baby: 'light', powder: 'light', whisper: 'light', calm: 'light',
+    dark: 'dark', deep: 'dark', moody: 'dark', shadow: 'dark', noir: 'dark', rich: 'dark', midnight: 'dark', night: 'dark',
+    neon: 'vivid', vivid: 'vivid', bright: 'vivid', bold: 'vivid', electric: 'vivid', loud: 'vivid', juicy: 'vivid', poppy: 'vivid', saturated: 'vivid',
+    muted: 'muted', dusty: 'muted', faded: 'muted', vintage: 'muted', matte: 'muted', washed: 'muted', grey: 'muted', smoky: 'muted', earthy: 'muted',
+    warm: 'warm', cozy: 'warm', sunny: 'warm', toasty: 'warm', cool: 'cool', icy: 'cool', frosty: 'cool', crisp: 'cool', cold: 'cool',
+  };
+  const BOOST = /^(very|super|so|really|extra|ultra|too)$/;
+  const hexToHsl = c => { const [r, g, b] = toRgb(c).map(v => v / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+    if (!d) return [0, 0, l]; const s = d / (1 - Math.abs(2 * l - 1)); const h = mx === r ? ((g - b) / d + 6) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return [h * 60, s, l]; };
+  const hslToHex = (h, s, l) => { s = clamp(s, 0, 1); l = clamp(l, 0, 1); const k = n => (n + h / 30) % 12, a = s * Math.min(l, 1 - l);
+    return toHex([0, 8, 4].map(n => 255 * (l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))))); };
+  function applyMod(c, m, k) {
+    let [h, s, l] = hexToHsl(c);
+    const towards = (from, to, t) => { const d = ((to - from + 540) % 360) - 180; return (from + d * t + 360) % 360; };
+    if (m === 'light') { l += (0.94 - l) * .45 * k; s *= 1 - .18 * k; }
+    if (m === 'dark') { l *= 1 - .42 * k; s = Math.min(1, s * (1 + .1 * k)); }
+    if (m === 'vivid') { s = Math.min(1, s * (1 + .45 * k) + .1 * k); l += (.55 - l) * .35 * k; }
+    if (m === 'muted') { s *= 1 - .45 * k; l += (.66 - l) * .3 * k; }
+    if (m === 'warm') h = s > .08 ? towards(h, 30, .22 * k) : h;
+    if (m === 'cool') h = s > .08 ? towards(h, 215, .22 * k) : h;
+    return hslToHex(h, s, l);
+  }
   // a steady little random generator seeded by the words, so the same words always give the same picture
   function seeded(text) {
     let h = 2166136261;
     for (const ch of text) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
     return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; };
   }
-  function readPrompt(text) {
-    const t = text.toLowerCase().replace(/[^a-z\s-]/g, ' ');
-    if (!t.trim()) return null;
-    const rnd = seeded(t.trim());
-    let cols = [];
-    for (const w of t.split(/[\s-]+/)) {
-      const k = WORDS[w] ? w : WORDS[w.replace(/(ish|y|s)$/, '')] ? w.replace(/(ish|y|s)$/, '') : null;
-      if (k) cols.push(...WORDS[k]);
+  const KEYS = Object.keys(WORDS).filter(k => WORDS[k].length);
+  // find a word: exact, without an ending (-s, -y, -ish, -ing, -ed), two words run together, or, for the word
+  // still being typed, the first known word it starts (so "laven" already means lavender)
+  function lookup(w, typing) {
+    if (WORDS[w] && WORDS[w].length) return w;
+    for (const end of ['ies', 's', 'es', 'y', 'ish', 'ing', 'ed', 'er', 'ly']) {
+      if (w.length > end.length + 2 && w.endsWith(end)) { const b = w.slice(0, -end.length); if (WORDS[b] && WORDS[b].length) return b; if (end === 'ies' && WORDS[b + 'y']) return b + 'y'; }
     }
-    cols = [...new Set(cols)].slice(0, 6);
+    if (typing && w.length >= 3) return KEYS.find(k => k.startsWith(w)) || null;
+    return null;
+  }
+  // read the words: what colours they bring, how they change those colours, and how they are put together
+  function interpret(text, typing = false) {
+    const raw = text.toLowerCase().replace(/[^a-z\s'-]/g, ' ').replace(/ice cream/g, 'icecream').replace(/cherry blossom/g, 'sakura');
+    const words = raw.split(/[\s-]+/).filter(Boolean);
+    const read = [], cols = [], hints = [];
+    let boost = 1, hint = false, pending = [];
+    words.forEach((w, i) => {
+      const last = typing && i === words.length - 1 && !/\s$/.test(text);
+      if (BOOST.test(w)) { boost = 1.6; return; }
+      if (/^(hint|touch|splash|dash|bit|little)$/.test(w)) { hint = true; return; }
+      if (MODS[w]) { pending.push([MODS[w], boost]); boost = 1; if (!WORDS[w] || !WORDS[w].length) { read.push({ w, mod: MODS[w] }); return; } }
+      const k = lookup(w, last);
+      if (!k) { if (w.length > 2 && !/^(and|with|the|of|in|on|at|for|a|an|to|my|our|your|like|some|from|into|over|under|after|before|that|this|its|it's|hour|late|first|day|days|time|vibe|vibes|feel|feeling|mood|aesthetic|but|just|lots|lot|kind|sort|ish)$/.test(w)) read.push({ w, unknown: true }); return; }
+      // descriptive words lean on the next colour word, or, if none follows, on everything
+      const add = WORDS[k].map(c => pending.reduce((cc, [m, b]) => applyMod(cc, m, b), c));
+      if (!MODS[w]) pending = [];   // a describing word that is also a colour keeps describing what follows
+      (hint ? hints : cols).push(...add);
+      read.push({ w: last ? k : w, cols: add.slice(0, 3), hint });
+      hint = false;
+    });
+    return { read, cols, hints, trailing: pending, words };
+  }
+  function readPrompt(text, typing = false) {
+    const t = text.toLowerCase().trim();
+    if (!t) return null;
+    const rnd = seeded(t), { cols: c0, hints, trailing, read } = interpret(text, typing);
+    let cols = [...new Set(c0)].slice(0, 6);
     // words it doesn't know still mean something: they become their own palette, the same every time
-    if (cols.length < 2) {
-      const h0 = rnd() * 360, step = (24 + rnd() * 70) * (rnd() < .5 ? 1 : -1), extra = 4 - cols.length;
-      for (let i = 0; i < extra; i++) cols.push(oklch(.6 + rnd() * .3, .08 + rnd() * .12, (h0 + i * step + 360) % 360));
+    const unknown = read.filter(r => r.unknown).map(r => r.w).join(' ');
+    if (cols.length < 2 && (unknown || !cols.length)) {
+      const r2 = seeded(unknown || t), h0 = r2() * 360, step = (24 + r2() * 70) * (r2() < .5 ? 1 : -1), extra = cols.length ? 2 : 4;
+      for (let i = 0; i < extra; i++) cols.push(oklch(.6 + r2() * .3, .08 + r2() * .12, (h0 + i * step + 360) % 360));
     }
-    const dark = DARK.test(t), light = LIGHT.test(t);
-    const shade = (c, k) => { const a = toRgb(c), w = k > 0 ? [255, 255, 255] : [12, 12, 20]; return toHex(a.map((v, i) => v + (w[i] - v) * Math.abs(k))); };
-    if (light) cols = cols.map(c => shade(c, .35));
-    if (dark) cols = cols.map((c, i) => i % 2 ? c : shade(c, -.45));
-    // fewer than three colours: add a lighter and a deeper partner so it still has depth
-    if (cols.length === 1) cols = [shade(cols[0], .55), cols[0], shade(cols[0], -.35)];
-    else if (cols.length === 2) cols = [cols[0], shade(cols[0], .5), cols[1]];
-    const n = cols.length, lum = c => { const [r, g, b] = toRgb(c); return .2126 * r + .7152 * g + .0722 * b; };
-    const base = [...cols].sort((a, b) => dark ? lum(a) - lum(b) : lum(b) - lum(a))[0];
-    const mode = /\blinear\b/.test(t) ? 'linear' : /\b(radial|halo|glow|orb)\b/.test(t) ? 'radial' : 'mesh';
+    // modifiers with no colour word after them ("…, but pastel") reshape the whole palette
+    if (trailing.length) cols = cols.map(c => trailing.reduce((cc, [m, b]) => applyMod(cc, m, b), c));
+    const lum = c => { const [r, g, b] = toRgb(c); return .2126 * r + .7152 * g + .0722 * b; };
+    const shade = (c, k) => applyMod(c, k > 0 ? 'light' : 'dark', Math.abs(k) * 1.6);
+    if (cols.length === 1) cols = [shade(cols[0], .5), cols[0], shade(cols[0], -.35)];
+    else if (cols.length === 2) cols = [cols[0], shade(cols[0], .45), cols[1]];
+    const darkish = cols.reduce((a, c) => a + lum(c), 0) / cols.length < 105;
+    const base = [...cols].sort((a, b) => darkish ? lum(a) - lum(b) : lum(b) - lum(a))[0];
+    // the shape follows the picture: skies and horizons run top to bottom, suns and glows radiate, the rest flows
+    const mode = /\blinear\b|\b(sky|horizon|sunset|sunrise|dusk|dawn|twilight|ombre|fade)\b/.test(t) ? 'linear'
+      : /\b(radial|halo|glow|orb|sun|moon|star|candle|bloom|burst)\b/.test(t) ? 'radial' : 'mesh';
+    const n = cols.length;
+    const stops = cols.map((c, i) => [c, Math.round(i / (n - 1) * 100), Math.round(10 + rnd() * 80), Math.round(8 + rnd() * 84), Math.round(44 + rnd() * 26)]);
+    // a hint of something is a small accent, tucked in at the edge
+    [...new Set(hints)].slice(0, 2).forEach((c, i) => stops.push([c, Math.round(55 + i * 30), Math.round(rnd() < .5 ? 8 + rnd() * 14 : 78 + rnd() * 14), Math.round(10 + rnd() * 80), 26]));
+    stops.sort((a, b) => a[1] - b[1]);
     const p = {
-      name: 'Yours', mode, angle: Math.round(rnd() * 18) * 10, cx: 50, cy: 50, base,
-      grain: /\b(grain|grainy|noisy|film|texture)\b/.test(t) ? 22 : /\b(smooth|clean|glossy)\b/.test(t) ? 2 : 8, blur: 95,
-      stops: cols.map((c, i) => [c, Math.round(i / (n - 1) * 100), Math.round(10 + rnd() * 80), Math.round(8 + rnd() * 84), Math.round(42 + rnd() * 26)]),
+      name: 'Yours', mode, angle: /\b(sky|horizon|sunset|sunrise|dusk|dawn|twilight)\b/.test(t) ? 180 : Math.round(rnd() * 18) * 10, cx: 50, cy: /\b(sunset|sunrise|horizon)\b/.test(t) ? 90 : 50, base,
+      grain: /\b(grain|grainy|noisy|film|texture|vintage|retro)\b/.test(t) ? 22 : /\b(smooth|clean|glossy|glass)\b/.test(t) ? 2 : 8, blur: 95,
+      stops,
     };
     const st = fromPreset(p);
-    if (/\b(moving|animated|motion|flow|flowing|drift|drifting|wave|waves|alive)\b/.test(t)) st.motion = { ...st.motion, on: true };
+    if (/\b(moving|animated|motion|flow|flowing|drift|drifting|wave|waves|alive|dancing|swirl)\b/.test(t)) st.motion = { ...st.motion, on: true };
     return st;
   }
 
   // five cards, each a little different: some higher, some lower, leaning either way, overlapping a touch
   const CARD_LOOK = [{ x: 6, y: 22, r: -6 }, { x: -1, y: 12, r: 3 }, { x: 2, y: 7, r: -2 }, { x: -2, y: 14, r: 4 }, { x: -6, y: 21, r: -3 }];
-  const CARD_PICKS = ['Sunrise arc', 'Deep blue', 'Candy haze', 'Cherry pop', 'Midnight bloom', 'Lemon sky', 'Sea', 'Peach glow', 'Aurora', 'Citrus', 'Ember', 'Lagoon', 'Electric', 'Rose quartz', 'Lavender field'];
+  // gradients made for the cards: richer, with more colours playing off each other
+  const CARD_SET = [
+    { name: 'Iris', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#2a1a6e', grain: 10, blur: 90, stops: [['#7b3fd6', 0, 18, 22, 58], ['#ff6fb5', 33, 84, 18, 50], ['#2ee6b6', 66, 72, 88, 48], ['#ffd166', 100, 12, 92, 40]] },
+    { name: 'Holo', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#dfe6ff', grain: 8, blur: 95, stops: [['#9fb8ff', 0, 10, 12, 60], ['#ffb8ec', 33, 86, 22, 52], ['#a8fff0', 66, 28, 92, 56], ['#fff1a8', 100, 92, 86, 42]] },
+    { name: 'Embers', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#2b0a12', grain: 12, blur: 90, stops: [['#ff3d1a', 0, 28, 72, 56], ['#ffb31a', 33, 62, 98, 44], ['#c2185b', 66, 86, 24, 52], ['#5a1a6e', 100, 10, 8, 50]] },
+    { name: 'Lagoon pop', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#0b4f8a', grain: 8, blur: 92, stops: [['#22c1c3', 0, 20, 28, 56], ['#b8f2e6', 33, 76, 18, 46], ['#2d7dd2', 66, 82, 82, 56], ['#ff7ab6', 100, 12, 92, 36]] },
+    { name: 'Citrus spark', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#ff8a3d', grain: 10, blur: 92, stops: [['#ffd23f', 0, 18, 20, 56], ['#9be564', 33, 86, 14, 46], ['#ff4d6d', 66, 76, 86, 48], ['#fff3c4', 100, 24, 82, 40]] },
+    { name: 'Velvet', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#1a1033', grain: 10, blur: 90, stops: [['#c94fa0', 0, 72, 28, 52], ['#3a33b8', 33, 18, 70, 56], ['#ff9a6a', 66, 86, 92, 40], ['#7a5cff', 100, 24, 12, 46]] },
+    { name: 'Peony', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#ffd6e0', grain: 8, blur: 95, stops: [['#ff7fa3', 0, 20, 30, 56], ['#ffc6a8', 33, 80, 18, 48], ['#b9a2ff', 66, 72, 86, 50], ['#fff0f3', 100, 14, 86, 40]] },
+    { name: 'Sea glass', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#cfeee6', grain: 8, blur: 95, stops: [['#6fe0cf', 0, 14, 20, 56], ['#9fb8ff', 33, 86, 30, 50], ['#1f9a8a', 66, 40, 92, 50], ['#f7fff7', 100, 82, 86, 40]] },
+    { name: 'Solar', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#ff4a1c', grain: 12, blur: 90, stops: [['#ffd84a', 0, 24, 76, 56], ['#ff7ab6', 33, 80, 28, 50], ['#6a2fd6', 66, 92, 92, 40], ['#fff1dc', 100, 10, 14, 42]] },
+    { name: 'Sherbet', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#effaf5', grain: 8, blur: 95, stops: [['#8fe3bd', 0, 18, 24, 56], ['#ffcf99', 33, 82, 18, 48], ['#99bcff', 66, 76, 86, 50], ['#ff9fa8', 100, 18, 90, 40]] },
+  ];
   function buildCards() {
     const box = $('askCards'); box.innerHTML = '';
-    const pool = INTRO.filter(pr => CARD_PICKS.includes(pr.name)).sort(() => Math.random() - .5);
+    const pool = [...CARD_SET].sort(() => Math.random() - .5);
     // no two cards from the same corner of the colour wheel
     const hueOf = pr => { const [r, g, b] = toRgb(pr.stops[Math.floor(pr.stops.length / 2)][0]).map(v => v / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn || 1;
       return Math.round((mx === r ? (g - b) / d : mx === g ? 2 + (b - r) / d : 4 + (r - g) / d) * 60 + 360) % 360; };
@@ -3331,10 +3420,20 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     $('askHint').classList.remove('miss');
     $('askHint').innerHTML = 'Type<span class="kh"> and press <kbd>↵</kbd></span> &nbsp;·&nbsp; or pick a card';
     typeT = setTimeout(() => {
-      const st = readPrompt($('askInput').value);
+      const v = $('askInput').value;
+      const st = readPrompt(v, true);
+      // show what was understood, word by word
+      const { read } = interpret(v, true), box = $('askRead');
+      const key = JSON.stringify(read.map(r => [r.w, r.mod, !!r.unknown]));
+      if (box.dataset.key !== key) {
+        box.dataset.key = key;
+        box.innerHTML = read.slice(0, 7).map(r => r.mod ? `<span class="ask-chip mod">${r.w}</span>`
+          : r.unknown ? `<span class="ask-chip unk">${r.w}</span>`
+          : `<span class="ask-chip"><i>${r.cols.map(c => `<b style="background:${c}"></b>`).join('')}</i>${r.hint ? 'hint of ' : ''}${r.w}</span>`).join('');
+      }
       introTyped = st ? calmed(st, .4) : null;
       setIntroBg(introTyped || fromPreset(CALM));
-    }, 260);
+    }, 140);
   });
   $('askForm').addEventListener('submit', e => {
     e.preventDefault();
@@ -3358,6 +3457,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     document.querySelector('.intro-grain').style.backgroundImage = `url(${g.toDataURL()})`;
     sizeIntro(); introT0 = performance.now();
     introTyped = null; introPick = null; $('askInput').value = ''; $('askInput').parentElement.classList.remove('filled');
+    $('askRead').innerHTML = ''; $('askRead').dataset.key = '';
     startPh();
     introBg = bgState(fromPreset(CALM)); setIntroBg(fromPreset(CALM));
     buildCards();
