@@ -147,6 +147,13 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .h.center { background: transparent; width: 16px; height: 16px; margin: -8px 0 0 -8px; }
 .h.center::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: #fff; }
 
+/* zoom: a view-only scale on the frame; handles keep their size */
+.frame { transform-origin: 50% 50%; transition: transform .18s cubic-bezier(.22,1,.36,1); }
+.stage.panning .frame { transition: none; }
+.h { scale: calc(1 / var(--z, 1)); }
+.stage.zoomed { overflow: hidden; cursor: grab; }
+.stage.panning { cursor: grabbing; }
+
 /* ---------- Preset tiles ---------- */
 .tile { position: relative; flex: none; }
 .tile > button:first-child {
@@ -460,6 +467,131 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   animation: libin .28s cubic-bezier(.2,.7,.2,1);
 }
 @keyframes libin { from { opacity: 0; transform: translateY(14px); } }
+
+/* ---------- Save bar: save to library + fun mode ---------- */
+.savebar { gap: 4px; padding: 5px; border-radius: 16px; align-items: stretch; }
+.barbtn {
+  display: flex; align-items: center; gap: 32px; min-width: 228px; height: 44px; padding: 0 12px 0 16px; border: 0; border-radius: 12px;
+  background: none; color: var(--fg); text-align: left; transition: background-color .2s ease, transform .2s ease;
+}
+.barbtn:hover { background: var(--card-hover); }
+.barbtn:active { transform: scale(.98); }
+.bt { display: grid; gap: 1px; }
+.bt1 { font: 600 13.5px/17px var(--sans); white-space: nowrap; }
+.bt2 { font: 400 11.5px/14px var(--sans); color: var(--muted); white-space: nowrap; }
+.barbtn kbd { margin-left: auto; opacity: .45; font-size: 10.5px; padding: 1px 5px; }
+.sbdiv { width: 1px; margin: 9px 0; background: var(--card-line); flex: none; }
+
+/* presets: one row of tiles that rises out of the bar, floating just above it (no panel around them) */
+#dock { position: relative; }
+.pexp { position: absolute; left: 0; right: 0; bottom: calc(100% + 12px); pointer-events: none; }
+#dock.popen .pexp { pointer-events: auto; }
+.pgrid { display: flex; gap: 8px; padding: 0 5px; }
+.pcell { position: relative; flex: 1 1 0; min-width: 0; padding: 0; border: 0; background: none; }
+.pcell .pv {
+  display: block; width: 100%; aspect-ratio: 16 / 10; border-radius: 10px;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 10px 22px -14px rgba(0,0,0,.45);
+  opacity: 0; transform: translateY(26px);
+  transition: transform .3s cubic-bezier(.55,0,.75,.2), box-shadow .45s cubic-bezier(.22,1,.36,1), opacity .22s ease;
+}
+#dock.popen .pcell .pv { opacity: 1; transform: none; transition: transform .5s cubic-bezier(.22,1,.36,1), box-shadow .45s cubic-bezier(.22,1,.36,1), opacity .25s ease; }
+/* hover: the card rises and grows a little with a soft shadow opening beneath it, as in the old presets dock */
+#dock.popen .pcell:hover .pv, #dock.popen .pcell:focus-visible .pv {
+  transform: translateY(-6px) scale(1.07);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 14px 20px -10px rgba(0,0,0,.55);
+}
+#dock.popen .pcell:active .pv { transform: translateY(-1px) scale(1.01); transition-duration: .1s; }
+.pcell.on .pv { box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 0 0 2px var(--bg), 0 0 0 3.5px var(--fg); }
+#dock.popen .pcell.on:hover .pv { box-shadow: inset 0 0 0 1px rgba(0,0,0,.1), 0 0 0 2px var(--bg), 0 0 0 3.5px var(--fg), 0 14px 20px -10px rgba(0,0,0,.55); }
+.pcell:focus-visible { outline: none; }
+.barbtn[aria-expanded="true"] { background: var(--card-sel); }
+
+/* a save: a thumbnail of the gradient arcs up into the Library button */
+.flycanvas { position: fixed; z-index: 60; left: 0; top: 0; pointer-events: none; transform-origin: 0 0; will-change: transform, opacity; }
+#libBtn { position: relative; overflow: visible; }
+#libBtn.got { animation: libgot .55s cubic-bezier(.3,1.5,.5,1); }
+@keyframes libgot { 0% { transform: scale(1); } 40% { transform: scale(1.16); } 100% { transform: scale(1); } }
+.libpip {
+  position: absolute; right: -5px; top: -5px; width: 15px; height: 11px; border-radius: 4px; pointer-events: none;
+  box-shadow: 0 0 0 1.5px var(--card), 0 2px 5px rgba(0,0,0,.3);
+  animation: pipin .45s cubic-bezier(.3,1.5,.5,1) both;
+}
+.libpip.bye { animation: pipout .35s ease both; }
+@keyframes pipin { from { transform: scale(0); opacity: 0; } }
+@keyframes pipout { to { transform: scale(.4); opacity: 0; } }
+
+/* ---------- Fun mode: same parts as the main page ---------- */
+/* the main top bar stays in place above fun mode; its title takes the brand's spot */
+body.mixing .top { z-index: 30; pointer-events: none; }
+body.mixing .top > * { pointer-events: auto; }
+body.mixing .top > .brand { pointer-events: none; }
+body.mixing .brand { visibility: hidden; }
+body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
+.mxbar-wrap .dock { width: 100%; }
+.mxbar-wrap .barbtn { flex: 1; min-width: 0; }
+.mixview {
+  position: fixed; inset: 0; z-index: 26; overflow: hidden;
+  background-color: var(--bg); background-image: radial-gradient(var(--dot) 1px, transparent 1.2px); background-size: 22px 22px;
+  animation: libin .28s cubic-bezier(.2,.7,.2,1);
+}
+.mxtop { position: absolute; top: 0; left: 0; right: auto; display: flex; align-items: center; gap: 14px; padding: calc(env(safe-area-inset-top, 0px) + 14px) 20px 0; }
+.mxtop .btn.icon { width: 34px; height: 34px; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 6px 16px -10px rgba(0,0,0,.25); }
+.mxcard { position: absolute; right: 20px; top: 76px; width: 288px; padding: 16px 18px 18px; border-radius: 18px; }
+.mxlbl { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.mxname { position: relative; height: 34px; font: 600 28px/34px var(--sans); letter-spacing: -0.02em; color: var(--fg); overflow: hidden; perspective: 400px; }
+.mxname span { position: absolute; left: 0; top: 0; white-space: nowrap; transform-origin: 50% 100%; }
+.mxname span.in { animation: wordin .55s cubic-bezier(.22,1,.36,1) .05s both; }
+.mxname span.out { animation: wordout .28s cubic-bezier(.5,0,.75,0) both; }
+@keyframes wordin { from { transform: translateY(100%) rotateX(-70deg); opacity: 0; } }
+@keyframes wordout { to { transform: translateY(-100%) rotateX(70deg); opacity: 0; } }
+.mxrow { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+.mxchip { width: 16px; height: 16px; border-radius: 5px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); transition: background-color .2s ease; }
+.mxhex, .mxrgb { font: 500 12px var(--mono); color: var(--fg); font-variant-numeric: tabular-nums; }
+.mxrgb { margin-top: 6px; color: var(--muted); }
+.mxglobe-wrap { position: absolute; inset: 72px 270px 150px; display: grid; place-items: center; pointer-events: none; }
+.mxglobe { pointer-events: auto; border-radius: 50%; box-shadow: var(--frame-shadow); cursor: crosshair; touch-action: none; }
+.mxglobe.stirring { cursor: grabbing; }
+.mxtemp {
+  position: absolute; right: 20px; top: 300px; bottom: 23px; width: 288px; border-radius: 18px; padding: 16px 18px 18px;
+  display: flex; flex-direction: column;
+}
+.mxcols { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.mxcol {
+  display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px 0; border-radius: 14px;
+  font-size: 12px; color: var(--muted); transition: background-color .25s ease, color .25s ease;
+}
+.mxcol.on { background: var(--card-hover); color: var(--fg); }
+.mxtrack {
+  position: relative; flex: 1; width: 16px; border-radius: 8px; cursor: pointer; touch-action: none;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+}
+.mxcol[data-sc="warm"] .mxtrack { background: linear-gradient(#ff1500, #ff3d00 16%, #ff7a00 32%, #f9bc29 46%, #f6dcc0 60%, #ecc9f3 74%, #b3aef8 87%, #6586f6); }
+.mxcol[data-sc="fresh"] .mxtrack { background: linear-gradient(#c3e83f, #6fe0a8 14%, #23c48e 28%, #10a6a6 42%, #1ec1e0 55%, #2a6fe0 68%, #3a33b8 80%, #7b2fd6 90%, #d42fb0); }
+.mxcol:not(.on) .mxknob { transform: scale(.82); opacity: .8; }
+.mxknob {
+  position: absolute; left: 50%; top: 0; width: 24px; height: 24px; margin: -12px 0 0 -12px; padding: 0; border-radius: 50%;
+  border: 3px solid #fff; background: var(--knob, #f9bc29); box-shadow: 0 0 0 .5px rgba(0,0,0,.2), 0 2px 8px rgba(0,0,0,.3); cursor: grab;
+  transition: transform .2s cubic-bezier(.22,1,.36,1);
+}
+.mxknob:active, .mxtrack.drag .mxknob { transform: scale(1.15); cursor: grabbing; }
+.mxbar-wrap { position: absolute; left: 270px; right: 270px; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); display: flex; justify-content: center; }
+@media (max-width: 860px) {
+  .mxcard { left: 12px; right: 12px; top: 60px; width: auto; padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; column-gap: 12px; }
+  .mxlbl { display: none; }
+  .mxname { height: 28px; font-size: 22px; line-height: 28px; grid-row: 1 / 3; align-self: center; }
+  .mxrow { margin-top: 0; }
+  .mxrgb { margin-top: 2px; }
+  .mxglobe-wrap { inset: 128px 124px 104px 12px; }
+  .mxtop { padding-left: 12px; }
+  .mxtemp { right: 12px; top: 140px; bottom: 96px; width: 104px; padding: 8px; }
+  .mxtemp > .mxlbl { display: none; }
+  .mxcols { margin-top: 0; gap: 4px; }
+  .mxcol { padding: 8px 0; font-size: 11px; }
+  .mxtrack { width: 14px; }
+  .mxbar-wrap { left: 12px; right: 12px; }
+  .mxbar-wrap .barbtn kbd { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .mxname span.in, .mxname span.out { animation-duration: .01s; } }
 .libview-head { display: flex; justify-content: flex-start; align-items: center; gap: 14px; margin: 0 auto 20px; max-width: 1480px; }
 .libview-title { display: flex; align-items: baseline; gap: 12px; }
 .libview-head #libClose { width: 36px; height: 36px; border-radius: 50%; }
@@ -533,6 +665,14 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   }
   .side.open { display: flex; }
   .dlabel { display: none; }
+  .savebar { width: auto; gap: 2px; }
+  .barbtn { height: 42px; padding: 0 12px; gap: 9px; min-width: 0; }
+  .barbtn kbd, .bt2 { display: none; }
+  .pgrid { overflow-x: auto; scrollbar-width: none; padding: 14px 5px 8px; margin-top: -14px; }
+  .pgrid::-webkit-scrollbar { display: none; }
+  .pcell { flex: 0 0 66px; }
+  .dtools { align-items: center; }
+  .dtools { border-left: 1px solid var(--card-line); }
 }
 /* ---------- Touch screens: bigger targets, no keyboard hints ---------- */
 button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -572,6 +712,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   .top { padding-top: calc(env(safe-area-inset-top, 0px) + 10px); gap: 8px; padding-left: 12px; padding-right: 12px; }
   .brand { display: none; }
   #sizeBtn { width: 38px; padding: 0; justify-content: center; }
+  #mixBtn { width: 38px; padding: 0; justify-content: center; }
+  #mixBtn .mxl { display: none; }
   #sizeBtn .szl, #sizeBtn .chev { display: none; }
   #sizeBtn .szi { color: var(--fg); }
   .top { justify-content: flex-end; }
@@ -600,6 +742,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   .top #randomBtn { padding: 0 10px; }
 }
 @media (max-width: 340px) { .top-actions { flex-wrap: wrap; } }
+@media (max-width: 480px) { .bt1 .xl { display: none; } }
+@media (max-width: 380px) { .sidebtn span { display: none; } .dtools .dbtn { padding: 0 12px; } .barbtn { padding: 0 10px; gap: 7px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -712,9 +856,24 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   </aside>
 
   <div class="dock-wrap" id="dockWrap">
-    <div class="dock card" id="dock" role="toolbar" aria-label="Presets">
-      <span class="dlabel" aria-hidden="true">Presets</span>
-      <div class="tiles" id="presets" role="group" aria-label="Presets"></div>
+    <div class="dock card savebar" id="dock" role="toolbar" aria-label="Presets, save and fun mode">
+      <div class="pexp" id="pPanel" inert>
+        <div class="pgrid" id="presets" role="group" aria-label="Presets"></div>
+      </div>
+      <button class="barbtn" id="presetBtn" type="button" aria-expanded="false" aria-controls="pPanel">
+        <span class="bt"><span class="bt1">Presets</span><span class="bt2">Start from a classic</span></span>
+        <kbd>P</kbd>
+      </button>
+      <span class="sbdiv" aria-hidden="true"></span>
+      <button class="barbtn" id="funBtn" type="button">
+        <span class="bt"><span class="bt1">Fun mode</span><span class="bt2">Mix colours in a globe</span></span>
+        <kbd>F</kbd>
+      </button>
+      <span class="sbdiv" aria-hidden="true"></span>
+      <button class="barbtn" id="saveBtn" type="button">
+        <span class="bt"><span class="bt1">Save<span class="xl"> to library</span></span><span class="bt2">Keep this gradient</span></span>
+        <kbd>S</kbd>
+      </button>
       <div class="dtools">
         <button class="dbtn sidebtn" type="button" id="sideBtn" aria-expanded="false" aria-controls="side" title="Settings"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4 6h7M15 6h1M4 14h1M9 14h7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="13" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="7" cy="14" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span>Settings</span></button>
       </div>
@@ -747,6 +906,34 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     <div class="sheet-actions">
       <button class="btn" id="closeEx" type="button">Close</button>
       <button class="btn primary" id="dlBtn" type="button">Download PNG</button>
+    </div>
+  </div>
+</div>
+<div class="mixview" id="mixView" hidden role="dialog" aria-modal="true" aria-label="Fun mode">
+  <header class="mxtop">
+    <button class="btn icon" id="mixClose" type="button" aria-label="Back" title="Back (Esc or F)"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M16 10H4M9 5l-5 5 5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
+  </header>
+  <aside class="mxcard card" aria-label="Current colour">
+    <div class="mxlbl">Pouring</div>
+    <div class="mxname" id="mxName" aria-live="polite"></div>
+    <div class="mxrow"><span class="mxchip" id="mxChip"></span><span class="mxhex" id="mxHex">#F9BC29</span></div>
+    <div class="mxrgb" id="mxRgb">R 249 G 188 B 41</div>
+  </aside>
+  <div class="mxglobe-wrap">
+    <canvas class="mxglobe" id="mxGlobe" aria-label="Colour mix. Click to drop the current colour, drag to stir."></canvas>
+  </div>
+  <aside class="mxtemp card" aria-label="Colour scales">
+    <div class="mxlbl">Pick a colour to pour</div>
+    <div class="mxcols">
+      <div class="mxcol" data-sc="warm"><span>Warm</span><div class="mxtrack"><button class="mxknob" type="button" role="slider" aria-label="Warm to cold" aria-valuemin="0" aria-valuemax="100"></button></div><span>Cold</span></div>
+      <div class="mxcol" data-sc="fresh"><span>Lush</span><div class="mxtrack"><button class="mxknob" type="button" role="slider" aria-label="Lush to dusk" aria-valuemin="0" aria-valuemax="100"></button></div><span>Dusk</span></div>
+    </div>
+  </aside>
+  <div class="mxbar-wrap">
+    <div class="dock card savebar" role="toolbar" aria-label="Mix actions">
+      <button class="barbtn" id="mxClear" type="button"><span class="bt"><span class="bt1">Clear</span><span class="bt2">Start a fresh bowl</span></span><kbd>C</kbd></button>
+      <span class="sbdiv" aria-hidden="true"></span>
+      <button class="barbtn" id="mxUse" type="button"><span class="bt"><span class="bt1">Use in editor</span><span class="bt2">Open it as a mesh gradient</span></span><kbd>↵</kbd></button>
     </div>
   </div>
 </div>
@@ -788,8 +975,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     { name: 'Sunrise arc', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#eceef7', grain: 10, blur: 80,
       stops: [['#b3bdec', 0, 50, 112, 122], ['#bf8fd6', 25, 50, 110, 104], ['#d6559a', 50, 50, 110, 92],
               ['#f3505a', 75, 50, 112, 72], ['#fe9a62', 100, 50, 116, 44]] },
-    { name: 'Cream corners', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#f6efe5', grain: 10, blur: 90,
-      stops: [['#f597ee', 0, -4, 0, 44], ['#f8b9a2', 50, 100, 84, 44], ['#fa5527', 100, 104, 106, 32]] },
     { name: 'Deep blue', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#2f63d1', grain: 6, blur: 90,
       stops: [['#1a237c', 0, 18, 106, 58], ['#2546c2', 15, 62, 96, 50], ['#3a8fe8', 30, 94, 55, 42],
               ['#bfe3fd', 60, 30, 26, 46], ['#ffffff', 75, 48, -12, 62], ['#ffffff', 100, 10, -4, 42]] },
@@ -813,10 +998,29 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     { name: 'Peach glow', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#f7dcae', grain: 16, blur: 95,
       stops: [['#fbf1dc', 0, 104, 0, 50], ['#f8e08e', 16, 62, 6, 50], ['#f3a848', 32, 30, 40, 74], ['#f4a256', 48, 50, 62, 50],
               ['#f2849a', 64, -6, 74, 36], ['#f4683f', 82, 24, 100, 58], ['#f6c6cc', 100, 106, 92, 46]] },
-    { name: 'Frosted dawn', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#e9e8e2', grain: 8, blur: 100,
-      stops: [['#efcea2', 0, 40, 12, 50], ['#f2eee6', 20, 10, 46, 44], ['#b8cff0', 40, 104, 44, 40], ['#cddbec', 60, 56, 64, 34],
-              ['#b6cdf0', 80, 96, 92, 40], ['#93adf8', 100, 22, 106, 56]] },
   ];
+  // A second set of nine; the presets row alternates between the two sets each time it opens.
+  const PRESETS_B = [
+    { name: 'Aurora', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#0b1a2e', grain: 8, blur: 95,
+      stops: [['#123a6b', 0, 60, 96, 70], ['#2ee6b6', 25, 18, 30, 58], ['#7a5cff', 50, 72, 14, 52], ['#ff6fb5', 75, 100, 62, 36], ['#0e2a4a', 100, -4, 100, 50]] },
+    { name: 'Lavender field', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#ece6f8', grain: 6, blur: 95,
+      stops: [['#b9a6f0', 0, 8, 6, 62], ['#f4c6e3', 33, 84, 28, 50], ['#8fb6f2', 66, 40, 102, 58], ['#fff6ec', 100, 58, 52, 34]] },
+    { name: 'Citrus', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#fff1c9', grain: 10, blur: 90,
+      stops: [['#ffd23f', 0, 18, 18, 58], ['#ff8a3d', 33, 86, 76, 56], ['#9be564', 66, 96, 4, 40], ['#fff7e0', 100, 36, 76, 40]] },
+    { name: 'Ember', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#2a0a0a', grain: 12, blur: 90,
+      stops: [['#3b0b2e', 0, 6, 6, 56], ['#8a1538', 25, 88, 16, 56], ['#ff4d1a', 50, 30, 84, 54], ['#ffb347', 75, 54, 106, 40], ['#c2185b', 100, 96, 92, 36]] },
+    { name: 'Lagoon', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#e3f6f4', grain: 6, blur: 95,
+      stops: [['#22c1c3', 0, 12, 84, 62], ['#7fe3d4', 33, 72, 16, 46], ['#2d7dd2', 66, 96, 90, 52], ['#ffffff', 100, 46, 38, 36]] },
+    { name: 'Rose quartz', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#f7e1e6', grain: 6, blur: 95,
+      stops: [['#f2a7b8', 0, 16, 26, 56], ['#d6b4f0', 33, 88, 20, 46], ['#fbe3d4', 66, 48, 98, 56], ['#e87fa0', 100, 74, 72, 34]] },
+    { name: 'Moss', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#1e2b1d', grain: 14, blur: 90,
+      stops: [['#2f4a3a', 0, 62, 96, 56], ['#6b8f4e', 33, 14, 70, 58], ['#c8d68a', 66, 84, 26, 44], ['#ece6b4', 100, 36, 4, 34]] },
+    { name: 'Electric', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#0d0221', grain: 8, blur: 90,
+      stops: [['#3a0ca3', 0, 16, 16, 56], ['#7209b7', 33, 26, 92, 52], ['#f72585', 66, 84, 82, 48], ['#4cc9f0', 100, 90, 10, 40]] },
+    { name: 'Linen', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#f3ede4', grain: 16, blur: 100,
+      stops: [['#e6d4bd', 0, 16, 18, 58], ['#c9b29a', 33, 86, 84, 54], ['#fbf7f0', 66, 62, 30, 46], ['#d9c2a7', 100, 18, 94, 40]] },
+  ];
+  const PRESET_SETS = [PRESETS, PRESETS_B];
   const fromPreset = p => ({
     mode: p.mode, angle: p.angle, cx: p.cx, cy: p.cy, base: p.base, grain: p.grain,
     format: S ? S.format : '16:9', blur: p.blur ?? 100,
@@ -1085,9 +1289,58 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     frame.style.width = fw + 'px'; frame.style.height = fh + 'px';
     frame.classList.toggle('circle', S.format === 'circle');
     const dpr = Math.min(2, devicePixelRatio || 1);
-    const k = Math.min(dpr, 1400 / Math.max(fw, fh));
+    // render sharper when zoomed in, so the grain stays fine
+    const k = Math.min(dpr * Math.max(1, zoom), (zoom > 1 ? 2800 : 1400) / Math.max(fw, fh));
+    frame.dataset.fw = fw; frame.dataset.fh = fh;
     cv.width = Math.round(fw * k); cv.height = Math.round(fh * k);
   }
+  // ---------- Zoom: the canvas can be looked at closer or from further back ----------
+  // A view-only scale on the frame (nothing is saved). Ctrl/⌘ + scroll or a pinch zooms toward the
+  // pointer, scrolling pans while zoomed in, and + / − / 0 on the keyboard. There are no on-screen controls.
+  let zoom = 1, panX = 0, panY = 0, zoomSharp;
+  const ZMIN = .5, ZMAX = 3, ZSTEPS = [.5, .75, 1, 1.25, 1.5, 2, 3];
+  function clampPan() {
+    const fw = +frame.dataset.fw || frame.offsetWidth, fh = +frame.dataset.fh || frame.offsetHeight;
+    const mx = Math.max(0, (fw * zoom - stage.clientWidth) / 2 + 60), my = Math.max(0, (fh * zoom - stage.clientHeight) / 2 + 60);
+    panX = Math.max(-mx, Math.min(mx, panX)); panY = Math.max(-my, Math.min(my, panY));
+  }
+  function applyZoom() {
+    clampPan();
+    frame.style.transform = zoom === 1 && !panX && !panY ? '' : `translate(${panX}px, ${panY}px) scale(${zoom})`;
+    frame.style.setProperty('--z', zoom);
+    stage.classList.toggle('zoomed', zoom > 1);
+    // re-render at the new sharpness once the zooming settles
+    clearTimeout(zoomSharp); zoomSharp = setTimeout(() => { fit(); draw(); }, 160);
+  }
+  function zoomTo(z, mx = 0, my = 0) {
+    z = Math.max(ZMIN, Math.min(ZMAX, z));
+    if (z <= 1) { panX = panY = 0; } else { panX = mx - (mx - panX) * z / zoom; panY = my - (my - panY) * z / zoom; }
+    zoom = z; applyZoom();
+  }
+  const zoomStep = dir => {
+    const z = dir > 0 ? ZSTEPS.find(v => v > zoom + 1e-3) : [...ZSTEPS].reverse().find(v => v < zoom - 1e-3);
+    if (z) zoomTo(z);
+  };
+  const zoomReset = () => { panX = panY = 0; zoomTo(1); };
+  stage.addEventListener('wheel', e => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const r = stage.getBoundingClientRect();
+      zoomTo(zoom * Math.exp(-e.deltaY * .01), e.clientX - r.left - r.width / 2, e.clientY - r.top - r.height / 2);
+    } else if (zoom > 1) {
+      e.preventDefault(); panX -= e.deltaX; panY -= e.deltaY; applyZoom();
+    }
+  }, { passive: false });
+  // while zoomed in, the empty space around the canvas can be dragged to look around
+  stage.addEventListener('pointerdown', e => {
+    if (zoom <= 1 || e.target !== stage) return;
+    const x0 = e.clientX - panX, y0 = e.clientY - panY;
+    stage.setPointerCapture(e.pointerId); stage.classList.add('panning');
+    const mv = ev => { panX = ev.clientX - x0; panY = ev.clientY - y0; applyZoom(); };
+    const up = () => { stage.classList.remove('panning'); stage.removeEventListener('pointermove', mv); stage.removeEventListener('pointerup', up); stage.removeEventListener('pointercancel', up); };
+    stage.addEventListener('pointermove', mv); stage.addEventListener('pointerup', up); stage.addEventListener('pointercancel', up);
+  });
+
 
   let queued = false;
   function draw() {
@@ -1125,9 +1378,12 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     restoring = true;
     fit(); draw();
   }
-  function undo() { record(); if (hi > 0) { hi--; restore(); } }
-  function redo() { record(); if (hi < hist.length - 1) { hi++; restore(); } }
+  // in fun mode the same buttons and keys step through the bowl's own history
+  const mixing = () => !$('mixView').hidden;
+  function undo() { if (mixing()) return bowlUndo(); record(); if (hi > 0) { hi--; restore(); } }
+  function redo() { if (mixing()) return bowlRedo(); record(); if (hi < hist.length - 1) { hi++; restore(); } }
   function syncHist() {
+    if (mixing()) { $('undoBtn').disabled = bowlHi <= 0; $('redoBtn').disabled = bowlHi >= bowlHist.length - 1; return; }
     const dirty = !!histTimer && JSON.stringify(S) !== hist[hi];
     $('undoBtn').disabled = hi <= 0 && !dirty;
     $('redoBtn').disabled = hi >= hist.length - 1 || dirty;
@@ -1491,6 +1747,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const open = !side.classList.contains('open');
     closeMenu(false); closeSide();
     if (!open) return;
+    closePresets();
     document.documentElement.style.setProperty('--dock-h', $('dockWrap').offsetHeight + 'px');
     side.classList.add('open'); sideBtn.setAttribute('aria-expanded', 'true');
     segs.forEach(seg => { seg.firstElementChild.classList.add('instant'); placeInd(seg); });
@@ -1543,7 +1800,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     sel = 0;
     draw();
   }
-  $('randomBtn').onclick = randomize;
+  $('randomBtn').onclick = () => mixing() ? mixRandom() : randomize();
   addEventListener('keydown', e => {
     const tag = (e.target.tagName || '').toLowerCase();
     const typing = tag === 'textarea' || (tag === 'input' && e.target.type === 'text') || e.target.classList.contains('hex');
@@ -1555,13 +1812,404 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (['input', 'select', 'textarea'].includes(tag) || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key === 'Escape' && !$('overlay').hidden) { closeExport(); return; }
     if (e.key === 'Escape' && !$('libView').hidden) { closeLibrary(); return; }
+    if (e.key === 'Escape' && !$('mixView').hidden) { closeMix(); return; }
+    if (e.key === 'Escape' && presetsOpen()) { closePresets(true); return; }
     const k = e.key.toLowerCase();
+    if (!$('mixView').hidden) {
+      if (k === 'f') { e.preventDefault(); closeMix(); }
+      else if (k === 'r') { e.preventDefault(); mixRandom(); }
+      else if (k === 's') { e.preventDefault(); saveBowl(); }
+      else if (k === 'c') { e.preventDefault(); $('mxClear').click(); }
+      else if (e.key === 'Enter' && !e.target.closest('button')) { e.preventDefault(); $('mxUse').click(); }
+      return;
+    }
+    if (k === 'f' && $('libView').hidden) { e.preventDefault(); openMix(); return; }
     if (k === 'l') { e.preventDefault(); $('libView').hidden ? openLibrary() : closeLibrary(); return; }
     if (!$('libView').hidden) return;
+    if (k === 'p') { e.preventDefault(); presetsOpen() ? closePresets(true) : openPresets(); return; }
     if (k === 'r') { e.preventDefault(); randomize(); }
+    if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomStep(1); }
+    if (e.key === '-' || e.key === '_') { e.preventDefault(); zoomStep(-1); }
+    if (k === '0') { e.preventDefault(); zoomReset(); }
     if (['1', '2', '3'].includes(k)) { e.preventDefault(); modeBtns[+k - 1].click(); }
     if (k === 's') { e.preventDefault(); saveToLibrary(); }
   });
+
+
+  // ---------- Mix: pour colours into a globe and watch them blend ----------
+  // The bowl is a little fluid: colour is carried around by a slow current, and a pour wells up from
+  // where it lands and floods outward, pushing what was there aside. The warm-to-cold slider picks the colour being poured.
+  const FRESH_SCALE = [[0, '#c3e83f'], [.14, '#6fe0a8'], [.28, '#23c48e'], [.42, '#10a6a6'], [.55, '#1ec1e0'], [.68, '#2a6fe0'], [.8, '#3a33b8'], [.9, '#7b2fd6'], [1, '#d42fb0']];
+  const FRESH_NAMES = [[0, 'Lime'], [.08, 'Pistachio'], [.15, 'Mint'], [.24, 'Jade'], [.33, 'Emerald'], [.42, 'Teal'], [.5, 'Lagoon'],
+    [.58, 'Aqua'], [.66, 'Ocean'], [.74, 'Cobalt'], [.81, 'Indigo'], [.88, 'Violet'], [.94, 'Orchid'], [1, 'Magenta']];
+  const MIX_SCALE = [[0, '#ff1500'], [.16, '#ff3d00'], [.32, '#ff7a00'], [.46, '#f9bc29'], [.6, '#f6dcc0'], [.74, '#ecc9f3'], [.87, '#b3aef8'], [1, '#6586f6']];
+  const MIX_NAMES = [[0, 'Flare'], [.07, 'Scarlet'], [.15, 'Ember'], [.23, 'Blaze'], [.31, 'Tangerine'], [.39, 'Amber'], [.46, 'Sun'],
+    [.53, 'Honey'], [.6, 'Sand'], [.67, 'Blush'], [.74, 'Lilac'], [.81, 'Haze'], [.88, 'Periwinkle'], [.95, 'Sky']];
+  const bowl = { src: [], stirs: [], fade: null, fadeT: 0, pending: null, ts: { warm: .46, fresh: .42 }, sc: 'warm', raf: 0, last: 0, time: 0, seed: 0, lastDropT: null, lastDropAt: 0, name: '' };
+  const mxCv = $('mxGlobe'), mxCtx = mxCv.getContext('2d');
+  const mxCols = [...document.querySelectorAll('.mxcol')];
+  const mxOff = document.createElement('canvas'); mxOff.width = mxOff.height = 128;
+  const mxOx = mxOff.getContext('2d');
+  const mxNoise = (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 160;
+    const x = c.getContext('2d'), d = x.createImageData(160, 160);
+    for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 22; }
+    x.putImageData(d, 0, 0); return c;
+  })();
+  // two scales: warm to cold, and lush greens through blues to dusky violets
+  const SCALES = { warm: [MIX_SCALE, MIX_NAMES], fresh: [FRESH_SCALE, FRESH_NAMES] };
+  function mixColorAt(t, sc = bowl.sc) {
+    const SC = SCALES[sc][0];
+    t = clamp(t, 0, 1);
+    for (let i = 1; i < SC.length; i++) {
+      const [t1, c1] = SC[i];
+      if (t <= t1) {
+        const [t0, c0] = SC[i - 1], k = (t - t0) / (t1 - t0), a = toRgb(c0), b = toRgb(c1);
+        return toHex(a.map((v, j) => v + (b[j] - v) * k));
+      }
+    }
+    return SC[SC.length - 1][1];
+  }
+  const mixName = (t, sc = bowl.sc) => SCALES[sc][1].reduce((best, n) => Math.abs(n[0] - t) < Math.abs(best[0] - t) ? n : best)[1];
+  const curT = () => bowl.ts[bowl.sc];
+  function setMixName(n) {
+    if (n === bowl.name) return;
+    bowl.name = n;
+    const box = $('mxName');
+    box.querySelectorAll('span.in').forEach(sp => { sp.className = 'out'; setTimeout(() => sp.remove(), 420); });
+    const sp = document.createElement('span'); sp.className = 'in'; sp.textContent = n;
+    box.appendChild(sp);
+  }
+  function syncMixReadout() {
+    const c = mixColorAt(curT()), [r, g, b] = toRgb(c);
+    $('mxHex').textContent = c.toUpperCase();
+    $('mxChip').style.background = c;
+    $('mxRgb').textContent = `R ${r} G ${g} B ${b}`;
+    mxCols.forEach(col => {
+      const sc = col.dataset.sc, t = bowl.ts[sc], kc = mixColorAt(t, sc), knob = col.querySelector('.mxknob');
+      col.classList.toggle('on', sc === bowl.sc);
+      knob.style.top = (t * 100) + '%'; knob.style.setProperty('--knob', kc);
+      knob.setAttribute('aria-valuenow', Math.round(t * 100));
+      knob.setAttribute('aria-valuetext', `${mixName(t, sc)} ${kc}`);
+    });
+    setMixName(mixName(curT()));
+  }
+  // the fluid: a grid of colour (dye) and the current that carries it
+  const FN = 128, FH = 2 / (FN - 1);
+  const FD = new Float32Array(FN * FN * 3), FT = new Float32Array(FN * FN * 3);
+  const PSI = new Float32Array(FN * FN), FU = new Float32Array(FN * FN), FV = new Float32Array(FN * FN);
+  const mxImg = mxOx.createImageData(FN, FN);
+  // the history slot waiting for the bowl to settle is filled before anything new happens
+  function settlePending() {
+    if (bowl.pending && !bowl.pending.snap) bowl.pending.snap = Float32Array.from(FD);
+    bowl.pending = null;
+  }
+  // a pour: colour wells up at (x, y) and pushes outward; R sets roughly how far it spreads
+  function mixDrop(c, x, y, R = .26) {
+    settlePending();
+    const tau = .4, area = 9 * R * R;
+    bowl.src.push({ x, y, rgb: toRgb(c), q0: area / (2 * Math.PI * tau), q: 0, tau, age: 0 });
+  }
+  function mixPour(stream) {
+    // a drag keeps pouring into roughly the same spot, so it reads as one growing pool, not scattered drops
+    let x, y;
+    if (stream && bowl.pourAt) { x = bowl.pourAt[0] + (Math.random() - .5) * .1; y = bowl.pourAt[1] + (Math.random() - .5) * .1; }
+    else { const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * .45; x = Math.cos(a) * r; y = Math.sin(a) * r; }
+    bowl.pourAt = [x, y];
+    mixDrop(mixColorAt(curT()), x, y);
+    bowl.lastDropT = curT(); bowl.lastDropAt = performance.now();
+  }
+  function mixStep(dt) {
+    bowl.time += dt;
+    const t = bowl.time, h = FH, N = FN;
+    // the resting current: a few slow travelling waves whose directions keep turning, plus an overall
+    // turn that drifts back and forth; it is shaped to run along the rim, never through it
+    const W = bowl.waves || (bowl.waves = [0, 1, 2, 3].map(() => ({
+      kx: (Math.random() - .5) * 6, ky: (Math.random() - .5) * 6, w: (.12 + Math.random() * .2) * (Math.random() < .5 ? -1 : 1),
+      p: Math.random() * 6.28, a: .022 + Math.random() * .014, s: (Math.random() - .5) * .14,
+    })));
+    const ws = W.map(v => { const ca = Math.cos(t * v.s), sa = Math.sin(t * v.s); return [v.kx * ca - v.ky * sa, v.kx * sa + v.ky * ca, v.w * t + v.p, v.a]; });
+    const spin = .045 * Math.sin(t * .06 + 1.3);
+    for (let j = 0; j < N; j++) {
+      const y = -1 + j * h;
+      for (let i = 0; i < N; i++) {
+        const x = -1 + i * h, e = 1 - x * x - y * y;
+        if (e <= 0) { PSI[j * N + i] = 0; continue; }
+        let q = spin;
+        for (const [kx, ky, ph, a] of ws) q += a * Math.sin(kx * x + ky * y + ph);
+        PSI[j * N + i] = e * q;
+      }
+    }
+    // pours push outward from where they land (fading as they finish); stirring drags the colour along
+    for (const p of bowl.src) { p.age += dt; p.q = p.q0 * Math.exp(-p.age / p.tau); }
+    bowl.src = bowl.src.filter(p => p.q > p.q0 * .01);
+    for (const st of bowl.stirs) st.age += dt;
+    bowl.stirs = bowl.stirs.filter(st => st.age < 1.2);
+    for (let j = 1; j < N - 1; j++) for (let i = 1; i < N - 1; i++) {
+      const k = j * N + i, x = -1 + i * h, y = -1 + j * h;
+      let u = (PSI[k + N] - PSI[k - N]) / (2 * h), v = -(PSI[k + 1] - PSI[k - 1]) / (2 * h);
+      for (const p of bowl.src) { const dx = x - p.x, dy = y - p.y, d2 = dx * dx + dy * dy + .004; u += p.q * dx / d2; v += p.q * dy / d2; }
+      for (const st of bowl.stirs) { const dx = x - st.x, dy = y - st.y, f = Math.exp(-(dx * dx + dy * dy) / .03 - st.age * 3); u += st.vx * f; v += st.vy * f; }
+      FU[k] = u; FV[k] = v;
+    }
+    // carry the colour along the current: every cell looks back along the flow to see what arrives
+    FT.set(FD);
+    const g = dt / h, lim = .985;
+    for (let j = 1; j < N - 1; j++) for (let i = 1; i < N - 1; i++) {
+      const k = j * N + i;
+      let px = i - FU[k] * g, py = j - FV[k] * g;
+      const cx = px * h - 1, cy = py * h - 1, r = Math.hypot(cx, cy);
+      if (r > lim) { px = (cx / r * lim + 1) / h; py = (cy / r * lim + 1) / h; }
+      px = clamp(px, 0, N - 1.001); py = clamp(py, 0, N - 1.001);
+      const i0 = px | 0, j0 = py | 0, fx = px - i0, fy = py - j0;
+      const a = (j0 * N + i0) * 3, b = a + 3, c = a + N * 3, d = c + 3, o = k * 3;
+      for (let q = 0; q < 3; q++) FD[o + q] = (FT[a + q] * (1 - fx) + FT[b + q] * fx) * (1 - fy) + (FT[c + q] * (1 - fx) + FT[d + q] * fx) * fy;
+    }
+    // where colours meet they soften into each other a little, like paint at its wet edge
+    FT.set(FD);
+    const kd = Math.min(.2, dt * 1.4);
+    for (let j = 1; j < N - 1; j++) for (let i = 1; i < N - 1; i++) {
+      const o = (j * N + i) * 3;
+      for (let q = 0; q < 3; q++) FD[o + q] += (FT[o + q - 3] + FT[o + q + 3] + FT[o + q - N * 3] + FT[o + q + N * 3] - 4 * FT[o + q]) * kd;
+    }
+    // the rim cells copy their inner neighbours so the edge never goes stale
+    for (let n = 0; n < N; n++) for (const [k, kk] of [[n, n + N], [(N - 1) * N + n, (N - 2) * N + n], [n * N, n * N + 1], [n * N + N - 1, n * N + N - 2]])
+      for (let q = 0; q < 3; q++) FD[k * 3 + q] = FD[kk * 3 + q];
+    // fresh colour keeps welling up where a pour is still flowing
+    for (const p of bowl.src) {
+      const rr = .075, w0 = Math.min(1, p.q / p.q0 * 1.6), ci = (p.x + 1) / h, cj = (p.y + 1) / h, R = rr / h + 1;
+      for (let j = Math.max(0, Math.floor(cj - R)); j <= Math.min(N - 1, Math.ceil(cj + R)); j++)
+        for (let i = Math.max(0, Math.floor(ci - R)); i <= Math.min(N - 1, Math.ceil(ci + R)); i++) {
+          const dd = Math.hypot(i - ci, j - cj) * h;
+          if (dd >= rr) continue;
+          const w = w0 * (1 - (dd / rr) ** 2), o = (j * N + i) * 3;
+          for (let q = 0; q < 3; q++) FD[o + q] += (p.rgb[q] - FD[o + q]) * w;
+        }
+    }
+    // undo and redo ease the whole bowl back to a remembered picture
+    if (bowl.fade) {
+      const f = Math.min(1, dt * 6), T = bowl.fade;
+      for (let n = 0; n < FD.length; n++) FD[n] += (T[n] - FD[n]) * f;
+      if ((bowl.fadeT -= dt) <= 0) bowl.fade = null;
+    }
+  }
+  function mixDraw() {
+    const D = mxImg.data;
+    for (let n = 0, m = 0; n < D.length; n += 4, m += 3) { D[n] = FD[m]; D[n + 1] = FD[m + 1]; D[n + 2] = FD[m + 2]; D[n + 3] = 255; }
+    mxOx.putImageData(mxImg, 0, 0);
+    const S2 = mxCv.width;
+    mxCtx.clearRect(0, 0, S2, S2);
+    mxCtx.save();
+    mxCtx.beginPath(); mxCtx.arc(S2 / 2, S2 / 2, S2 / 2, 0, Math.PI * 2); mxCtx.clip();
+    mxCtx.imageSmoothingEnabled = true; mxCtx.imageSmoothingQuality = 'high';
+    if ('filter' in mxCtx) mxCtx.filter = `blur(${(S2 * .013).toFixed(1)}px)`;
+    mxCtx.drawImage(mxOff, -S2 * .015, -S2 * .015, S2 * 1.03, S2 * 1.03);
+    mxCtx.filter = 'none';
+    mxCtx.globalCompositeOperation = 'overlay';
+    for (let y = 0; y < S2; y += 160) for (let x = 0; x < S2; x += 160) mxCtx.drawImage(mxNoise, x, y);
+    mxCtx.restore();
+  }
+  function mixLoop(now) {
+    const dt = Math.min(.05, (now - (bowl.last || now)) / 1000); bowl.last = now;
+    mixStep(dt); mixDraw();
+    bowl.raf = requestAnimationFrame(mixLoop);
+  }
+  function fitMix() {
+    const area = document.querySelector('.mxglobe-wrap').getBoundingClientRect();
+    const size = Math.max(160, Math.floor(Math.min(area.width, area.height - 30) * .94));
+    const dpr = Math.min(2, devicePixelRatio || 1);
+    mxCv.style.width = mxCv.style.height = size + 'px';
+    mxCv.width = mxCv.height = Math.round(size * dpr);
+  }
+  function seedMix() {
+    // start the bowl from the gradient you were working on
+    bowl.waves = null; bowl.src = []; bowl.stirs = []; bowl.fade = null; bowl.pending = null; bowl.time = 0;
+    const c = document.createElement('canvas'); c.width = c.height = FN;
+    const x = c.getContext('2d', { willReadFrequently: true });
+    paint(x, FN, FN, { ...S, grain: 0, format: '1:1', motion: { ...S.motion, on: false }, texture: { ...S.texture, on: false } });
+    const d = x.getImageData(0, 0, FN, FN).data;
+    for (let n = 0; n < FN * FN; n++) { FD[n * 3] = d[n * 4]; FD[n * 3 + 1] = d[n * 4 + 1]; FD[n * 3 + 2] = d[n * 4 + 2]; }
+  }
+  let mixReturn = null;
+  // the bowl's history: a snapshot after each pour, drop, clear or shuffle
+  let bowlHist = [], bowlHi = -1;
+  function bowlCommit() {
+    // the snapshot is taken once this change has finished spreading (or right before the next one)
+    settlePending();
+    bowlHist = bowlHist.slice(0, bowlHi + 1);
+    const slot = { snap: null }; bowlHist.push(slot);
+    if (bowlHist.length > 40) bowlHist.shift();
+    bowlHi = bowlHist.length - 1; syncHist();
+    bowl.pending = slot;
+    setTimeout(() => { if (bowl.pending === slot) settlePending(); }, 1600);
+  }
+  function bowlRestore() {
+    const snap = bowlHist[bowlHi].snap;
+    if (snap) { bowl.src = []; bowl.fade = snap; bowl.fadeT = .7; }
+    syncHist();
+  }
+  function bowlUndo() { settlePending(); if (bowlHi > 0) { bowlHi--; bowlRestore(); } }
+  function bowlRedo() { settlePending(); if (bowlHi < bowlHist.length - 1) { bowlHi++; bowlRestore(); } }
+  // Randomize in fun mode: a fresh handful of colours poured in at once
+  function mixRandom() {
+    const n = 4 + Math.floor(Math.random() * 3), h0 = Math.random() * 360, step = 25 + Math.random() * 60;
+    for (let i = 0; i < n; i++) {
+      const a = i / n * Math.PI * 2 + Math.random(), r = .25 + Math.random() * .3;
+      mixDrop(oklch(.62 + Math.random() * .26, .09 + Math.random() * .12, (h0 + i * step) % 360), Math.cos(a) * r, Math.sin(a) * r, .42 + Math.random() * .14);
+    }
+    bowlCommit();
+  }
+  // fun mode lines up with the editor: its bar sits exactly where the editor's bar is, and the
+  // globe is centred above it, in the space the canvas uses
+  function alignMix() {
+    const r = $('dock').getBoundingClientRect(), b = $('saveBtn').getBoundingClientRect();
+    const d = { left: r.left, width: r.width, bottom: r.bottom, top: b.top - 5 }, wrap = document.querySelector('.mxbar-wrap');
+    wrap.style.left = d.left + 'px'; wrap.style.width = d.width + 'px'; wrap.style.right = 'auto';
+    wrap.style.bottom = (innerHeight - d.bottom) + 'px';
+    const g = document.querySelector('.mxglobe-wrap'), card = document.querySelector('.mxcard'), temp = document.querySelector('.mxtemp');
+    if (matchMedia('(max-width: 860px)').matches) { [g, card, temp].forEach(el => el.removeAttribute('style')); return; }
+    const sr = $('side').getBoundingClientRect();
+    // the colour card sits on the left for balance; the scales fill the editor's settings column
+    Object.assign(card.style, { left: '20px', width: '230px', right: 'auto', top: sr.top + 'px' });
+    Object.assign(temp.style, { left: sr.left + 'px', width: sr.width + 'px', right: 'auto', top: sr.top + 'px', bottom: (innerHeight - sr.bottom) + 'px' });
+    const cx = d.left + d.width / 2, half = Math.max(120, Math.min(cx - 270, sr.left - 24 - cx));
+    g.style.left = (cx - half) + 'px'; g.style.right = (innerWidth - cx - half) + 'px';
+    g.style.bottom = (innerHeight - d.top + 18) + 'px';
+  }
+  function openMix() {
+    mixReturn = document.activeElement;
+    closeMenu(false); closePresets();
+    $('mixView').hidden = false;
+    document.body.classList.add('mixing');
+    $('sizeBtn').disabled = true; $('sizeBtn').title = 'Size is not used in fun mode';
+    alignMix(); fitMix(); seedMix();
+    bowlHist = []; bowlHi = -1; bowlCommit();
+    bowl.name = ''; $('mxName').innerHTML = '';
+    syncMixReadout();
+    bowl.last = 0; cancelAnimationFrame(bowl.raf); bowl.raf = requestAnimationFrame(mixLoop);
+    $('mixClose').focus({ focusVisible: false });
+  }
+  function closeMix() {
+    cancelAnimationFrame(bowl.raf); bowl.raf = 0;
+    $('mixView').hidden = true;
+    document.body.classList.remove('mixing');
+    $('sizeBtn').disabled = false; $('sizeBtn').title = 'Size';
+    syncHist();
+    mixReturn && mixReturn.focus && mixReturn.focus();
+  }
+  // the Fun mode switch slides on, then the playground opens; it switches off again on the way out
+  $('funBtn').onclick = openMix;
+  $('mixClose').onclick = closeMix;
+  addEventListener('resize', () => { if (!$('mixView').hidden) { alignMix(); fitMix(); } });
+
+  // the sliders: dragging either one pours a little of each colour you pass through
+  function mixSetT(e, track, sc) {
+    const r = track.getBoundingClientRect();
+    bowl.sc = sc; bowl.ts[sc] = clamp((e.clientY - r.top) / r.height, 0, 1);
+    syncMixReadout();
+    const moved = bowl.lastDropT === null || Math.abs(curT() - bowl.lastDropT) > .045;
+    if (moved && performance.now() - bowl.lastDropAt > 140) mixPour(bowl.lastDropT !== null);
+  }
+  mxCols.forEach(col => {
+    const track = col.querySelector('.mxtrack'), knob = col.querySelector('.mxknob'), sc = col.dataset.sc;
+    let dragging = false;
+    track.addEventListener('pointerdown', e => {
+      dragging = true; track.classList.add('drag'); track.setPointerCapture(e.pointerId);
+      bowl.lastDropT = null; mixSetT(e, track, sc);
+    });
+    track.addEventListener('pointermove', e => { if (dragging) mixSetT(e, track, sc); });
+    const end = () => {
+      if (!dragging) return;
+      dragging = false; track.classList.remove('drag');
+      // only pour again if the colour has moved on since the last drop
+      if (bowl.lastDropT !== null && Math.abs(curT() - bowl.lastDropT) > .045) mixPour(true);
+      bowlCommit();
+    };
+    track.addEventListener('pointerup', end);
+    track.addEventListener('pointercancel', end);
+    knob.addEventListener('keydown', e => {
+      const d = { ArrowUp: -.04, ArrowDown: .04, PageUp: -.15, PageDown: .15 }[e.key];
+      if (d !== undefined) { e.preventDefault(); bowl.sc = sc; bowl.ts[sc] = clamp(bowl.ts[sc] + d, 0, 1); syncMixReadout(); }
+      else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); bowl.sc = sc; mixPour(); bowlCommit(); }
+    });
+  });
+
+  // the globe: a click drops the current colour there, a drag stirs the bowl
+  let stir = null;
+  const globePt = e => { const r = mxCv.getBoundingClientRect(); return [((e.clientX - r.left) / r.width) * 2 - 1, ((e.clientY - r.top) / r.height) * 2 - 1]; };
+  mxCv.addEventListener('pointerdown', e => {
+    const [x, y] = globePt(e); if (Math.hypot(x, y) > 1) return;
+    stir = { x, y, sx: e.clientX, sy: e.clientY, moved: false };
+    mxCv.setPointerCapture(e.pointerId);
+  });
+  mxCv.addEventListener('pointermove', e => {
+    if (!stir) return;
+    const [x, y] = globePt(e), dx = x - stir.x, dy = y - stir.y;
+    if (Math.hypot(e.clientX - stir.sx, e.clientY - stir.sy) > 5) { stir.moved = true; mxCv.classList.add('stirring'); }
+    if (stir.moved) {
+      bowl.stirs.push({ x, y, vx: clamp(dx * 22, -3, 3), vy: clamp(dy * 22, -3, 3), age: 0 });
+      if (bowl.stirs.length > 40) bowl.stirs.shift();
+    }
+    stir.x = x; stir.y = y;
+  });
+  const stirEnd = e => {
+    if (!stir) return;
+    if (!stir.moved) { const [x, y] = globePt(e); mixDrop(mixColorAt(curT()), x, y, .26); }
+    bowlCommit();
+    stir = null; mxCv.classList.remove('stirring');
+  };
+  mxCv.addEventListener('pointerup', stirEnd);
+  mxCv.addEventListener('pointercancel', () => { stir = null; mxCv.classList.remove('stirring'); });
+
+  $('mxClear').onclick = () => {
+    const c = mixColorAt(curT());
+    mixDrop(c, 0, 0, 1);
+    bowlCommit();
+  };
+  // turn the bowl into a real mesh gradient: each drop becomes a colour you can keep editing
+  // the bowl as a mesh gradient: each drop becomes a colour, the overall mix becomes the background
+  function bowlState(extra = {}) {
+    const P = [], acc = [0, 0, 0];
+    for (let j = 2; j < FN; j += 4) for (let i = 2; i < FN; i += 4) {
+      const x = i * FH - 1, y = j * FH - 1;
+      if (x * x + y * y > .9) continue;
+      const o = (j * FN + i) * 3;
+      P.push([x, y, FD[o], FD[o + 1], FD[o + 2]]); acc[0] += FD[o]; acc[1] += FD[o + 1]; acc[2] += FD[o + 2];
+    }
+    if (!P.length) return null;
+    const K = 6;
+    let C = Array.from({ length: K }, (_, i) => [...P[Math.floor((i + .5) / K * P.length)], 0]);
+    for (let it = 0; it < 8; it++) {
+      const sum = C.map(() => [0, 0, 0, 0, 0, 0]);
+      for (const p of P) {
+        let bi = 0, bd = Infinity;
+        C.forEach((c, ci) => {
+          const d = (p[2] - c[2]) ** 2 + (p[3] - c[3]) ** 2 + (p[4] - c[4]) ** 2 + ((p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2) * 2500;
+          if (d < bd) { bd = d; bi = ci; }
+        });
+        const a = sum[bi]; for (let q = 0; q < 5; q++) a[q] += p[q]; a[5]++;
+      }
+      C = sum.map((a, ci) => a[5] ? [...a.slice(0, 5).map(v => v / a[5]), a[5]] : [...C[ci].slice(0, 5), 0]);
+    }
+    // big regions first, so smaller pools of colour sit on top of them, as they do in the bowl
+    const live = C.filter(c => c[5] > P.length * .02).sort((a, b) => b[5] - a[5]);
+    return { ...S, ...extra, mode: 'mesh', base: toHex(acc.map(v => v / P.length)),
+      stops: live.map((c, i) => ({ c: toHex([c[2], c[3], c[4]]), p: r1(i / Math.max(1, live.length - 1) * 100),
+        x: r1(50 + c[0] * 50), y: r1(50 + c[1] * 50), s: clamp(Math.round(Math.sqrt(c[5] / P.length) * 120), 25, 120) })) };
+  }
+  // S in fun mode saves the globe itself (as a round mesh gradient) and sends it flying into Library
+  function saveBowl() {
+    const st = bowlState({ format: 'circle', motion: { ...S.motion } });
+    if (st) saveToLibrary(st, { el: mxCv, src: mxCv, round: true, pip: gradient(st, false) });
+  }
+  $('mxUse').onclick = () => {
+    const st = bowlState();
+    if (!st) return;
+    S = st;
+    sel = 0;
+    closeMix(); fit(); draw();
+    toast('Your mix is now a mesh gradient');
+  };
 
   // ---------- Library ----------
   function tile(st, title, onLoad, onDelete) {
@@ -1579,18 +2227,41 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     }
     return wrap;
   }
-  // The dock label reads "Presets" and turns into the name of whichever preset is under the pointer.
-  const dlabel = document.querySelector('.dlabel');
-  function showPresetName(e) {
-    const t = e.target && e.target.closest('.tile');
-    dlabel.textContent = t ? t.dataset.name : 'Presets';
-    dlabel.classList.toggle('name', !!t);
+  // ---------- Presets: the bottom bar grows upward into a grid ----------
+  const dockEl = $('dock'), presetBtn = $('presetBtn'), pPanel = $('pPanel');
+  let presetOn = null, presetSet = 1;
+  const presetsOpen = () => dockEl.classList.contains('popen');
+  function openPresets() {
+    closeSide();
+    // each opening shows the other set of nine, in a fresh order
+    presetSet = 1 - presetSet;
+    renderLibrary();
+    dockEl.classList.add('popen'); pPanel.inert = false; presetBtn.setAttribute('aria-expanded', 'true');
   }
-  ['pointerover', 'focusin'].forEach(ev => $('presets').addEventListener(ev, showPresetName));
-  ['pointerleave', 'focusout'].forEach(ev => $('presets').addEventListener(ev, () => showPresetName({ target: null })));
+  function closePresets(refocus) {
+    if (!presetsOpen()) return;
+    dockEl.classList.remove('popen'); pPanel.inert = true; presetBtn.setAttribute('aria-expanded', 'false');
+    if (refocus) presetBtn.focus();
+  }
+  presetBtn.onclick = () => presetsOpen() ? closePresets() : openPresets();
+  document.addEventListener('pointerdown', e => { if (presetsOpen() && !dockEl.contains(e.target)) closePresets(); });
   function renderLibrary() {
     const p = $('presets'); p.innerHTML = '';
-    PRESETS.forEach(pr => p.appendChild(tile(fromPreset(pr), pr.name, () => { S = fromPreset(pr); sel = 0; draw(); })));
+    const list = PRESET_SETS[presetSet].slice();
+    for (let i = list.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [list[i], list[j]] = [list[j], list[i]]; }
+    const same = presetOn && JSON.stringify(S) === JSON.stringify(fromPreset(presetOn));
+    list.forEach((pr, i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'pcell'; b.style.setProperty('--i', i); b.setAttribute('aria-label', `Load ${pr.name}`);
+      b.innerHTML = '<span class="pv"></span>';
+      b.firstChild.style.background = gradient(fromPreset(pr), false);
+      b.classList.toggle('on', same && pr === presetOn);
+      b.onclick = () => {
+        S = fromPreset(pr); sel = 0; draw();
+        presetOn = pr; p.querySelectorAll('.pcell').forEach(c => c.classList.toggle('on', c === b));
+      };
+      p.appendChild(b);
+    });
   }
 
   // ---------- Copy + export ----------
@@ -2045,14 +2716,62 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   const persistLib = () => store.set('gb-saved', library);
   const libCount = () => { $('libBtn').title = `Library · ${library.length} saved (L) · save with S`; };
 
-  function saveToLibrary() {
-    const name = funName(S, library.map(x => x.name));
-    library.unshift({ id: Date.now(), savedAt: Date.now(), name, state: JSON.parse(JSON.stringify(S)) });
+  // A save lifts a copy of the canvas itself: it shrinks into a preset-sized card just above the
+  // canvas, glides along a gentle curve into the Library button and melts into it; the Library
+  // button gives a small bounce and briefly wears the thumbnail on its corner.
+  let pipTimer = 0;
+  function flyToLibrary(from = { el: frame, src: cv, round: S.format === 'circle' }) {
+    const srcEl = from.el, fr = srcEl.getBoundingClientRect(), to = $('libBtn').getBoundingClientRect();
+    if (!to.width || !fr.width) return false;
+    const round = from.round;
+    const copy = document.createElement('canvas');
+    copy.width = from.src.width; copy.height = from.src.height;
+    copy.getContext('2d').drawImage(from.src, 0, 0);
+    copy.className = 'flycanvas';
+    copy.style.width = fr.width + 'px'; copy.style.height = fr.height + 'px';
+    document.body.appendChild(copy);
+    // the card size used for presets: 72 × 46 (a circle stays round)
+    const tw = round ? 46 : 72, th = 46;
+    const k = Math.min(tw / fr.width, th / fr.height);
+    const cw = fr.width * k, ch = fr.height * k;
+    const cx = fr.left + fr.width / 2, cy = fr.top + fr.height / 2;
+    const tx = to.left + to.width / 2, ty = to.top + to.height / 2;
+    const at = (x, y, sc) => `translate(${x - fr.width * sc / 2}px, ${y - fr.height * sc / 2}px) scale(${sc})`;
+    const r0 = round ? '50%' : getComputedStyle(from.src).borderRadius, rCard = round ? '50%' : (10 / k) + 'px';
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // each stage has its own easing: shrink into a card, a brief hover, then the glide into Library
+    const sh = (y) => `0 ${y / k}px ${2.2 * y / k}px -${y / k}px rgba(0,0,0,.42)`;
+    const fly = copy.animate([
+      { transform: at(cx, cy, 1), borderRadius: r0, opacity: 1, boxShadow: sh(0), easing: 'cubic-bezier(.55,0,.15,1)' },
+      { transform: at(cx, cy - 18, k), borderRadius: rCard, opacity: 1, boxShadow: sh(12), offset: .42, easing: 'ease-in-out' },
+      { transform: at(cx, cy - 26, k * 1.04), borderRadius: rCard, opacity: 1, boxShadow: sh(14), offset: .52, easing: 'cubic-bezier(.5,0,.25,1)' },
+      { transform: at(cx + (tx - cx) * .5, Math.min(cy, ty) + (cy - ty) * .28 - 30, k * .82), borderRadius: rCard, opacity: 1, boxShadow: sh(12), offset: .76, easing: 'cubic-bezier(.3,0,.3,1)' },
+      { transform: at(tx, ty, k * .55), borderRadius: rCard, opacity: 1, boxShadow: sh(6), offset: .93, easing: 'ease-in' },
+      { transform: at(tx, ty, k * .3), borderRadius: rCard, opacity: 0, boxShadow: sh(0) },
+    ], { duration: reduce ? 1 : 1250, fill: 'forwards' });
+    // the canvas gives a soft nod as its copy lifts away
+    if (!reduce) srcEl.animate([{ transform: 'scale(1)' }, { transform: 'scale(.985)', offset: .35 }, { transform: 'scale(1)' }], { duration: 520, easing: 'cubic-bezier(.3,.7,.3,1)' });
+    fly.onfinish = () => {
+      copy.remove();
+      const lib = $('libBtn');
+      lib.classList.remove('got'); void lib.offsetWidth; lib.classList.add('got');
+      lib.querySelectorAll('.libpip').forEach(e => e.remove());
+      const pip = document.createElement('span'); pip.className = 'libpip'; pip.style.background = from.pip || gradient(S, false); lib.appendChild(pip);
+      clearTimeout(pipTimer);
+      pipTimer = setTimeout(() => { pip.classList.add('bye'); setTimeout(() => pip.remove(), 360); }, 2400);
+    };
+    return true;
+  }
+  $('saveBtn').onclick = () => saveToLibrary();
+  function saveToLibrary(st = S, from) {
+    if (st instanceof Event) st = S;
+    const name = funName(st, library.map(x => x.name));
+    library.unshift({ id: Date.now(), savedAt: Date.now(), name, state: JSON.parse(JSON.stringify(st)) });
     persistLib(); libCount();
-    toast(`Saved as “${name}”`);
+    if (!$('libView').hidden || !flyToLibrary(from)) toast(`Saved as “${name}”`);
     if (!$('libView').hidden) {
       renderLibView();
-      const fresh = $('libGrid').children[1];
+      const fresh = $('libGrid').querySelector('.sleeve');
       if (fresh) fresh.classList.add('fresh');
     }
   }
@@ -2065,33 +2784,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   function renderLibView() {
     libAnims.forEach(a => cancelAnimationFrame(a.raf)); libAnims = [];
     const grid = $('libGrid'); grid.innerHTML = '';
-    $('libEmpty').hidden = true;
+    $('libEmpty').hidden = library.length > 0;
 
-    // First card: save what's in the editor right now
-    {
-      const [W, H] = FORMATS[S.format];
-      const st = S;
-      const card = document.createElement('button');
-      card.type = 'button'; card.className = 'sleeve savecard';
-      card.setAttribute('aria-label', 'Save the current gradient to the library');
-      card.innerHTML = `
-        <div class="tl"><span class="nm">Save this gradient</span><br>— ${MODE_NAME[S.mode]} · ${S.stops.length} colors<small>${S.motion.on ? `${S.motion.speed}s loop` : 'Still'}${matchMedia('(hover: none), (pointer: coarse)').matches ? '' : ' · press S anytime'}</small></div>
-        <div class="tr">New</div>
-        <div class="bl">${dateStr(Date.now())}</div>
-        <div class="br">Gradient</div>
-        <div class="art"><canvas class="main"></canvas></div>
-        <span class="savepill"><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M10 4v12M4 10h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Save</span>`;
-      grid.appendChild(card);
-      const box = card.getBoundingClientRect();
-      const sc = Math.min(box.width * 0.5 / W, box.height * 0.52 / H);
-      const art = card.querySelector('.art'), cv2 = card.querySelector('canvas');
-      const aw = Math.round(W * sc), ah = Math.round(H * sc), dpr = Math.min(2, devicePixelRatio || 1);
-      art.style.width = aw + 'px'; art.style.height = ah + 'px';
-      art.classList.toggle('circle', st.format === 'circle');
-      cv2.width = Math.round(aw * dpr); cv2.height = Math.round(ah * dpr);
-      paint(cv2.getContext('2d', { willReadFrequently: true }), cv2.width, cv2.height, { ...S, grain: S.grain * 0.45 });
-      card.addEventListener('click', saveToLibrary);
-    }
     $('libSub').textContent = library.length ? `${library.length} saved` : '';
     library.forEach((entry, idx) => {
       const st = entry.state, [W, H, label] = FORMATS[st.format];
@@ -2132,14 +2826,17 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       };
       drawAt(0);
 
-      // saved motion plays while you hover
+      // saved motion plays in the library, just as it does on the canvas (about 30 fps per card)
       const anim = { raf: 0 };
       libAnims.push(anim);
       if (st.motion.on) {
-        const t0 = { v: 0 };
-        const step = now => { if (!t0.v) t0.v = now; drawAt(((now - t0.v) / 1000 / st.motion.speed) % 1); anim.raf = requestAnimationFrame(step); };
-        card.addEventListener('mouseenter', () => { t0.v = 0; anim.raf = requestAnimationFrame(step); });
-        card.addEventListener('mouseleave', () => { cancelAnimationFrame(anim.raf); drawAt(0); });
+        let t0 = 0, last = 0;
+        const step = now => {
+          if (!t0) t0 = now;
+          if (now - last > 33) { last = now; drawAt(((now - t0) / 1000 / st.motion.speed) % 1); }
+          anim.raf = requestAnimationFrame(step);
+        };
+        anim.raf = requestAnimationFrame(step);
       }
 
       const open = () => {
@@ -2210,7 +2907,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     document.body.style.overflow = '';
     libReturn && libReturn.focus && libReturn.focus();
   }
-  $('libBtn').onclick = openLibrary;
+  $('libBtn').onclick = () => { if (!$('mixView').hidden) closeMix(); openLibrary(); };
   $('libClose').onclick = closeLibrary;
   addEventListener('resize', () => { if (!$('libView').hidden) renderLibView(); });
   libCount();
