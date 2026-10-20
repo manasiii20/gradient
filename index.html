@@ -3727,8 +3727,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     }
     // the highlight hugs the part with a little room, but never spills past the panel it lives in
     let pad = 8, b = t.getBoundingClientRect();
-    if (st.hug && t.children.length) {
-      const rs = [...t.children].map(c => c.getBoundingClientRect());
+    if (st.hug && [...t.children].some(c => c.offsetWidth)) {
+      // only the parts actually showing: a hidden button reports a box at the corner of the page
+      const rs = [...t.children].map(c => c.getBoundingClientRect()).filter(r => r.width && r.height);
       b = { left: Math.min(...rs.map(r => r.left)), top: Math.min(...rs.map(r => r.top)), right: Math.max(...rs.map(r => r.right)), bottom: Math.max(...rs.map(r => r.bottom)) };
       b.width = b.right - b.left; b.height = b.bottom - b.top;
     }
