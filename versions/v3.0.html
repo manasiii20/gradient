@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="gb-build" content="34">
+<meta name="gb-build" content="35">
 <script>
 // phones and in-app browsers keep an old copy of the page for a while: if the live page is a newer build,
 // load it once, fresh
@@ -4006,7 +4006,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   function maybeTour() { if ($('mixView').hidden) openIntro(); }
   const backToIntro = () => { if ($('mixView').hidden && $('libView').hidden && tourAt < 0) { closeSide(); closePresets(); openIntro(); } };
   document.querySelector('.top .brand').addEventListener('click', backToIntro);
-  $('introBack').addEventListener('click', backToIntro);
+  // the back arrow goes one step back: out of Fun mode to the editor, and from the editor to the keyword screen
+  $('introBack').addEventListener('click', () => { if (!$('mixView').hidden) { if (tourAt < 0) closeMix(); } else backToIntro(); });
   $('tourNext').onclick = () => tourAt < TOUR.length - 1 ? showTourStep(tourAt + 1) : endTour();
   $('tourSkip').onclick = () => tourAt === TOUR.length - 1 ? showTourStep(tourAt - 1) : endTour();
   addEventListener('resize', placeTour);
