@@ -446,6 +446,42 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .pbar { height: 6px; border-radius: 3px; background: var(--chip); overflow: hidden; }
 .pbar i { display: block; height: 100%; width: 0; background: var(--fg); transition: width .15s; }
 
+/* ---------- Onboarding: a welcome card, then a spotlight that glides from part to part ---------- */
+.tour { position: fixed; inset: 0; z-index: 70; pointer-events: none; }
+.tour-block { position: fixed; pointer-events: auto; }
+.tour-card { pointer-events: auto; }
+.tour.away { visibility: hidden; }
+.tour-spot {
+  position: fixed; left: 50%; top: 50%; width: 0; height: 0; border-radius: 16px; pointer-events: none;
+  box-shadow: 0 0 0 200vmax rgba(10,10,9,.5), 0 0 0 1px rgba(255,255,255,.28), 0 0 24px 2px rgba(255,255,255,.08);
+  transition: left .55s cubic-bezier(.22,1,.36,1), top .55s cubic-bezier(.22,1,.36,1), width .55s cubic-bezier(.22,1,.36,1), height .55s cubic-bezier(.22,1,.36,1), border-radius .55s;
+}
+.tour.welcome .tour-spot { box-shadow: 0 0 0 200vmax rgba(10,10,9,.5); }
+.tour-card {
+  position: fixed; left: 0; top: 0; width: 304px; padding: 18px 18px 14px; z-index: 1;
+  transition: transform .55s cubic-bezier(.22,1,.36,1), opacity .25s ease, width .3s ease;
+}
+.tour-card h3 { margin: 0 0 6px; font: 600 17px/1.25 var(--sans); letter-spacing: -.01em; }
+.tour-text { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.5; }
+.tour-text kbd { opacity: .8; }
+.tour-count { margin: 0 0 6px; color: var(--muted); font: 500 11px var(--sans); text-transform: uppercase; letter-spacing: .08em; }
+.tour-art { display: none; height: 150px; margin: -6px -6px 16px; border-radius: 12px; overflow: hidden; }
+.tour-art canvas { display: block; width: 100%; height: 100%; transform: scale(1.25); animation: tourart 10s ease-in-out infinite alternate; }
+@keyframes tourart { from { transform: scale(1.25) translate(-6%, -4%) rotate(-2deg); } to { transform: scale(1.35) translate(6%, 4%) rotate(2deg); } }
+.tour.welcome .tour-card { width: 380px; padding: 22px 22px 16px; }
+.tour.welcome .tour-art { display: block; }
+.tour.welcome .tour-card h3 { font-size: 22px; }
+.tour.welcome .tour-count { display: none; }
+.tour-foot { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
+.tour-dots { display: flex; gap: 5px; margin-right: auto; }
+.tour-dots i { width: 6px; height: 6px; border-radius: 3px; background: var(--card-line-strong); transition: width .3s ease, background .3s ease; }
+.tour-dots i.on { width: 16px; background: var(--fg); }
+.tour.welcome .tour-dots { visibility: hidden; }
+.tour-card.swap { opacity: 0; }
+@media (hover: none), (pointer: coarse), (max-width: 480px) { .tour-text .kh { display: none; } }
+@media (prefers-reduced-motion: reduce) { .tour-spot, .tour-card { transition: none; } .tour-art { animation: none; } }
+@media (max-width: 480px) { .tour-card, .tour.welcome .tour-card { width: calc(100vw - 32px); } }
+
 /* ---------- Export overlay & toast ---------- */
 .overlay {
   position: fixed; inset: 0; z-index: 30;
@@ -941,6 +977,21 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   </div>
 </main>
 
+<div class="tour" id="tour" hidden>
+  <div class="tour-spot" id="tourSpot"></div>
+  <div class="tour-block" aria-hidden="true"></div><div class="tour-block" aria-hidden="true"></div><div class="tour-block" aria-hidden="true"></div><div class="tour-block" aria-hidden="true"></div>
+  <div class="tour-card card" id="tourCard" role="dialog" aria-modal="true" aria-labelledby="tourTitle" aria-describedby="tourText">
+    <div class="tour-art" aria-hidden="true"><canvas id="tourArt" width="760" height="300"></canvas></div>
+    <p class="tour-count" id="tourCount"></p>
+    <h3 id="tourTitle"></h3>
+    <p class="tour-text" id="tourText"></p>
+    <div class="tour-foot">
+      <div class="tour-dots" id="tourDots" aria-hidden="true"></div>
+      <button class="btn" id="tourSkip" type="button">Skip</button>
+      <button class="btn primary" id="tourNext" type="button">Next</button>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="overlay" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="exTitle">
     <h2 id="exTitle">PNG</h2>
@@ -1848,7 +1899,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     roomForSheet(true);
   });
   // working on the canvas (dragging its dots) keeps the sheet open; anywhere else closes it
-  document.addEventListener('pointerdown', e => { if (!side.contains(e.target) && !sideBtn.contains(e.target) && !frame.contains(e.target)) closeSide(); });
+  document.addEventListener('pointerdown', e => { if (!side.contains(e.target) && !sideBtn.contains(e.target) && !frame.contains(e.target) && !e.target.closest('#tour')) closeSide(); });
   addEventListener('resize', () => { if (!matchMedia('(max-width: 860px)').matches) closeSide(); });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && side.classList.contains('open')) { e.stopPropagation(); closeSide(); sideBtn.focus(); }
@@ -3082,6 +3133,152 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
   // ---------- Boot ----------
   new ResizeObserver(() => { fit(); draw(); }).observe(stage);
+  // ---------- Onboarding ----------
+  // First visit: a welcome card, then a spotlight glides over each part with a line or two about it.
+  // Enter / → next, ← back, Esc skips. The ? button (or the ? key) plays it again.
+  const TOUR = [
+    { title: 'Welcome to Gradient', text: 'Make soft, grainy gradients, set them moving, and take them anywhere as CSS, an image or a video. Here is a quick look around, and you can try each part as you go.', next: 'Show me around' },
+    { el: ['#frame'], title: 'Your canvas', ptext: 'Drag a dot to move its colour around. Go on, try it.', text: 'Drag a dot to move its colour around. Go on, try it.<span class="kh"> Pinch on a trackpad, or hold <kbd>⌘</kbd> / <kbd>Ctrl</kbd> and scroll, to zoom in.</span>' },
+    { el: ['#side', '#sideBtn'], also: ['#side'], title: 'Shape it', ptext: 'Tap Settings, then flip through the tabs: type, colours, blur and noise, glass texture and motion. Have a play.', text: 'Pick linear, radial or mesh, then tune the colours, blur, noise, glass texture and motion. Have a play.' },
+    { el: ['#presetBtn'], also: ['#pPanel'], key: 'p', title: 'Presets', text: 'Not sure where to start? Open the row of classics and pick one to try it.<span class="kh"> Or press <kbd>P</kbd>.</span>' },
+    { el: ['#funBtn'], key: 'f', title: 'Fun mode', ptext: 'Pour colours into a liquid globe, then turn the mix into a gradient. Tap it for a go; the tour waits here until you are back.', text: 'Pour colours into a liquid globe, then turn the mix into a gradient. Open it for a go; the tour waits here until you are back.' },
+    { el: ['#saveBtn'], pel: ['#saveSheetBtn'], sheet: 'export', key: 's', title: 'Save to library', ptext: 'On your phone, saving lives in Settings, under Export. Tap Save and watch it fly into your Library, up top.', text: 'Keep what you make. Try it and watch it fly into your Library, up top.<span class="kh"> Or press <kbd>S</kbd>.</span>' },
+    { el: ['.side-foot', '#sideBtn'], sheet: 'export', hug: true, title: 'Take it with you', text: 'Copy the CSS, or export an image or a looping video in the size you need.' },
+    { el: ['#randomBtn'], key: 'r', title: 'Feeling stuck?', ptext: 'Randomize gives you something new any time. Tap it a few times and keep the one you like.', text: 'Randomize gives you something new any time. Press it a few times and keep the one you like.<span class="kh"> Or press <kbd>R</kbd>.</span>', next: 'Start creating' },
+  ];
+  const tourEl = $('tour'), spot = $('tourSpot'), tcard = $('tourCard');
+  let tourAt = -1, tourBack = null;
+  const visible = el => el && el.getClientRects().length && el.getBoundingClientRect().width > 0;
+  const tourTarget = st => ((onPhone() && st.pel) || st.el || []).map(q => document.querySelector(q)).find(visible);
+  // everything outside the highlight is covered, so only the part being shown can be used
+  const blocks = [...document.querySelectorAll('.tour-block')];
+  blocks.forEach(bl => bl.addEventListener('wheel', e => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    if (tourAt >= 0 && (TOUR[tourAt].el || [])[0] === '#frame') { const r = stage.getBoundingClientRect(); zoomTo(zoom * Math.exp(-e.deltaY * .01), e.clientX - r.left - r.width / 2, e.clientY - r.top - r.height / 2); }
+  }, { passive: false }));
+  function setBlocks(h) {
+    const vw = innerWidth, vh = innerHeight, px = v => Math.max(0, Math.round(v)) + 'px';
+    const R = [[0, 0, vw, h.t], [0, h.b, vw, vh - h.b], [0, h.t, h.l, h.b - h.t], [h.r, h.t, vw - h.r, h.b - h.t]];
+    R.forEach(([x, y, w, hh], i) => Object.assign(blocks[i].style, { left: px(x), top: px(y), width: px(w), height: px(hh) }));
+  }
+  function placeTour() {
+    if (tourAt < 0) return;
+    const st = TOUR[tourAt], t = tourTarget(st), vw = innerWidth, vh = innerHeight, m = 14;
+    const cw = tcard.offsetWidth, ch = tcard.offsetHeight;
+    if (!t) {
+      Object.assign(spot.style, { left: vw / 2 + 'px', top: vh / 2 + 'px', width: '0px', height: '0px' });
+      setBlocks({ l: vw / 2, t: vh / 2, r: vw / 2, b: vh / 2 });
+      tcard.style.transform = `translate(${Math.round((vw - cw) / 2)}px, ${Math.round((vh - ch) / 2)}px)`;
+      return;
+    }
+    // the highlight hugs the part with a little room, but never spills past the panel it lives in
+    let pad = 8, b = t.getBoundingClientRect();
+    if (st.hug && t.children.length) {
+      const rs = [...t.children].map(c => c.getBoundingClientRect());
+      b = { left: Math.min(...rs.map(r => r.left)), top: Math.min(...rs.map(r => r.top)), right: Math.max(...rs.map(r => r.right)), bottom: Math.max(...rs.map(r => r.bottom)) };
+      b.width = b.right - b.left; b.height = b.bottom - b.top;
+    }
+    let h = { l: b.left - pad, t: b.top - pad, r: b.right + pad, b: b.bottom + pad };
+    const host = t.parentElement && t.parentElement.closest('.card');
+    if (host) {
+      const c = host.getBoundingClientRect(), k = 6;
+      const px = Math.max(2, Math.min(pad, b.left - c.left - k, c.right - k - b.right)), py = Math.max(2, Math.min(pad, b.top - c.top - k, c.bottom - k - b.bottom));
+      h = { l: b.left - px, t: b.top - py, r: b.right + px, b: b.bottom + py };
+    }
+    // presets: once the row is open, the highlight grows to take it in, so it can be clicked
+    if (st.also && (dockEl.classList.contains('popen') || side.classList.contains('open'))) st.also.map(q => document.querySelector(q)).filter(visible).filter(el => el !== t).forEach(el => {
+      const c = el.getBoundingClientRect();
+      h = { l: Math.min(h.l, c.left - pad), t: Math.min(h.t, c.top - pad - 8), r: Math.max(h.r, c.right + pad), b: Math.max(h.b, c.bottom + pad) };
+    });
+    const r = { left: h.l + pad, top: h.t + pad, right: h.r - pad, bottom: h.b - pad, width: h.r - h.l - pad * 2, height: h.b - h.t - pad * 2 };
+    const round = t.id === 'frame' && S.format === 'circle';
+    const rad = round ? '50%' : Math.min(12, (parseFloat(getComputedStyle(t).borderTopLeftRadius) || 8) + 2) + 'px';
+    Object.assign(spot.style, { left: h.l + 'px', top: h.t + 'px', width: h.r - h.l + 'px', height: h.b - h.t + 'px', borderRadius: rad });
+    setBlocks(h);
+    // the card sits beside the spotlight wherever there is room: right, left, above, then below
+    const g = 18, tries = [
+      [r.right + pad + g, r.top + r.height / 2 - ch / 2],
+      [r.left - pad - g - cw, r.top + r.height / 2 - ch / 2],
+      [r.left + r.width / 2 - cw / 2, r.top - pad - g - ch],
+      [r.left + r.width / 2 - cw / 2, r.bottom + pad + g],
+    ];
+    const fit2 = ([x, y]) => [clamp(x, m, vw - cw - m), y];
+    const clear = ([x, y]) => y >= m && y + ch <= vh - m &&
+      (x + cw <= r.left - pad || x >= r.right + pad || y + ch <= r.top - pad || y >= r.bottom + pad);
+    let [x, y] = tries.map(fit2).find(clear) || [(vw - cw) / 2, r.top > vh / 2 ? m : vh - ch - m];
+    x = clamp(x, m, vw - cw - m); y = clamp(y, m, vh - ch - m);
+    tcard.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+  }
+  const onPhone = () => matchMedia('(max-width: 860px)').matches;
+  // on phones some steps open the settings sheet on the right tab, so what they point at is in view
+  function tourSheet(tab) {
+    if (!onPhone()) return;
+    if (!tab) { closeSide(); return; }
+    if (!side.classList.contains('open')) sideBtn.click();
+    const t = side.querySelector(`.stabs [data-tab="${tab}"]`); if (t) t.click();
+  }
+  function showTourStep(i) {
+    tourAt = i;
+    const st = TOUR[i];
+    tourSheet(st.sheet);
+    tourEl.classList.toggle('welcome', i === 0);
+    $('tourTitle').textContent = st.title;
+    $('tourText').innerHTML = onPhone() && st.ptext ? st.ptext : st.text;
+    $('tourCount').textContent = `${i} of ${TOUR.length - 1}`;
+    $('tourNext').textContent = st.next || 'Next';
+    $('tourSkip').textContent = i === TOUR.length - 1 ? 'Back' : 'Skip';
+    $('tourDots').innerHTML = TOUR.slice(1).map((_, k) => `<i class="${k + 1 === i ? 'on' : ''}"></i>`).join('');
+    if (i === 0) { const c = $('tourArt'); paint(c.getContext('2d'), c.width, c.height, { ...S, format: '16:9', texture: { ...S.texture, on: false } }); }
+    // the card fades while it moves to its new spot, so the text never jumps under the reader
+    tcard.classList.add('swap');
+    requestAnimationFrame(() => { placeTour(); setTimeout(() => tcard.classList.remove('swap'), 160); });
+    $('tourNext').focus({ preventScroll: true });
+  }
+  function openTour(at = 0) {
+    closeMenu(false); closeSide();
+    if (at !== 3) closePresets();
+    if (!$('libView').hidden) closeLibrary();
+    tourBack = document.activeElement;
+    tourEl.hidden = false;
+    showTourStep(at);
+    tourAway();
+  }
+  function endTour() {
+    tourAt = -1; tourEl.hidden = true; tourEl.classList.remove('away');
+    if (onPhone()) closeSide();
+    store.set('gb-onboarded', 1);
+    tourBack && tourBack.focus && tourBack.focus();
+  }
+  $('tourNext').onclick = () => tourAt < TOUR.length - 1 ? showTourStep(tourAt + 1) : endTour();
+  $('tourSkip').onclick = () => tourAt === TOUR.length - 1 ? showTourStep(tourAt - 1) : endTour();
+  addEventListener('resize', placeTour);
+  const tourSettle = () => { if (tourAt >= 0) { setTimeout(placeTour, 60); setTimeout(placeTour, 520); } };
+  document.addEventListener('click', tourSettle, true);
+  // an export sheet, fun mode or the library opened from the tour: it steps aside, then comes back
+  const tourAway = () => {
+    if (tourAt < 0) return;
+    const away = !$('overlay').hidden || !$('mixView').hidden || !$('libView').hidden;
+    tourEl.classList.toggle('away', away);
+    if (!away) { placeTour(); $('tourNext').focus({ preventScroll: true }); }
+  };
+  ['overlay', 'mixView', 'libView'].forEach(id => new MutationObserver(tourAway).observe($(id), { attributes: true, attributeFilter: ['hidden'] }));
+  // while the tour is up it owns the keyboard, so R, S, F and friends don't fire underneath it
+  addEventListener('keydown', e => {
+    if (tourAt < 0) return;
+    if (tourEl.classList.contains('away')) return;
+    const st = TOUR[tourAt], t = tourTarget(st), typing = /input|textarea|select/i.test(e.target.tagName);
+    if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); endTour(); return; }
+    if (st.key && e.key.toLowerCase() === st.key && !e.metaKey && !e.ctrlKey && !e.altKey && !typing) { tourSettle(); return; }
+    if (t && t.contains(e.target) && e.target !== document.body) { if (e.key !== 'Tab') return; }
+    e.stopImmediatePropagation();
+    if (typing) return;
+    if (e.key === 'ArrowRight' || (e.key === 'Enter' && e.target === document.body)) { e.preventDefault(); $('tourNext').click(); }
+    else if (e.key === 'ArrowLeft' && tourAt > 0) { e.preventDefault(); showTourStep(tourAt - 1); }
+  }, true);
+  // phones get the tour on a first visit (the desktop keeps its current start for now)
+  if (onPhone() && !store.get('gb-onboarded', 0)) setTimeout(() => { if ($('mixView').hidden) openTour(); }, 400);
+
   renderLibrary();
   fit();
   draw();
