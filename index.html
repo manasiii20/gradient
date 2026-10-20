@@ -3406,6 +3406,15 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     return { ...st, base: mix(st.base), stops: st.stops.map(x => ({ ...x, c: mix(x.c) })) };
   };
   function bgState(st) { return { ...st, format: '16:9', grain: 0, texture: { ...st.texture, on: false }, motion: { on: true, speed: 18, amount: 55 } }; }
+  // a fine, still grain laid over the backdrop at 5%: one tile of random greys, made once
+  const grainTile = document.createElement('canvas');
+  {
+    grainTile.width = grainTile.height = 160;
+    const g = grainTile.getContext('2d'), img = g.createImageData(160, 160);
+    for (let n = 0; n < img.data.length; n += 4) { const v = Math.random() * 255; img.data[n] = img.data[n + 1] = img.data[n + 2] = v; img.data[n + 3] = 255; }
+    g.putImageData(img, 0, 0);
+  }
+  let grainFill = null;
   function sizeIntro() {
     const k = Math.min(1, 800 / Math.max(innerWidth, innerHeight));
     icv.width = iprev.width = Math.round(innerWidth * k); icv.height = iprev.height = Math.round(innerHeight * k);
@@ -3439,6 +3448,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if ('filter' in ictx) ictx.filter = `blur(${Math.round(icv.width / 40)}px)`;
     ictx.drawImage(flowCv, -icv.width * .08, -icv.height * .08, icv.width * 1.16, icv.height * 1.16);
     ictx.restore();
+    grainFill = grainFill || ictx.createPattern(grainTile, 'repeat');
+    ictx.save(); ictx.globalAlpha = .05; ictx.fillStyle = grainFill; ictx.fillRect(0, 0, icv.width, icv.height); ictx.restore();
   }
   function setIntroBg(st) {
     const pc = iprev.getContext('2d'); pc.clearRect(0, 0, iprev.width, iprev.height); pc.drawImage(icv, 0, 0);
