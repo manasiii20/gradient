@@ -3406,15 +3406,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     return { ...st, base: mix(st.base), stops: st.stops.map(x => ({ ...x, c: mix(x.c) })) };
   };
   function bgState(st) { return { ...st, format: '16:9', grain: 0, texture: { ...st.texture, on: false }, motion: { on: true, speed: 18, amount: 55 } }; }
-  // a fine, still grain laid over the backdrop at 5%: one tile of random greys, made once
-  const grainTile = document.createElement('canvas');
-  {
-    grainTile.width = grainTile.height = 160;
-    const g = grainTile.getContext('2d'), img = g.createImageData(160, 160);
-    for (let n = 0; n < img.data.length; n += 4) { const v = Math.random() * 255; img.data[n] = img.data[n + 1] = img.data[n + 2] = v; img.data[n + 3] = 255; }
-    g.putImageData(img, 0, 0);
-  }
-  let grainFill = null;
   function sizeIntro() {
     const k = Math.min(1, 800 / Math.max(innerWidth, innerHeight));
     icv.width = iprev.width = Math.round(innerWidth * k); icv.height = iprev.height = Math.round(innerHeight * k);
@@ -3448,8 +3439,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if ('filter' in ictx) ictx.filter = `blur(${Math.round(icv.width / 40)}px)`;
     ictx.drawImage(flowCv, -icv.width * .08, -icv.height * .08, icv.width * 1.16, icv.height * 1.16);
     ictx.restore();
-    grainFill = grainFill || ictx.createPattern(grainTile, 'repeat');
-    ictx.save(); ictx.globalAlpha = .05; ictx.fillStyle = grainFill; ictx.fillRect(0, 0, icv.width, icv.height); ictx.restore();
   }
   function setIntroBg(st) {
     const pc = iprev.getContext('2d'); pc.clearRect(0, 0, iprev.width, iprev.height); pc.drawImage(icv, 0, 0);
@@ -3474,7 +3463,10 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     sunset: ['#ff7a3d', '#f74f7a', '#8a4fe0', '#ffcf8a'], sunrise: ['#ffd1a6', '#f79ab4', '#b8b2ee', '#fff1dc'], dawn: ['#fbd6c8', '#d6c9f0', '#f6efe6'], dusk: ['#3a33b8', '#c94fa0', '#ff9a6a'],
     ocean: ['#0b4f8a', '#11a6a6', '#8fe3e0'], sea: ['#08585f', '#227a86', '#d2ecf2'], beach: ['#f5e2bd', '#7fd6d1', '#2b9fd6'], tropical: ['#16c79a', '#ffd23f', '#ff6b6b'], lagoon: ['#22c1c3', '#7fe3d4', '#2d7dd2'],
     night: ['#0d1033', '#2a2a7a', '#5a3fa0'], midnight: ['#0b1026', '#1a2a6c', '#4a3a8a'], galaxy: ['#120a2e', '#5a2a9a', '#d04fb0', '#2a6fe0'], space: ['#0a0a1a', '#3a2a7a', '#2a6fe0'], aurora: ['#0b1a2e', '#2ee6b6', '#7a5cff', '#ff6fb5'],
-    candy: ['#ff9ad5', '#9ae7ff', '#fff19a'], cotton: ['#f7c6e0', '#c6dcf7'], peachy: ['#ffc6a8', '#ffe2cf'], citrus: ['#ffd23f', '#ff8a3d', '#9be564'], fire: ['#ff2e1f', '#ff8c1a', '#ffd84a'], ember: ['#8a1538', '#ff4d1a', '#ffb347'], lava: ['#3b0b0b', '#ff3d1a', '#ffb31a'],
+    candy: ['#ff9ad5', '#9ae7ff', '#fff19a'],
+    marshmallow: ['#fff6ec', '#f6e6d4', '#fde2e4'], toasted: ['#5a3420', '#b5652a', '#f2c48d'], burnt: ['#2a1a12', '#6b3a1e', '#c4692b'], smores: ['#2a1a12', '#8a4b22', '#e0a35a', '#fbeee0'],
+    mariokart: ['#e52521', '#fbd000', '#049cd8', '#43b047'], mario: ['#e52521', '#049cd8', '#fbd000'], kart: ['#e52521', '#fbd000', '#1b1b1f'], rainbowroad: ['#ff3d7f', '#ffd23f', '#3ad1ff', '#9b5cff', '#43e08a'],
+    feverdream: ['#ff3d7f', '#7a2cff', '#00d9c0', '#ffd23f'], fever: ['#ff4d3d', '#ff9f43', '#ffd1a6'], cotton: ['#f7c6e0', '#c6dcf7'], peachy: ['#ffc6a8', '#ffe2cf'], citrus: ['#ffd23f', '#ff8a3d', '#9be564'], fire: ['#ff2e1f', '#ff8c1a', '#ffd84a'], ember: ['#8a1538', '#ff4d1a', '#ffb347'], lava: ['#3b0b0b', '#ff3d1a', '#ffb31a'],
     autumn: ['#b5502a', '#e8a33d', '#7a4a2a', '#f2d3a0'], spring: ['#b8e04a', '#f7b6d2', '#fff07a', '#9fe7c4'], summer: ['#ffd84a', '#ff7a66', '#2ec5e8'], winter: ['#e8f0fa', '#a9c6ea', '#5a7ab0'],
     neon: ['#ff2bd6', '#2bf2ff', '#b6ff2b'], electric: ['#3a0ca3', '#f72585', '#4cc9f0'], cyber: ['#ff2bd6', '#2b6bff', '#12121a'], retro: ['#ff6b35', '#f7c548', '#2ec4b6'], vintage: ['#d9a58a', '#c8b590', '#8a9a8a'],
     misty: ['#e3e6ee', '#cfd6e6', '#e9e1ec'], mist: ['#e3e6ee', '#cfd6e6', '#e9e1ec'], cloud: ['#f5f5f8', '#dde3ef', '#ece6f2'], fog: ['#dfe1e6', '#c9ccd6', '#eef0f3'], morning: ['#fff1dc', '#f7d6c8', '#d6def2'],
@@ -3579,7 +3571,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   }
   // read the words: what colours they bring, how they change those colours, and how they are put together
   function interpret(text, typing = false) {
-    const raw = text.toLowerCase().replace(/[^a-z\s'-]/g, ' ').replace(/ice cream/g, 'icecream').replace(/cherry blossom/g, 'sakura').replace(/dragon fruit/g, 'dragonfruit').replace(/dark matter/g, 'blackhole').replace(/black hole/g, 'blackhole').replace(/deep sea/g, 'deepsea').replace(/cotton candy/g, 'candy').replace(/\b70s\b/g, 'retro');
+    const raw = text.toLowerCase().replace(/[^a-z\s'-]/g, ' ').replace(/ice cream/g, 'icecream').replace(/cherry blossom/g, 'sakura').replace(/dragon fruit/g, 'dragonfruit').replace(/dark matter/g, 'blackhole').replace(/black hole/g, 'blackhole').replace(/deep sea/g, 'deepsea').replace(/cotton candy/g, 'candy').replace(/burnt marsh?m[ae]llows?/g, 'smores').replace(/marshm[ae]llows?/g, 'marshmallow').replace(/mario ?kart/g, 'mariokart').replace(/rainbow road/g, 'rainbowroad').replace(/fever ?dream/g, 'feverdream').replace(/\b70s\b/g, 'retro');
     const words = raw.split(/[\s-]+/).filter(Boolean);
     const read = [], cols = [], hints = [];
     let boost = 1, hint = false, pending = [];
@@ -3700,8 +3692,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       slot.appendChild(b); box.appendChild(slot);
     });
   }
-  const TRY = ['unicorn party', 'midnight velvet', 'mango smoothie', 'stormy sea', 'cotton candy', 'deep forest', 'mermaid dreams', 'obsidian',
-    'bubblegum galaxy', 'wine cellar', 'pink lemonade', 'nebula', 'lava lamp', 'espresso', 'jellyfish glow', 'neon noir', 'sunday pancakes', 'haunted house', 'dark matter', 'birthday cake']
+  const TRY = ['happy birthday', 'burnt marshmallow', 'mario kart', 'fever dream', 'unicorn party', 'midnight velvet', 'stormy sea', 'cotton candy',
+    'deep forest', 'mermaid dreams', 'obsidian', 'bubblegum galaxy', 'nebula', 'lava lamp', 'jellyfish glow', 'neon noir', 'haunted house', 'dark matter']
   let phAt = -1, phTimer = 0;
   function nextPh(first) {
     phAt = (phAt + 1) % TRY.length;
@@ -3734,7 +3726,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
         box.dataset.key = key;
         const own = wordPalette;
         // words joined for reading are shown the way they were typed
-        const low = v.toLowerCase(), LABEL = { blackhole: /dark matter/.test(low) ? 'dark matter' : 'black hole', deepsea: 'deep sea', dragonfruit: 'dragon fruit', icecream: 'ice cream', sakura: /cherry blossom/.test(low) ? 'cherry blossom' : 'sakura' };
+        const low = v.toLowerCase(), LABEL = { blackhole: /dark matter/.test(low) ? 'dark matter' : 'black hole', deepsea: 'deep sea', dragonfruit: 'dragon fruit', icecream: 'ice cream', sakura: /cherry blossom/.test(low) ? 'cherry blossom' : 'sakura',
+          smores: 'burnt marshmallow', mariokart: 'mario kart', feverdream: 'fever dream', rainbowroad: 'rainbow road' };
         read.forEach(r => { if (LABEL[r.w]) r.w = LABEL[r.w]; });
         box.innerHTML = read.slice(0, 7).map(r => r.mod ? `<span class="ask-chip mod">${r.w}</span>`
           : `<span class="ask-chip"><i>${(r.unknown ? own(r.w) : r.cols).map(c => `<b style="background:${c}"></b>`).join('')}</i>${r.hint ? 'hint of ' : ''}${r.w}</span>`).join('');
