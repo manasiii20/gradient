@@ -3,6 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="gb-build" content="34">
+<script>
+// phones and in-app browsers keep an old copy of the page for a while: if the live page is a newer build,
+// load it once, fresh
+(function () {
+  try {
+    var mine = document.querySelector('meta[name="gb-build"]').content, key = 'gb-fresh-' + mine;
+    if (sessionStorage.getItem(key)) return;
+    fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (t) {
+      var m = t.match(/name="gb-build" content="(\d+)"/);
+      if (m && m[1] !== mine && !sessionStorage.getItem('gb-fresh-' + m[1])) { sessionStorage.setItem('gb-fresh-' + m[1], 1); location.replace(location.pathname + '?v=' + m[1]); }
+      else sessionStorage.setItem(key, 1);
+    }).catch(function () {});
+  } catch (e) {}
+})();
+</script>
 <title>Gradient</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
