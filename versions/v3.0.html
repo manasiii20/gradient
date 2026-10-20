@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="gb-build" content="36">
+<meta name="gb-build" content="37">
 <script>
 // phones and in-app browsers keep an old copy of the page for a while: if the live page is a newer build,
 // load it once, fresh
@@ -3780,10 +3780,10 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   $('askInput').addEventListener('keydown', e => {
     if (e.key === 'Tab' && !$('askInput').value && phAt >= 0) { e.preventDefault(); $('askInput').value = TRY[phAt]; $('askInput').dispatchEvent(new Event('input')); }
   });
-  // phones: three words to try under the bar, changing every few seconds. Tapping one types it into the bar
+  // phones: three words to try under the bar, changing every few seconds, also after one has been picked. Tapping one types it into the bar
   // and the backdrop turns into it, without opening the keyboard; only the arrow takes it into the editor
   const tryPhone = () => matchMedia('(max-width: 860px)').matches;
-  let tryAt = 0, tryTimer = 0, tryHold = 0, tryTyping = 0;
+  let tryAt = 0, tryTimer = 0, tryTyping = 0;
   function showTry(first) {
     const box = $('askTry'), v = $('askInput').value.trim().toLowerCase();
     const fill = () => {
@@ -3801,14 +3801,13 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   }
   function startTry() {
     clearInterval(tryTimer); tryAt = Math.floor(Math.random() * TRY.length); showTry(true);
-    tryTimer = setInterval(() => { if (performance.now() < tryHold || $('intro').classList.contains('typing')) return; tryAt = (tryAt + 3) % TRY.length; showTry(); }, 3600);
+    tryTimer = setInterval(() => { if ($('intro').classList.contains('typing')) return; tryAt = (tryAt + 3) % TRY.length; showTry(); }, 3600);
   }
   // the word types itself in, a letter at a time
   function playWord(w) {
     clearInterval(tryTyping);
     const inp = $('askInput'); let n = 0;
     inp.value = ''; inp.dispatchEvent(new Event('input'));
-    tryHold = performance.now() + 9000;
     $('askTry').querySelectorAll('.try-chip').forEach(c => c.classList.toggle('on', c.dataset.w === w));
     tryTyping = setInterval(() => { inp.value = w.slice(0, ++n); inp.dispatchEvent(new Event('input')); if (n >= w.length) clearInterval(tryTyping); }, 38);
   }
