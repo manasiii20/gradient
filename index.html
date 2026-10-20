@@ -559,7 +559,8 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro { transition: opacity .7s ease, transform .9s cubic-bezier(.22,1,.36,1); }
 .intro.dim .ask-hint, .intro.dim .intro-skip { color: rgba(255,255,255,.6); }
 .intro.dim .ask-glass { background: rgba(255,255,255,.14); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 24px 50px -30px rgba(0,0,0,.6); }
-.intro-skip .spacek { all: unset; font-weight: 600; color: inherit; }
+.intro-skip .spacek { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; height: 22px; margin: 0 6px; padding: 0 9px 1px; border-radius: 6px; font: 500 10.5px/1 var(--sans); letter-spacing: .04em; color: inherit; opacity: 1; background: none; border: 1px solid rgba(29,29,34,.18); box-shadow: none; }
+.intro.dim .intro-skip .spacek { border-color: rgba(255,255,255,.3); }
 @media (max-width: 480px) {
   .ask-ph { font-size: 14px; }
   .ask-bar { gap: 0; padding-right: 7px; }
@@ -3335,8 +3336,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if ('filter' in ictx) ictx.filter = `blur(${Math.round(icv.width / 40)}px)`;
     ictx.drawImage(flowCv, -icv.width * .08, -icv.height * .08, icv.width * 1.16, icv.height * 1.16);
     ictx.restore();
-    // seen through fluted glass: soft vertical ribs, about fourteen across
-    applyTexture(ictx, icv.width, icv.height, { texture: { on: true, kind: 'fluted', scale: Math.round((icv.width / 14 / Math.min(icv.width, icv.height) - .025) / .0011), depth: 45 } });
   }
   function setIntroBg(st) {
     const pc = iprev.getContext('2d'); pc.clearRect(0, 0, iprev.width, iprev.height); pc.drawImage(icv, 0, 0);
