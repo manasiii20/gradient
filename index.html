@@ -2506,34 +2506,82 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   };
   // turn the bowl into a real mesh gradient: each drop becomes a colour you can keep editing
   // the bowl as a mesh gradient: each drop becomes a colour, the overall mix becomes the background
+  // The globe becomes a mesh gradient by fitting one: the mesh is drawn in miniature over the same
+  // sample points as the bowl, a colour is added wherever the two still differ most, and every colour
+  // is then nudged (place, size, shade) until the mesh looks like the bowl. The bowl's square maps onto
+  // the canvas, and the corners outside the round bowl take the colour of its nearest rim.
   function bowlState(extra = {}) {
-    const P = [], acc = [0, 0, 0];
+    const P = [];
     for (let j = 2; j < FN; j += 4) for (let i = 2; i < FN; i += 4) {
-      const x = i * FH - 1, y = j * FH - 1;
-      if (x * x + y * y > .9) continue;
-      const o = (j * FN + i) * 3;
-      P.push([x, y, FD[o], FD[o + 1], FD[o + 2]]); acc[0] += FD[o]; acc[1] += FD[o + 1]; acc[2] += FD[o + 2];
+      const x = i * FH - 1, y = j * FH - 1, r = Math.hypot(x, y), k = r > .94 ? .94 / r : 1;
+      const ii = Math.round((x * k + 1) / FH), jj = Math.round((y * k + 1) / FH), o = (jj * FN + ii) * 3;
+      P.push({ x: 50 + x * 50, y: 50 + y * 50, w: k < 1 ? .4 : 1, t: [FD[o], FD[o + 1], FD[o + 2]] });
     }
     if (!P.length) return null;
-    const K = 6;
-    let C = Array.from({ length: K }, (_, i) => [...P[Math.floor((i + .5) / K * P.length)], 0]);
-    for (let it = 0; it < 8; it++) {
-      const sum = C.map(() => [0, 0, 0, 0, 0, 0]);
-      for (const p of P) {
-        let bi = 0, bd = Infinity;
-        C.forEach((c, ci) => {
-          const d = (p[2] - c[2]) ** 2 + (p[3] - c[3]) ** 2 + (p[4] - c[4]) ** 2 + ((p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2) * 2500;
-          if (d < bd) { bd = d; bi = ci; }
+    const W = P.reduce((a, p) => a + p.w, 0);
+    const base = [0, 1, 2].map(q => P.reduce((a, p) => a + p.t[q] * p.w, 0) / W);
+    // the editor draws each colour as a soft disc fading from its centre to its edge, laid over the base
+    const alpha = (st, p) => Math.max(0, 1 - Math.hypot(p.x - st.x, p.y - st.y) / st.s);
+    const render = stops => P.map(p => {
+      const c = base.slice();
+      for (const st of stops) { const a = alpha(st, p); if (a) for (let q = 0; q < 3; q++) c[q] += (st.c[q] - c[q]) * a; }
+      return c;
+    });
+    const err = (stops, out = render(stops)) => P.reduce((e, p, n) => e + p.w * ((p.t[0] - out[n][0]) ** 2 + (p.t[1] - out[n][1]) ** 2 + (p.t[2] - out[n][2]) ** 2), 0);
+    // best shade for one colour, holding the rest: least squares over how much it shows at each point
+    function reshade(stops, k) {
+      const st = stops[k], num = [0, 0, 0], seen = [0, 0, 0]; let den = 0, sw = 0;
+      P.forEach(p => {
+        const c = base.slice(); let wk = 0;
+        stops.forEach((s2, m) => {
+          const a = alpha(s2, p); if (!a) return;
+          if (m === k) wk = a; else if (m > k) wk *= 1 - a;
+          for (let q = 0; q < 3; q++) c[q] += (s2.c[q] - c[q]) * a;
         });
-        const a = sum[bi]; for (let q = 0; q < 5; q++) a[q] += p[q]; a[5]++;
-      }
-      C = sum.map((a, ci) => a[5] ? [...a.slice(0, 5).map(v => v / a[5]), a[5]] : [...C[ci].slice(0, 5), 0]);
+        if (!wk) return;
+        den += p.w * wk * wk; sw += p.w * wk;
+        for (let q = 0; q < 3; q++) { num[q] += p.w * wk * (p.t[q] - c[q]); seen[q] += p.w * wk * p.t[q]; }
+      });
+      if (den < 1e-6) return;
+      // stay near the colours actually in the bowl under this spot, so no shade appears that isn't there
+      const want = st.c.map((v, q) => v + num[q] / den), mid = seen.map(v => v / sw);
+      const off = Math.hypot(want[0] - mid[0], want[1] - mid[1], want[2] - mid[2]), lim = 28;
+      st.c = want.map((v, q) => clamp(off > lim ? mid[q] + (v - mid[q]) * lim / off : v, 0, 255));
     }
-    // big regions first, so smaller pools of colour sit on top of them, as they do in the bowl
-    const live = C.filter(c => c[5] > P.length * .02).sort((a, b) => b[5] - a[5]);
-    return { ...S, ...extra, mode: 'mesh', base: toHex(acc.map(v => v / P.length)),
-      stops: live.map((c, i) => ({ c: toHex([c[2], c[3], c[4]]), p: r1(i / Math.max(1, live.length - 1) * 100),
-        x: r1(50 + c[0] * 50), y: r1(50 + c[1] * 50), s: clamp(Math.round(Math.sqrt(c[5] / P.length) * 120), 25, 120) })) };
+    const stops = [];
+    let cur = err(stops);
+    for (let k = 0; k < 9; k++) {
+      // a new colour goes where the mesh is furthest from the bowl, smoothed so one stray speck can't win
+      const out = render(stops);
+      const miss = P.map((p, n) => p.w * Math.hypot(p.t[0] - out[n][0], p.t[1] - out[n][1], p.t[2] - out[n][2]));
+      let bi = 0, bv = -1;
+      P.forEach((p, n) => {
+        let v = 0; P.forEach((p2, m) => { const d = (p.x - p2.x) ** 2 + (p.y - p2.y) ** 2; if (d < 150) v += miss[m]; });
+        if (v > bv) { bv = v; bi = n; }
+      });
+      let best = null;
+      for (const sz of [18, 28, 42, 60, 85]) {
+        const st = { x: P[bi].x, y: P[bi].y, s: sz, c: P[bi].t.slice() };
+        const e = err([...stops, st]);
+        if (!best || e < best.e) best = { e, st };
+      }
+      if (k > 3 && best.e > cur * .995) break;
+      stops.push(best.st); cur = best.e;
+      // settle every colour after each addition
+      for (let pass = 0; pass < 3; pass++) stops.forEach((st, i) => {
+        reshade(stops, i);
+        for (const [key, d] of [['x', 4], ['y', 4], ['s', 6]]) for (const sg of [1, -1]) {
+          const was = st[key]; st[key] = was + sg * d;
+          if (st.s < 15 || st.s > 120) { st[key] = was; continue; }
+          const e = err(stops);
+          if (e < cur) cur = e; else st[key] = was;
+        }
+      });
+    }
+    stops.forEach((_, i) => reshade(stops, i));
+    return { ...S, ...extra, mode: 'mesh', blur: 100, base: toHex(base),
+      stops: stops.map((st, i) => ({ c: toHex(st.c), p: r1(i / Math.max(1, stops.length - 1) * 100),
+        x: r1(st.x), y: r1(st.y), s: clamp(Math.round(st.s), 15, 120) })) };
   }
   // S in fun mode saves the globe itself (as a round mesh gradient) and sends it flying into Library
   function saveBowl() {
@@ -2546,7 +2594,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     S = st;
     sel = 0;
     closeMix(); fit(); draw();
-    toast('Your mix is now a mesh gradient');
   };
 
   // ---------- Library ----------
