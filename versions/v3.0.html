@@ -7,7 +7,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: the gradient is the workspace. Large live canvas on the left, a quiet control column on the right, library strip under the canvas. */
 :root {
@@ -53,7 +53,7 @@
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-html, body { height: 100%; }
+html, body { height: 100%; overflow: hidden; }
 body {
   margin: 0;
   background-color: var(--bg);
@@ -89,7 +89,7 @@ button { cursor: pointer; }
 #sizeMenu .arow .dim { margin-left: auto; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 #sizeMenu .arow[aria-checked="true"] { background: var(--card-hover); }
 #sizeMenu .arow[aria-checked="true"] svg { color: var(--fg); }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; font-size: 15px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; font-size: 15px; cursor: default; }
 .top-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
 .btn {
@@ -151,7 +151,10 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .frame { transform-origin: 50% 50%; transition: transform .18s cubic-bezier(.22,1,.36,1); }
 .stage.panning .frame { transition: none; }
 .h { scale: calc(1 / var(--z, 1)); }
-.stage.zoomed { overflow: hidden; cursor: grab; }
+/* zoomed in, the canvas spreads under the top bar, the settings column and the bottom bar,
+   which float over it; the page itself never scrolls */
+.stage { z-index: 1; }
+.stage.zoomed { cursor: grab; }
 .stage.panning { cursor: grabbing; }
 
 /* ---------- Preset tiles ---------- */
@@ -222,7 +225,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 
 /* right column: size, shape and motion settings */
 .side {
-  grid-column: 2; grid-row: 1 / -1; align-self: stretch;
+  grid-column: 2; grid-row: 1 / -1; align-self: stretch; position: relative; z-index: 5;
   display: flex; flex-direction: column; overflow: hidden;
   width: 288px;
   /* runs from just under the top bar down to the same line as the bottom of the presets dock */
@@ -237,9 +240,9 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .side-scroll::-webkit-scrollbar { display: none; }
 /* export sits at the foot of the column, always in view */
 .stabs { display: none; }
-.side-foot { flex: none; display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 6px; padding: 6px 20px 20px; }
+.side-foot { flex: none; display: grid; grid-template-columns: auto auto auto; gap: 4px; padding: 6px 20px 20px; }
 .fbtn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; padding: 0 8px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px; height: 34px; padding: 0 6px; min-width: 0;
   border: 0; border-radius: 10px; background: var(--card-sel); color: var(--fg); font: 500 13px var(--sans); white-space: nowrap;
 }
 .fbtn svg { width: 16px; height: 16px; flex: none; }
@@ -445,6 +448,134 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .progress { display: grid; gap: 8px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .pbar { height: 6px; border-radius: 3px; background: var(--chip); overflow: hidden; }
 .pbar i { display: block; height: 100%; width: 0; background: var(--fg); transition: width .15s; }
+
+/* ---------- Intro: a quiet glass prompt over a soft, slowly moving gradient ---------- */
+.intro {
+  position: fixed; inset: 0; z-index: 80; overflow: hidden; color: #1d1d22; background: #ecebf1;
+  display: flex; flex-direction: column; align-items: center;
+  transition: opacity .7s ease, transform .9s cubic-bezier(.22,1,.36,1);
+}
+.intro.leaving { opacity: 0; transform: scale(1.03); pointer-events: none; }
+.intro-cv { position: absolute; inset: 0; width: 100%; height: 100%; }
+.intro-prev { opacity: 0; transition: opacity 1.2s ease; }
+.intro-prev.show { opacity: 1; transition: none; }
+.intro-grain { position: absolute; inset: 0; pointer-events: none; opacity: .1; mix-blend-mode: overlay; background-size: 160px 160px; }
+.intro-top, .intro-mid, .intro-bottom { position: relative; z-index: 1; text-align: center; }
+.intro-top { padding-top: calc(env(safe-area-inset-top, 0px) + 24px); }
+.intro-mark { font: 500 14px var(--sans); letter-spacing: -.01em; opacity: .55; }
+.intro-mid { flex: 1; display: flex; align-items: flex-end; justify-content: center; width: 100%; padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 5vh + 8px); }
+.ask { position: relative; width: min(820px, 100%); }
+/* the cards tuck behind the top of the glass, like papers in a folder */
+.ask-cards { position: absolute; left: 0; right: 0; top: 0; height: 150px; display: flex; justify-content: center; }
+.ask-slot { flex: none; position: relative; width: 142px; height: 86px; margin: 0 -3px; transform: translate(var(--x, 0px), var(--y, 18px)); }
+.ask-slot:hover, .ask-slot:focus-within, .ask-slot.picked { z-index: 2; }
+.ask-slot.picked .ask-card { transform: translateY(-9px) rotate(0deg) scale(1.03); box-shadow: 0 20px 32px -18px rgba(30,30,60,.55); }
+@media (hover: none) { .ask-slot:hover .ask-card { transform: rotate(var(--r, 0deg)); } .ask-slot.picked:hover .ask-card { transform: translateY(-9px) rotate(0deg) scale(1.03); } }
+.ask-hint b { font-weight: 600; }
+.ask-hint .th, .intro-skip .th { display: none; }
+@media (hover: none), (pointer: coarse), (max-width: 480px) { .ask-hint .th, .intro-skip .th { display: inline; } .intro-skip .kh { display: none; } }
+.ask-cards { pointer-events: none; }
+.ask-slot { pointer-events: auto; }
+.ask-card {
+  position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; border-radius: 12px; cursor: pointer; overflow: hidden; background: #ddd;
+  box-shadow: 0 1px 2px rgba(30,30,60,.08), 0 14px 28px -16px rgba(30,30,60,.5);
+  transform: rotate(var(--r, 0deg));
+  transition: transform .5s cubic-bezier(.22,1,.36,1), box-shadow .5s ease;
+  animation: cardin .8s cubic-bezier(.22,1,.36,1) both; animation-delay: calc(var(--i) * 70ms + 150ms);
+}
+@keyframes cardin { from { transform: translateY(60px) rotate(0deg); opacity: 0; } }
+.ask-card canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.ask-card::before { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: inherit; pointer-events: none; background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0) 40%); }
+.ask-slot:hover .ask-card, .ask-card:focus-visible { transform: translateY(-9px) rotate(0deg) scale(1.03); z-index: 2; box-shadow: 0 20px 32px -18px rgba(30,30,60,.55); outline: none; }
+.ask-glass {
+  isolation: isolate;
+  position: relative; z-index: 3; margin: 0; padding: 9px; border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255,255,255,.26), rgba(70,60,110,.12));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.45), inset 0 1px 0 rgba(255,255,255,.6), 0 30px 60px -34px rgba(40,30,80,.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3); backdrop-filter: blur(24px) saturate(1.3);
+  animation: askin .8s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes askin { from { opacity: 0; transform: translateY(12px); } }
+
+.ask-bar {
+  display: flex; align-items: center; gap: 4px; height: 60px; padding: 0 9px 0 18px; border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(250,250,253,.82));
+  box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(30,30,60,.07);
+}
+.ask-orb { flex: none; width: 22px; height: 22px; margin-right: 8px; border-radius: 50%; background: var(--orb, conic-gradient(from 200deg, #c9c3ea, #b7c8ee, #f2c9dc, #c9c3ea)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.6), 0 2px 6px -2px rgba(40,40,90,.4); transition: background .6s ease; }
+.ask-field { position: relative; flex: 1; min-width: 0; height: 100%; }
+.ask-bar input { width: 100%; height: 100%; border: 0; outline: 0; background: none; color: #1d1d22; font: 400 16px var(--sans); }
+/* the placeholder: "Try" stays put while the suggestion after it changes every few seconds */
+.ask-ph { position: absolute; inset: 0; display: flex; align-items: center; line-height: 1.5em; pointer-events: none; white-space: nowrap; overflow: hidden; color: rgba(120,119,132,.55); font: 400 16px var(--sans); }
+.ph-win { position: relative; display: inline-block; height: 1.5em; margin-left: .3em; overflow: hidden; vertical-align: middle; transition: width .4s cubic-bezier(.4,0,.2,1); }
+.ph-win > span { position: absolute; left: 0; top: 0; line-height: 1.5em; color: rgba(120,119,132,.78); transition: transform .42s cubic-bezier(.4,0,.2,1), opacity .3s ease; }
+.ph-win > span.below { transform: translateY(100%); opacity: 0; }
+.ph-win > span.above { transform: translateY(-100%); opacity: 0; }
+.ask-ph .tabk { margin-left: 10px; font: 500 10.5px var(--mono); padding: 1px 5px; border-radius: 4px; color: rgba(90,89,104,.85); border: 1px solid rgba(90,89,104,.45); background: rgba(255,255,255,.6); }
+.ask-field.filled .ask-ph { visibility: hidden; }
+@media (hover: none), (pointer: coarse) { .ask-ph .tabk { display: none; } }
+.ask-go { flex: none; width: 38px; height: 38px; border: 0; border-radius: 9px; display: grid; place-items: center; transition: background .2s, color .2s, transform .2s; }
+.ask-ib { position: relative; flex: none; width: 38px; height: 38px; border: 0; border-radius: 9px; display: grid; place-items: center; background: none; color: #8c8b96; transition: background .2s, color .2s, transform .2s; }
+.ask-ib:hover, .ask-ib:focus-visible { background: rgba(30,30,60,.06); color: #1d1d22; outline: none; }
+.ask-ib:active { transform: scale(.95); }
+.ask-ib::after {
+  content: attr(data-tip); position: absolute; z-index: 10; left: 50%; top: calc(100% + 10px); transform: translate(-50%, -4px); opacity: 0; white-space: nowrap;
+  padding: 6px 10px; border-radius: 8px; background: #1d1d22; color: #fff; font: 500 12px var(--sans); letter-spacing: .01em; pointer-events: none;
+  box-shadow: 0 6px 18px -6px rgba(20,20,40,.45);
+  transition: opacity .15s ease, transform .25s cubic-bezier(.22,1,.36,1);
+}
+.ask-ib:hover::after, .ask-ib:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
+.ask-go { margin-left: 4px; background: #1d1d22; color: #fff; }
+.ask-go:hover { transform: translateY(-1px); }
+.ask-go:active { transform: scale(.95); }
+/* what the words were read as: each word with dots of the colours it brought */
+/* tags and messages hang below the bar without taking space, so the bar never moves */
+.ask-read, .ask-hint { position: absolute; left: 0; right: 0; }
+.ask-hint { top: 100%; }
+.ask-read { bottom: 100%; margin-bottom: 14px; }
+.ask-read { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.ask-read:empty { display: none; }
+.ask-chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 6px; border-radius: 8px; font: 500 12px var(--sans); color: rgba(29,29,34,.72);
+  background: rgba(255,255,255,.5); box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: chipin .35s cubic-bezier(.22,1,.36,1) both; }
+.ask-chip.mod { padding-left: 10px; color: rgba(29,29,34,.5); font-style: italic; font-weight: 400; }
+.ask-chip i { display: inline-flex; }
+.ask-chip i b { width: 12px; height: 12px; border-radius: 50%; margin-left: -3px; box-shadow: 0 0 0 1.5px rgba(255,255,255,.9); }
+.ask-chip i b:first-child { margin-left: 0; }
+@keyframes chipin { from { opacity: 0; transform: translateY(4px); } }
+.intro.dim .ask-chip { color: rgba(255,255,255,.85); background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+.intro.dim .ask-chip.mod { color: rgba(255,255,255,.6); }
+.ask-hint:empty { display: none; }
+.ask-hint { margin: 16px 0 0; font: 400 13px var(--sans); color: rgba(29,29,34,.5); transition: color .3s; }
+.ask-hint kbd { opacity: .7; }
+.ask-hint { transition: color .3s, opacity .2s; }
+.ask:has(.ask-ib:hover) .ask-hint, .ask:has(.ask-ib:focus-visible) .ask-hint { opacity: 0; }
+@media (hover: none), (pointer: coarse), (max-width: 480px) { .ask-hint .kh { display: none; } }
+.ask-hint.miss { color: rgba(29,29,34,.75); }
+.intro-bottom { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 26px); }
+.intro-top { padding-top: calc(env(safe-area-inset-top, 0px) + 18px); }
+.intro-skip { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; color: rgba(29,29,34,.55); font: 400 12.5px/1 var(--sans); letter-spacing: .01em; padding: 6px 8px; border-radius: 8px; transition: color .2s; }
+.intro-skip:hover { color: #1d1d22; }
+.intro-skip .kh { display: inline-flex; align-items: center; gap: 8px; }
+.intro { transition: opacity .7s ease, transform .9s cubic-bezier(.22,1,.36,1); }
+.intro.dim .ask-hint, .intro.dim .intro-skip { color: rgba(255,255,255,.6); }
+.intro.dim .ask-glass { background: rgba(255,255,255,.14); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 24px 50px -30px rgba(0,0,0,.6); }
+.intro-skip .spacek { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; height: 22px; min-width: 64px; margin: 0; padding: 0 10px 1px; border-radius: 6px; font: 500 10.5px/1 var(--sans); letter-spacing: .04em; color: rgba(29,29,34,.62); opacity: 1;
+  background: rgba(255,255,255,.55); border: 1px solid rgba(29,29,34,.16); border-bottom-width: 2px; }
+.intro.dim .intro-skip .spacek { color: rgba(255,255,255,.8); background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.28); }
+@media (hover: none), (pointer: coarse) { .intro-skip .spacek { min-width: 0; } }
+@media (max-width: 480px) {
+  .ask-ph { font-size: 14px; }
+  .ask-bar { gap: 0; padding-right: 7px; }
+  .ask-ib { width: 32px; height: 36px; }
+  .ask-ib svg { width: 18px; height: 18px; }
+  .ask-go { width: 40px; height: 40px; }
+  .ask-orb { width: 20px; height: 20px; margin-right: 8px; }
+  .ask-slot { width: 74px; height: 46px; margin: 0 -4px; }
+  .ask-bar { height: 54px; padding-left: 14px; }
+  .ask-bar input { font-size: 15px; }
+  .ask-ib::after { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .ask-card, .ask-glass { animation: none; } }
 
 /* ---------- Onboarding: a welcome card, then a spotlight that glides from part to part ---------- */
 .tour { position: fixed; inset: 0; z-index: 70; pointer-events: none; }
@@ -681,8 +812,14 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
 .sleeve .br { bottom: 16px; right: 20px; font-weight: 600; letter-spacing: .22em; color: var(--fg); font-size: 9px; }
 .sleeve .art { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); transition: transform .5s cubic-bezier(.2,.7,.2,1); }
 .sleeve .art canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.sleeve .art { box-shadow: var(--art-shadow); border-radius: 2px; }
+.sleeve .art { box-shadow: 0 0 0 .5px rgba(0,0,0,.05); border-radius: 2px; }
 .sleeve .art canvas { border-radius: 2px; }
+/* a faint halo of the gradient's own colours, as if it were lit from within */
+.sleeve .art { --glow: .42; }
+.sleeve .art canvas.glow { z-index: -1; border-radius: inherit; filter: blur(var(--gb, 22px)) saturate(1.15); opacity: var(--glow); transform: scale(1.03); pointer-events: none; }
+.sleeve .art.circle canvas.glow { border-radius: 50%; }
+:root[data-theme="dark"] .sleeve .art { --glow: .32; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .sleeve .art { --glow: .32; } }
 .sleeve:hover .art, .sleeve:focus-visible .art { transform: translate(-50%, -50%) scale(1.04); }
 .sleeve .acts {
   position: absolute; left: 50%; bottom: 46px; transform: translate(-50%, 6px); display: flex; gap: 6px; white-space: nowrap; padding: 4px 0; overflow: hidden;
@@ -977,6 +1114,30 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   </div>
 </main>
 
+<div class="intro" id="intro" hidden role="dialog" aria-modal="true" aria-label="Start a gradient">
+  <canvas class="intro-cv" id="introCv"></canvas>
+  <canvas class="intro-cv intro-prev" id="introPrev"></canvas>
+  <div class="intro-grain" aria-hidden="true"></div>
+  <div class="intro-top"><button type="button" class="intro-skip" id="introSkip"><span class="kh">Press <kbd class="spacek">space</kbd> to jump straight in</span><span class="th">Skip</span></button></div>
+  <div class="intro-mid">
+    <div class="ask">
+      <form class="ask-glass" id="askForm" autocomplete="off">
+        <div class="ask-bar">
+          <span class="ask-orb" id="askOrb" aria-hidden="true"></span>
+          <div class="ask-field">
+            <input id="askInput" type="text" spellcheck="false" aria-label="Describe a gradient" aria-describedby="askPh">
+            <span class="ask-ph" id="askPh" aria-hidden="true">Try <span class="ph-win" id="phWin"></span><span class="tabk">tab</span></span>
+          </div>
+            <button type="button" class="ask-ib" id="askDice" aria-label="Surprise me" data-tip="Surprise me"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3.5 7.5h3.2c1.9 0 3 .9 4 2.4l2.6 4.2c1 1.5 2.1 2.4 4 2.4h3.2M3.5 16.5h3.2c1.4 0 2.4-.5 3.2-1.3M14.1 8.8c.8-.8 1.8-1.3 3.2-1.3h3.2M18 5l2.5 2.5L18 10M18 14l2.5 2.5L18 19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button type="button" class="ask-ib" id="askFun" aria-label="Fun mode" data-tip="Fun mode"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 3.6a8.4 8.4 0 1 0 0 16.8c1.15 0 1.75-.75 1.75-1.65 0-.45-.17-.85-.47-1.2-.3-.35-.48-.75-.48-1.25 0-.98.8-1.75 1.78-1.75h2.05a3.85 3.85 0 0 0 3.77-3.85C20.4 6.9 16.65 3.6 12 3.6z" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/><circle cx="7.7" cy="11.2" r="1.3" fill="currentColor"/><circle cx="9.7" cy="7.5" r="1.3" fill="currentColor"/><circle cx="14.3" cy="7.4" r="1.3" fill="currentColor"/></svg></button>
+          <button type="submit" class="ask-go" id="askGo" aria-label="Create"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4.5 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </form>
+      <div class="ask-read" id="askRead" aria-live="polite"></div>
+      <p class="ask-hint" id="askHint" aria-live="polite"></p>
+    </div>
+  </div>
+</div>
 <div class="tour" id="tour" hidden>
   <div class="tour-spot" id="tourSpot"></div>
   <div class="tour-block" aria-hidden="true"></div><div class="tour-block" aria-hidden="true"></div><div class="tour-block" aria-hidden="true"></div><div class="tour-block" aria-hidden="true"></div>
@@ -1168,6 +1329,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   };
   let S = null;
   S = migrate(store.get('gb-current', null) || fromPreset(PRESETS[0]));
+  S.format = '16:9';   // the tool always opens on the desktop size
   let sel = 0;
 
   // ---------- Color helpers ----------
@@ -1420,7 +1582,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   const ZMIN = .5, ZMAX = 3, ZSTEPS = [.5, .75, 1, 1.25, 1.5, 2, 3];
   function clampPan() {
     const fw = +frame.dataset.fw || frame.offsetWidth, fh = +frame.dataset.fh || frame.offsetHeight;
-    const mx = Math.max(0, (fw * zoom - stage.clientWidth) / 2 + 60), my = Math.max(0, (fh * zoom - stage.clientHeight) / 2 + 60);
+    const mx = Math.max(0, (fw * zoom - innerWidth) / 2 + 60), my = Math.max(0, (fh * zoom - innerHeight) / 2 + 60);
     panX = Math.max(-mx, Math.min(mx, panX)); panY = Math.max(-my, Math.min(my, panY));
   }
   function applyZoom() {
@@ -1441,6 +1603,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (z) zoomTo(z);
   };
   const zoomReset = () => { panX = panY = 0; zoomTo(1); };
+  stage.addEventListener('wheel', () => { if (typeof tourSettle === 'function') tourSettle(); }, { passive: true });
   stage.addEventListener('wheel', e => {
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
@@ -3017,7 +3180,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
         <div class="tr">GRD — ${pad(num, 3)}</div>
         <div class="bl">${dateStr(entry.savedAt)}</div>
         <div class="br">Gradient</div>
-        <div class="art"><canvas class="main"></canvas></div>
+        <div class="art"><canvas class="glow" aria-hidden="true"></canvas><canvas class="main"></canvas></div>
         <div class="acts">
           <button type="button" data-act="open">Open</button>
           <button type="button" data-act="rename">Rename</button>
@@ -3035,6 +3198,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       const aw = Math.round(W * sc), ah = Math.round(H * sc);
       art.style.width = aw + 'px'; art.style.height = ah + 'px';
       art.classList.toggle('circle', st.format === 'circle');
+      const glow = card.querySelector('.glow'), gctx = glow.getContext('2d');
+      glow.width = Math.max(8, Math.round(aw / 6)); glow.height = Math.max(8, Math.round(ah / 6));
+      art.style.setProperty('--gb', Math.round(Math.min(aw, ah) * .11) + 'px');
       const dpr = Math.min(2, devicePixelRatio || 1);
       const main = card.querySelector('.main');
       main.width = Math.round(aw * dpr); main.height = Math.round(ah * dpr);
@@ -3042,6 +3208,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       const drawAt = t => {
         // grain is per pixel, so thin it out on these small previews to keep it looking fine
         paint(mctx, main.width, main.height, { ...animated(st, t), grain: st.grain * 0.45 });
+        gctx.clearRect(0, 0, glow.width, glow.height); gctx.drawImage(main, 0, 0, glow.width, glow.height);
       };
       drawAt(0);
 
@@ -3133,6 +3300,394 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
   // ---------- Boot ----------
   new ResizeObserver(() => { fit(); draw(); }).observe(stage);
+  // ---------- Intro ----------
+  // First visit opens on a quiet prompt: describe a gradient in a few words, or pick one of the cards
+  // tucked behind the glass. The soft background slowly takes on whatever you describe.
+  const INTRO = [...PRESETS, ...PRESETS_B];
+  const introEl = $('intro'), icv = $('introCv'), ictx = icv.getContext('2d'), iprev = $('introPrev');
+  let introRaf = 0, introT0 = 0, introLast = 0, introBg = null, introPick = null;
+  const introOpen = () => !introEl.hidden && !introEl.classList.contains('leaving');
+  // the resting backdrop: pale lavender, blue and blush, barely moving
+  const CALM = { name: 'Calm', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#f6f2ee', grain: 0, blur: 100,
+    stops: [['#ffffff', 0, 30, 30, 60], ['#6fa8ff', 25, 75, 25, 60], ['#ff8a3d', 50, 25, 75, 60], ['#ff8fb8', 75, 80, 80, 60], ['#fff3e6', 100, 50, 50, 60]] };
+  // soften a gradient toward the paper colour so the backdrop never shouts
+  const calmed = (st, k = .5) => {
+    const mix = c => { const a = toRgb(c), w = [243, 242, 247]; return toHex(a.map((v, i) => v + (w[i] - v) * k)); };
+    return { ...st, base: mix(st.base), stops: st.stops.map(x => ({ ...x, c: mix(x.c) })) };
+  };
+  function bgState(st) { return { ...st, format: '16:9', grain: 0, texture: { ...st.texture, on: false }, motion: { on: true, speed: 18, amount: 55 } }; }
+  function sizeIntro() {
+    const k = Math.min(1, 800 / Math.max(innerWidth, innerHeight));
+    icv.width = iprev.width = Math.round(innerWidth * k); icv.height = iprev.height = Math.round(innerHeight * k);
+  }
+  // the backdrop: a few wide, soft swathes of colour drifting on slow, never-repeating paths over the base,
+  // then blurred together so they read as one flowing surface
+  const flowCv = document.createElement('canvas'), flowCtx = flowCv.getContext('2d');
+  const FLOW_SEEDS = Array.from({ length: 6 }, (_, i) => ({ a: 1.3 + i * 2.1, b: .7 + i * 1.7, w1: .045 + i * .011, w2: .037 + i * .009, r: .018 + i * .005 }));
+  function introFrame(now) {
+    introRaf = requestAnimationFrame(introFrame);
+    if (now - introLast < 33) return;
+    introLast = now;
+    const t = (now - introT0) / 1000, W = 240, H = Math.max(120, Math.round(240 * icv.height / icv.width));
+    if (flowCv.width !== W || flowCv.height !== H) { flowCv.width = W; flowCv.height = H; }
+    const cols = introBg.stops.map(x => x.c), g = flowCtx;
+    g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+    g.fillStyle = introBg.base; g.fillRect(0, 0, W, H);
+    cols.slice(0, 6).forEach((c, i) => {
+      const f = FLOW_SEEDS[i], m = Math.max(W, H);
+      const x = W * (.5 + .42 * Math.sin(t * f.w1 * 6 + f.a)), y = H * (.5 + .4 * Math.cos(t * f.w2 * 6 + f.b));
+      g.save(); g.translate(x, y); g.rotate(t * f.r * 6 + f.a); g.scale(1.9, .62);
+      const rr = m * (.42 + .1 * Math.sin(t * .2 + i));
+      const gr = g.createRadialGradient(0, 0, 0, 0, 0, rr);
+      gr.addColorStop(0, c); gr.addColorStop(.55, c + 'aa'); gr.addColorStop(1, c + '00');
+      g.globalAlpha = .9; g.fillStyle = gr; g.fillRect(-rr, -rr, rr * 2, rr * 2); g.restore();
+    });
+    ictx.save();
+    if ('filter' in ictx) ictx.filter = `blur(${Math.round(icv.width / 26)}px)`;
+    ictx.drawImage(flowCv, -icv.width * .08, -icv.height * .08, icv.width * 1.16, icv.height * 1.16);
+    ictx.restore();
+  }
+  function setIntroBg(st) {
+    const pc = iprev.getContext('2d'); pc.clearRect(0, 0, iprev.width, iprev.height); pc.drawImage(icv, 0, 0);
+    iprev.classList.add('show'); void iprev.offsetWidth; iprev.classList.remove('show');
+    introBg = bgState(st); introLast = 0;
+    // a dark backdrop turns the small text around the prompt light
+    const lum = c => { const [r, g, b] = toRgb(c); return .2126 * r + .7152 * g + .0722 * b; };
+    const avg = [st.base, ...st.stops.map(x => x.c)].reduce((a, c) => a + lum(c), 0) / (st.stops.length + 1);
+    introEl.classList.toggle('dim', avg < 110);
+    const cs = st.stops.map(x => x.c);
+    $('askOrb').style.setProperty('--orb', `conic-gradient(from 200deg, ${[...cs, cs[0]].join(', ')})`);
+  }
+
+  // ---- reading a description: colour words and moods become a palette ----
+  const WORDS = {
+    red: ['#e8352b'], crimson: ['#b3123a'], scarlet: ['#ff2e1f'], coral: ['#ff7a66'], salmon: ['#f7967d'], peach: ['#ffb38a'], apricot: ['#ffbe7a'],
+    orange: ['#ff7a1a'], tangerine: ['#ff8c1a'], amber: ['#ffb31a'], gold: ['#f2c14e'], golden: ['#f2c14e'], honey: ['#f4c26b'], yellow: ['#ffd84a'], lemon: ['#fff07a'], butter: ['#fbe9a0'], cream: ['#f8efdc'], sand: ['#e8d6b8'], beige: ['#e9dcc7'],
+    lime: ['#b8e04a'], green: ['#3fbf6e'], mint: ['#9fe7c4'], sage: ['#a9bfa0'], olive: ['#8a9a4a'], moss: ['#6b8f4e'], emerald: ['#11a36b'], forest: ['#1f5a3d', '#4f8a4a', '#a9c98a'],
+    teal: ['#11a6a6'], turquoise: ['#2ad1c9'], aqua: ['#5fe0e8'], cyan: ['#2ec5e8'], sky: ['#8ccaf6'], blue: ['#2f6fe8'], azure: ['#3d8cf0'], cobalt: ['#2346c8'], navy: ['#1a2a6c'], indigo: ['#3a33b8'], denim: ['#4a6fa5'],
+    purple: ['#7b3fd6'], violet: ['#8a4fe0'], lavender: ['#c4b5f0'], lilac: ['#d7b8f0'], plum: ['#6e2c6e'], magenta: ['#d42fb0'], fuchsia: ['#e83fb8'], pink: ['#f49ac1'], rose: ['#ee8fa8'], blush: ['#f2c4cf'],
+    white: ['#ffffff'], grey: ['#a7a7ad'], gray: ['#a7a7ad'], silver: ['#cfd0d6'], black: ['#141416'], charcoal: ['#2b2b30'], brown: ['#7a4a2a'], chocolate: ['#5a3420'], rust: ['#b5502a'], terracotta: ['#d0714a'],
+    sunset: ['#ff7a3d', '#f74f7a', '#8a4fe0', '#ffcf8a'], sunrise: ['#ffd1a6', '#f79ab4', '#b8b2ee', '#fff1dc'], dawn: ['#fbd6c8', '#d6c9f0', '#f6efe6'], dusk: ['#3a33b8', '#c94fa0', '#ff9a6a'],
+    ocean: ['#0b4f8a', '#11a6a6', '#8fe3e0'], sea: ['#08585f', '#227a86', '#d2ecf2'], beach: ['#f5e2bd', '#7fd6d1', '#2b9fd6'], tropical: ['#16c79a', '#ffd23f', '#ff6b6b'], lagoon: ['#22c1c3', '#7fe3d4', '#2d7dd2'],
+    night: ['#0d1033', '#2a2a7a', '#5a3fa0'], midnight: ['#0b1026', '#1a2a6c', '#4a3a8a'], galaxy: ['#120a2e', '#5a2a9a', '#d04fb0', '#2a6fe0'], space: ['#0a0a1a', '#3a2a7a', '#2a6fe0'], aurora: ['#0b1a2e', '#2ee6b6', '#7a5cff', '#ff6fb5'],
+    candy: ['#ff9ad5', '#9ae7ff', '#fff19a'], cotton: ['#f7c6e0', '#c6dcf7'], peachy: ['#ffc6a8', '#ffe2cf'], citrus: ['#ffd23f', '#ff8a3d', '#9be564'], fire: ['#ff2e1f', '#ff8c1a', '#ffd84a'], ember: ['#8a1538', '#ff4d1a', '#ffb347'], lava: ['#3b0b0b', '#ff3d1a', '#ffb31a'],
+    autumn: ['#b5502a', '#e8a33d', '#7a4a2a', '#f2d3a0'], spring: ['#b8e04a', '#f7b6d2', '#fff07a', '#9fe7c4'], summer: ['#ffd84a', '#ff7a66', '#2ec5e8'], winter: ['#e8f0fa', '#a9c6ea', '#5a7ab0'],
+    neon: ['#ff2bd6', '#2bf2ff', '#b6ff2b'], electric: ['#3a0ca3', '#f72585', '#4cc9f0'], cyber: ['#ff2bd6', '#2b6bff', '#12121a'], retro: ['#ff6b35', '#f7c548', '#2ec4b6'], vintage: ['#d9a58a', '#c8b590', '#8a9a8a'],
+    misty: ['#e3e6ee', '#cfd6e6', '#e9e1ec'], mist: ['#e3e6ee', '#cfd6e6', '#e9e1ec'], cloud: ['#f5f5f8', '#dde3ef', '#ece6f2'], fog: ['#dfe1e6', '#c9ccd6', '#eef0f3'], morning: ['#fff1dc', '#f7d6c8', '#d6def2'],
+    birthday: ['#ff8fb1', '#ffd166', '#9b8cff', '#7fe0d2'], party: ['#ff4fa3', '#ffd23f', '#3ad1ff', '#9b5cff'], celebration: ['#ff8fb1', '#ffd166', '#7fe0d2'], celebrate: ['#ff8fb1', '#ffd166', '#7fe0d2'], confetti: ['#ff5d8f', '#ffd23f', '#3ad1ff', '#7ee081'],
+    happy: ['#ffd84a', '#ff9f43', '#ff7ab6'], joy: ['#ffd84a', '#ff9f43', '#ff7ab6'], sad: ['#4a5a8a', '#8a9ab8', '#c9d3e6'], melancholy: ['#3a4566', '#7a86a6', '#c3c9d9'], love: ['#ff4d6d', '#ff8fab', '#ffc2d1'], romance: ['#c9184a', '#ff8fab', '#fff0f3'], valentine: ['#d00045', '#ff8fab', '#ffd6e0'], heart: ['#ff4d6d', '#ffb3c1'],
+    dream: ['#c9b6ff', '#ffc6e5', '#b6e3ff'], magic: ['#6a3fd6', '#d04fb0', '#5fe0e8'], fairy: ['#f7c6e0', '#c9b6ff', '#fff1a8'], unicorn: ['#ffc6e5', '#c9b6ff', '#b6e3ff', '#fff1a8'], rainbow: ['#ff5d5d', '#ffb347', '#ffe66d', '#6bdb8a', '#5aa9ff', '#a77bff'],
+    coffee: ['#4a2c1d', '#a0714f', '#e8d2b8'], latte: ['#c8a582', '#e8d2b8', '#f7efe6'], tea: ['#c8d6a0', '#e9e4c8', '#8ab06a'], matcha: ['#7da45a', '#c9dba4', '#f2f2e0'], strawberry: ['#ff4d6d', '#ffb3c1', '#fff0f3'], milkshake: ['#ffd6e0', '#fff3e6', '#d7f0ff'], cherry: ['#b3123a', '#ff6b8a', '#ffd6df'], blossom: ['#ffc6d9', '#fff0f5', '#e8a0bf'], sakura: ['#ffc6d9', '#fff0f5', '#e8a0bf'],
+    christmas: ['#b3123a', '#11714a', '#f2c14e'], halloween: ['#ff7a1a', '#2b1a3a', '#7b3fd6'], wedding: ['#fffaf2', '#f2dfd3', '#e8d6b8'], snow: ['#f5f8fc', '#d6e4f2', '#b7cbe6'], rain: ['#5a6a7a', '#9aaabb', '#d6dde6'], storm: ['#1f2633', '#4a5a6e', '#9aa8bb'], thunder: ['#1a1d33', '#5a4fa0', '#e6e08a'],
+    jazz: ['#1a1440', '#b5502a', '#f2c14e'], disco: ['#ff2bd6', '#ffd23f', '#2bf2ff', '#5a2a9a'], arcade: ['#ff2bd6', '#2bf2ff', '#1a1440'], vaporwave: ['#ff71ce', '#01cdfe', '#b967ff', '#fffb96'], lofi: ['#c9a7a0', '#8a9ab8', '#e9dcc7'],
+    zen: ['#e6efe9', '#b9d3c4', '#8ab0a0'], peaceful: ['#e6efe9', '#b9d3c4', '#cfe0ec'], cozy: ['#d0714a', '#f2c14e', '#7a4a2a'], energy: ['#ff2e63', '#ffb800', '#08d9d6'], vibrant: ['#ff2e63', '#ffb800', '#08d9d6'], northern: ['#0b1a2e', '#2ee6b6', '#7a5cff'], lights: ['#ffe9a8', '#ffb86b', '#ff7ab6'],
+    sun: ['#ffd84a', '#ff9f43', '#fff1c4'], sunny: ['#ffe066', '#ffb347', '#fff6d6'], moon: ['#e8e6f2', '#9aa0c8', '#2a2f5a'], moonlight: ['#dfe3f5', '#8a94c8', '#1d2350'], star: ['#fff6c8', '#9aa6ff', '#141a40'], stars: ['#fff6c8', '#9aa6ff', '#141a40'], sky: ['#8ccaf6', '#d6ecff', '#5a9be8'], clouds: ['#f5f5f8', '#dde3ef', '#ece6f2'],
+    mountain: ['#5a6a7a', '#a9b8c8', '#e8eef4'], lake: ['#2a6f8a', '#8fc9d6', '#e8f4f2'], river: ['#3a7a9a', '#9fd6d0', '#e6f2ee'], island: ['#16c79a', '#2ec5e8', '#f5e2bd'], garden: ['#7da45a', '#f49ac1', '#fff07a'], flower: ['#f49ac1', '#ffd166', '#c9b6ff'], flowers: ['#f49ac1', '#ffd166', '#c9b6ff'], leaf: ['#5a9a4a', '#b8e04a'], grass: ['#4f9a3a', '#a8d86a'], tulip: ['#ff4d6d', '#ffb3c1', '#7da45a'],
+    city: ['#2b2b38', '#ff7a3d', '#4a6fa5'], tokyo: ['#ff2bd6', '#2bf2ff', '#1a1440'], paris: ['#f2c4cf', '#c8b590', '#a9c6ea'], london: ['#5a6a7a', '#b3123a', '#d6dde6'], positano: ['#ffb38a', '#2ec5e8', '#f5e2bd', '#ff7a66'], bali: ['#16c79a', '#f5e2bd', '#ff9f43'], kyoto: ['#ffc6d9', '#b3123a', '#7da45a'],
+    mango: ['#ffb31a', '#ff7a1a', '#b8e04a'], banana: ['#fff07a', '#ffe9a8'], grape: ['#6e2c6e', '#a85fc9', '#d7b8f0'], blueberry: ['#3a3f9a', '#6a7ad6', '#c6cdf7'], watermelon: ['#ff4d6d', '#7ee081', '#1f7a4a'], lemonade: ['#fff07a', '#ffd6e0', '#fffbe6'], icecream: ['#ffd6e0', '#fff3e6', '#c6f0e0'], cake: ['#ffd6e0', '#fff3e6', '#c8a582'], candle: ['#ffd166', '#ff9f43', '#2b1a3a'], balloon: ['#ff4d6d', '#3ad1ff', '#ffd23f'], balloons: ['#ff4d6d', '#3ad1ff', '#ffd23f'], gift: ['#e8352b', '#f2c14e', '#11714a'],
+    baby: ['#cfe8ff', '#ffd6e6', '#fff7d6'], chill: ['#a9d6e5', '#e6f2f5', '#89c2d9'], fresh: ['#b8f2e6', '#aed9e0', '#faf3dd'], hot: ['#ff2e1f', '#ff8c1a', '#ffd84a'], cold: ['#cfe8ff', '#7aa9e8', '#3a5a9a'], mysterious: ['#1a1440', '#4a2a6e', '#2a6f8a'], elegant: ['#1d1d22', '#c8b590', '#f3ede4'], luxury: ['#0f0f14', '#c9a24a', '#f2e3b8'], royal: ['#2a1a6e', '#c9a24a', '#7b3fd6'], sweet: ['#ffc6e0', '#fff1a8', '#c6e8ff'],
+    evening: ['#3a33b8', '#c94fa0', '#ffb38a'], noon: ['#ffffff', '#8ccaf6', '#ffd84a'], twilight: ['#2a2a7a', '#7a5cff', '#ff9ad5'], horizon: ['#ffb38a', '#f7d6c8', '#8ccaf6'], golden: ['#f2c14e', '#ffb347', '#fff1c4'],
+    pancake: ['#f2c14e', '#c8a582', '#fff1c4'], pancakes: ['#f2c14e', '#c8a582', '#fff1c4'], bubblegum: ['#ff9ad5', '#ffc6e5', '#b6e3ff'], taco: ['#f2c14e', '#e8352b', '#7da45a'], sleepy: ['#c9c6e8', '#e8e6f2', '#a9b4d8'],
+    alien: ['#7ee081', '#2bf2ff', '#1a1440'], aliens: ['#7ee081', '#2bf2ff', '#1a1440'], pool: ['#2ec5e8', '#8fe3e0', '#ffffff'], jellyfish: ['#ff9ad5', '#9a7bff', '#1a1440'], rave: ['#ff2bd6', '#2bf2ff', '#b6ff2b'], dragonfruit: ['#ff3d8a', '#fff0f6', '#7ee081'],
+    smoothie: ['#ffb38a', '#ff9ad5', '#fff1dc'], lamp: ['#ff7a3d', '#ffd23f', '#c2185b'], dinosaur: ['#7ee081', '#3fbf6e', '#ffd166'], ramen: ['#f2c14e', '#e8352b', '#2b1a3a'], grandma: ['#f2c4cf', '#e8d6b8', '#a9bfa0'], date: ['#ff8fab', '#c9184a', '#ffd6e0'],
+    earth: ['#7a4a2a', '#b08a5a', '#6b8f4e'], desert: ['#e9c18f', '#d0714a', '#f5e2bd'], berry: ['#7a1f5c', '#c2185b', '#f49ac1'], wine: ['#5a0f2e', '#8a1538', '#c94f6a'], ice: ['#eaf6ff', '#bfe3f5', '#8ccaf6'], mermaid: ['#2ad1c9', '#8a4fe0', '#f49ac1'], peacock: ['#0b6e6e', '#1a4fa0', '#4a2a8a'],
+  };
+  // themes: a palette, and the many words that call for it
+  const THEMES = [
+    [['#05060f', '#141a3a', '#2b2f7a', '#6a5cd6'], 'midnight abyss void deepsea underwater trench nocturnal insomnia 3am witching'],
+    [['#060606', '#1c1c22', '#3a3a44', '#8a8a96'], 'noir obsidian onyx ink charcoal smoke smoky ash ashes graphite carbon soot black'],
+    [['#0b0410', '#2a0a2e', '#5a1258', '#c2185b'], 'velvet mystery seduction temptation sin opera theatre burlesque'],
+    [['#0a1410', '#123326', '#1f5a3d', '#7aa874'], 'jungle rainforest woods woodland pine pines evergreen moss mossy swamp bog'],
+    [['#120606', '#3a0b0f', '#7a1220', '#c9502e'], 'wine merlot bordeaux cellar whiskey bourbon cognac embers ember'],
+    [['#04070d', '#0c2238', '#1f4f7a', '#8fc4e8'], 'storm stormy tempest thunderstorm hurricane monsoon squall'],
+    [['#0a0612', '#22104a', '#4b1fa0', '#ff4fd8'], 'nebula cosmic eclipse blackhole supernova stardust'],
+    [['#0d0805', '#2b1a10', '#5a3420', '#c8956a'], 'espresso cocoa mocha chocolate leather tobacco mahogany walnut'],
+    [['#060c0c', '#0f2b2b', '#1a5050', '#5fb3a8'], 'deepwater lagoonnight emerald jade abyssal kelp'],
+    [['#0b0a0d', '#4a0a12', '#1f0f1c', '#8a1010'], 'horror scary scare creepy spooky fear terror terrifying nightmare nightmares haunted haunt ghost ghosts ghoul demon demons devil evil death dead deadly blood bloody vampire vampires zombie zombies witch witches curse cursed grave graveyard crypt gothic goth sinister doom dread skull bones killer murder slasher monster monsters creature cult occult shadow shadows'],
+    [['#2b0505', '#b3120f', '#ff3d1a', '#120404'], 'anger angry rage furious fury mad hate war battle violence aggressive intense danger dangerous alarm emergency'],
+    [['#04141f', '#00e5ff', '#2b6bff', '#0a0a1a'], 'tech technology cyber cyberpunk robot robots digital future futuristic ai code coding computer hacker matrix data machine circuit hologram sci scifi'],
+    [['#0b1a05', '#a6ff00', '#38d900', '#1a2b0a'], 'toxic poison poisonous radioactive slime acid venom biohazard sick mutant'],
+    [['#2a1a4a', '#7b3fd6', '#2ee6b6', '#f2c14e'], 'fantasy dragon dragons castle wizard wizards magic magical spell spells elf elves myth mythical potion enchanted kingdom quest'],
+    [['#fffaf0', '#f2e3b8', '#e8f0ff', '#ffffff'], 'heaven heavenly angel angels divine holy pure purity grace light peace soul'],
+    [['#0b2a1a', '#2e8b57', '#c9a24a', '#e8f2e0'], 'money cash rich wealth wealthy dollar dollars bank finance profit gold'],
+    [['#3a3f2a', '#6b6b3a', '#a89f6a', '#2a2a22'], 'military army soldier camo camouflage khaki hunter safari jungle'],
+    [['#f4fbfb', '#bfe8e2', '#7cc4e6', '#ffffff'], 'medical hospital clinic doctor nurse health healthy clean hygiene care pharmacy dental'],
+    [['#0f1f3a', '#2a4a7a', '#a8b4c8', '#eef2f7'], 'corporate business office professional formal serious meeting finance bank lawyer suit'],
+    [['#ff3d6e', '#ffd23f', '#3ad1ff', '#7ee081'], 'kids kid child children toy toys play playful fun funny cartoon silly game games circus carnival'],
+    [['#1a1440', '#ff2bd6', '#ffb800', '#2bf2ff'], 'music concert festival club dance dancing dj beat rock pop edm techno'],
+    [['#ffd6e0', '#ffc6a8', '#fff3e6', '#e8c8f0'], 'cute adorable kawaii soft cuddly puppy kitten bunny teddy'],
+    [['#2b1d14', '#7a4a2a', '#c8a582', '#f2e3cf'], 'cozy cabin wood wooden fireplace blanket book books library reading study'],
+    [['#e8eef4', '#9aaabb', '#5a6a7a', '#2b333d'], 'metal steel iron concrete industrial urban street grey grid factory machine'],
+    [['#fbd6c8', '#d6c9f0', '#c6e8f5', '#fff6e8'], 'hope hopeful gentle tender kind kindness healing hug comfort'],
+    [['#1a2a4a', '#3a5a8a', '#8aa0c8', '#d6dde6'], 'lonely loneliness alone sadness sorrow grief tears crying blue rainy melancholy'],
+    [['#ffe066', '#ff9f43', '#ff6b9d', '#fff3c4'], 'excited excitement yay wow amazing awesome fun cheerful bright sunshine smile smiles laugh'],
+    [['#e6efe9', '#b9d3c4', '#d6e6f2', '#f5f3ee'], 'relax relaxing relaxed meditation yoga spa breathe breath serene serenity tranquil quiet slow'],
+    [['#0a0a1a', '#3a2a7a', '#2a6fe0', '#c6b8ff'], 'universe cosmos cosmic nebula planet planets astronaut rocket orbit infinity'],
+    [['#ff6b35', '#f7c548', '#2ec4b6', '#e8d6b8'], 'retro vintage seventies eighties nineties nostalgia nostalgic old classic polaroid'],
+    [['#1d1d22', '#3a3a44', '#c8b590', '#f3ede4'], 'minimal minimalist simple modern sleek monochrome classy chic'],
+    [['#ff8fab', '#ff4d6d', '#c9184a', '#ffe5ec'], 'kiss kisses crush flirty passion passionate desire sexy'],
+    [['#7da45a', '#c9dba4', '#f2c14e', '#e9f5db'], 'farm countryside meadow picnic field fields village rustic spring'],
+    [['#2ec5e8', '#ffe066', '#ff7a66', '#f5e2bd'], 'vacation holiday travel trip getaway resort cruise pool'],
+  ];
+  const THEME_OF = {};
+  THEMES.forEach(([pal, words]) => words.split(' ').forEach(w => { if (!WORDS[w] || !WORDS[w].length) THEME_OF[w] = pal; }));
+  // descriptive words change every colour a little: lighter, deeper, brighter, quieter, warmer, cooler
+  const MODS = {
+    pastel: 'light', soft: 'light', light: 'light', pale: 'light', airy: 'light', gentle: 'light', baby: 'light', powder: 'light', whisper: 'light', calm: 'light',
+    dark: 'dark', deep: 'dark', moody: 'dark', shadow: 'dark', noir: 'dark', rich: 'dark', midnight: 'dark', night: 'dark',
+    neon: 'vivid', vivid: 'vivid', bright: 'vivid', bold: 'vivid', electric: 'vivid', loud: 'vivid', juicy: 'vivid', poppy: 'vivid', saturated: 'vivid',
+    muted: 'muted', dusty: 'muted', faded: 'muted', vintage: 'muted', matte: 'muted', washed: 'muted', grey: 'muted', smoky: 'muted', earthy: 'muted',
+    warm: 'warm', cozy: 'warm', sunny: 'warm', toasty: 'warm', cool: 'cool', icy: 'cool', frosty: 'cool', crisp: 'cool', cold: 'cool',
+  };
+  const BOOST = /^(very|super|so|really|extra|ultra|too)$/;
+  const hexToHsl = c => { const [r, g, b] = toRgb(c).map(v => v / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+    if (!d) return [0, 0, l]; const s = d / (1 - Math.abs(2 * l - 1)); const h = mx === r ? ((g - b) / d + 6) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return [h * 60, s, l]; };
+  const hslToHex = (h, s, l) => { s = clamp(s, 0, 1); l = clamp(l, 0, 1); const k = n => (n + h / 30) % 12, a = s * Math.min(l, 1 - l);
+    return toHex([0, 8, 4].map(n => 255 * (l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))))); };
+  function applyMod(c, m, k) {
+    let [h, s, l] = hexToHsl(c);
+    const towards = (from, to, t) => { const d = ((to - from + 540) % 360) - 180; return (from + d * t + 360) % 360; };
+    if (m === 'light') { l += (0.94 - l) * .45 * k; s *= 1 - .18 * k; }
+    if (m === 'dark') { l *= 1 - .42 * k; s = Math.min(1, s * (1 + .1 * k)); }
+    if (m === 'vivid') { s = Math.min(1, s * (1 + .45 * k) + .1 * k); l += (.55 - l) * .35 * k; }
+    if (m === 'muted') { s *= 1 - .45 * k; l += (.66 - l) * .3 * k; }
+    if (m === 'warm') h = s > .08 ? towards(h, 30, .22 * k) : h;
+    if (m === 'cool') h = s > .08 ? towards(h, 215, .22 * k) : h;
+    return hslToHex(h, s, l);
+  }
+  // a steady little random generator seeded by the words, so the same words always give the same picture
+  function seeded(text) {
+    let h = 2166136261;
+    for (const ch of text) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+    return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; };
+  }
+  Object.assign(WORDS, THEME_OF);
+  const KEYS = Object.keys(WORDS).filter(k => WORDS[k].length);
+  // find a word: exact, without an ending (-s, -y, -ish, -ing, -ed), two words run together, or, for the word
+  // still being typed, the first known word it starts (so "laven" already means lavender)
+  function lookup(w, typing) {
+    if (WORDS[w] && WORDS[w].length) return w;
+    for (const end of ['ies', 's', 'es', 'y', 'ish', 'ing', 'ed', 'er', 'ly']) {
+      if (w.length > end.length + 2 && w.endsWith(end)) { const b = w.slice(0, -end.length); if (WORDS[b] && WORDS[b].length) return b; if (end === 'ies' && WORDS[b + 'y']) return b + 'y'; }
+    }
+    if (typing && w.length >= 3) return KEYS.find(k => k.startsWith(w)) || null;
+    return null;
+  }
+  // read the words: what colours they bring, how they change those colours, and how they are put together
+  function interpret(text, typing = false) {
+    const raw = text.toLowerCase().replace(/[^a-z\s'-]/g, ' ').replace(/ice cream/g, 'icecream').replace(/cherry blossom/g, 'sakura').replace(/dragon fruit/g, 'dragonfruit').replace(/dark matter/g, 'blackhole').replace(/black hole/g, 'blackhole').replace(/deep sea/g, 'deepsea').replace(/cotton candy/g, 'candy').replace(/\b70s\b/g, 'retro');
+    const words = raw.split(/[\s-]+/).filter(Boolean);
+    const read = [], cols = [], hints = [];
+    let boost = 1, hint = false, pending = [];
+    words.forEach((w, i) => {
+      const last = typing && i === words.length - 1 && !/\s$/.test(text);
+      if (BOOST.test(w)) { boost = 1.6; return; }
+      if (/^(hint|touch|splash|dash|bit|little)$/.test(w)) { hint = true; return; }
+      if (MODS[w]) { pending.push([MODS[w], boost]); boost = 1; if (!WORDS[w] || !WORDS[w].length) { read.push({ w, mod: MODS[w] }); return; } }
+      const k = lookup(w, last);
+      if (!k) { if (w.length > 2 && !/^(and|with|the|of|in|on|at|for|a|an|to|my|our|your|like|some|from|into|over|under|after|before|that|this|its|it's|hour|late|first|day|days|time|vibe|vibes|feel|feeling|mood|aesthetic|but|just|lots|lot|kind|sort|ish)$/.test(w)) read.push({ w, unknown: true }); return; }
+      // descriptive words lean on the next colour word, or, if none follows, on everything
+      const add = WORDS[k].map(c => pending.reduce((cc, [m, b]) => applyMod(cc, m, b), c));
+      if (!MODS[w]) pending = [];   // a describing word that is also a colour keeps describing what follows
+      (hint ? hints : cols).push(...add);
+      read.push({ w: last ? k : w, cols: add.slice(0, 3), hint });
+      hint = false;
+    });
+    return { read, cols, hints, trailing: pending, words };
+  }
+  // every unknown word gets its own palette, steady for that word, picked from the whole range of the two
+  // fun-mode scales (warm to cold, lush to dusk) and given its own character: a run along one scale, a
+  // contrast across both, deep and moody, soft and pastel, or bright and electric
+  function wordPalette(w) {
+    const r = seeded('w:' + w), pick = () => r() < .5 ? 'warm' : 'fresh';
+    const kind = Math.floor(r() * 6), t0 = r(), sc = pick();
+    let cols;
+    if (kind === 0) cols = [0, .14, .28].map(d => mixColorAt((t0 + d) % 1, sc));                         // a run along one scale
+    else if (kind === 1) cols = [mixColorAt(t0, 'warm'), mixColorAt(r(), 'fresh'), mixColorAt((t0 + .5) % 1, 'warm')]; // across both
+    else if (kind === 2) cols = [0, .2, .4].map(d => applyMod(mixColorAt((t0 + d) % 1, sc), 'dark', 1.1 + r() * .4));    // deep
+    else if (kind === 3) cols = [0, .25, .5].map(d => applyMod(mixColorAt((t0 + d) % 1, pick()), 'light', 1.2));          // pastel
+    else if (kind === 4) cols = [0, .33, .66].map(d => applyMod(mixColorAt((t0 + d) % 1, pick()), 'vivid', 1.4));         // electric
+    else cols = [mixColorAt(t0, sc), applyMod(mixColorAt(t0, sc), 'light', 1.4), applyMod(mixColorAt((t0 + .08) % 1, sc), 'dark', .9)]; // one hue, light to deep
+    return cols;
+  }
+  function readPrompt(text, typing = false) {
+    const t = text.toLowerCase().trim();
+    if (!t) return null;
+    const rnd = seeded(t), { cols: c0, hints, trailing, read } = interpret(text, typing);
+    let cols = [...new Set(c0)].slice(0, 6);
+    // words it doesn't know still mean something: they become their own palette, the same every time
+    const unknown = read.filter(r => r.unknown).map(r => r.w);
+    // each unknown word adds its own colours; a known word alongside keeps the lead
+    unknown.forEach(w => { if (cols.length < 6) cols.push(...wordPalette(w).slice(0, cols.length ? 2 : 3)); });
+    if (!cols.length) cols = wordPalette(t);
+    cols = [...new Set(cols)].slice(0, 6);
+    // modifiers with no colour word after them ("…, but pastel") reshape the whole palette
+    if (trailing.length) cols = cols.map(c => trailing.reduce((cc, [m, b]) => applyMod(cc, m, b), c));
+    const lum = c => { const [r, g, b] = toRgb(c); return .2126 * r + .7152 * g + .0722 * b; };
+    const shade = (c, k) => applyMod(c, k > 0 ? 'light' : 'dark', Math.abs(k) * 1.6);
+    if (cols.length === 1) cols = [shade(cols[0], .5), cols[0], shade(cols[0], -.35)];
+    else if (cols.length === 2) cols = [cols[0], shade(cols[0], .45), cols[1]];
+    const darkish = cols.reduce((a, c) => a + lum(c), 0) / cols.length < 105;
+    const base = [...cols].sort((a, b) => darkish ? lum(a) - lum(b) : lum(b) - lum(a))[0];
+    // the shape follows the picture: skies and horizons run top to bottom, suns and glows radiate, the rest flows
+    const mode = /\blinear\b|\b(sky|horizon|sunset|sunrise|dusk|dawn|twilight|ombre|fade)\b/.test(t) ? 'linear'
+      : /\b(radial|halo|glow|orb|sun|moon|star|candle|bloom|burst)\b/.test(t) ? 'radial' : 'mesh';
+    const n = cols.length;
+    const stops = cols.map((c, i) => [c, Math.round(i / (n - 1) * 100), Math.round(10 + rnd() * 80), Math.round(8 + rnd() * 84), Math.round(44 + rnd() * 26)]);
+    // a hint of something is a small accent, tucked in at the edge
+    [...new Set(hints)].slice(0, 2).forEach((c, i) => stops.push([c, Math.round(55 + i * 30), Math.round(rnd() < .5 ? 8 + rnd() * 14 : 78 + rnd() * 14), Math.round(10 + rnd() * 80), 26]));
+    stops.sort((a, b) => a[1] - b[1]);
+    const p = {
+      name: 'Yours', mode, angle: /\b(sky|horizon|sunset|sunrise|dusk|dawn|twilight)\b/.test(t) ? 180 : Math.round(rnd() * 18) * 10, cx: 50, cy: /\b(sunset|sunrise|horizon)\b/.test(t) ? 90 : 50, base,
+      grain: /\b(grain|grainy|noisy|film|texture|vintage|retro)\b/.test(t) ? 22 : /\b(smooth|clean|glossy|glass)\b/.test(t) ? 2 : 8, blur: 95,
+      stops,
+    };
+    const st = fromPreset(p);
+    if (/\b(moving|animated|motion|flow|flowing|drift|drifting|wave|waves|alive|dancing|swirl)\b/.test(t)) st.motion = { ...st.motion, on: true };
+    return st;
+  }
+
+  // five cards, each a little different: some higher, some lower, leaning either way, overlapping a touch
+  const CARD_LOOK = [{ x: 4, y: 20, r: -5 }, { x: 0, y: 11, r: 3 }, { x: 0, y: 6, r: -2 }, { x: 0, y: 12, r: 3 }, { x: -4, y: 19, r: -4 }];
+  // gradients made for the cards: richer, with more colours playing off each other
+  const CARD_SET = [
+    { name: 'Afterglow', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#ffb38a', grain: 8, blur: 95, stops: [['#ff6a3d', 0, 22, 78, 58], ['#ff9fb2', 33, 82, 64, 52], ['#ffd9a0', 66, 70, 10, 50], ['#8f6bff', 100, 6, 6, 40]] },
+    { name: 'Glacier', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#cfe6ff', grain: 6, blur: 98, stops: [['#7fb2ff', 0, 14, 18, 58], ['#e9f6ff', 33, 72, 30, 52], ['#9ee6e0', 66, 34, 90, 54], ['#b7a6ff', 100, 92, 88, 42]] },
+    { name: 'Orchid', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#2a1446', grain: 10, blur: 92, stops: [['#c13dff', 0, 24, 30, 56], ['#ff5fa2', 33, 82, 24, 50], ['#ffb86b', 66, 78, 92, 42], ['#4f2bd6', 100, 10, 88, 52]] },
+    { name: 'Meadow', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#e8f6c8', grain: 8, blur: 95, stops: [['#9ee36b', 0, 18, 72, 56], ['#fff2a8', 33, 70, 16, 52], ['#5cc9a7', 66, 88, 78, 48], ['#ffd1e0', 100, 14, 10, 40]] },
+    { name: 'Tidal', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#06223a', grain: 10, blur: 92, stops: [['#0b6cff', 0, 20, 26, 56], ['#19d3c5', 33, 78, 80, 52], ['#7a5cff', 66, 84, 14, 44], ['#d4f6ff', 100, 22, 96, 34]] },
+    { name: 'Rosewater', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#fbe4ea', grain: 6, blur: 98, stops: [['#ff9eb5', 0, 20, 24, 58], ['#ffe2c6', 33, 84, 20, 50], ['#cdb8ff', 66, 74, 86, 54], ['#fff6f8', 100, 16, 88, 40]] },
+    { name: 'Saffron', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#ff9b2e', grain: 10, blur: 92, stops: [['#ffd23f', 0, 18, 20, 58], ['#ff5a36', 33, 82, 78, 52], ['#ffe9b8', 66, 74, 14, 44], ['#d6336c', 100, 12, 92, 40]] },
+    { name: 'Nightfall', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#0f0b26', grain: 12, blur: 90, stops: [['#3b2bd6', 0, 22, 70, 56], ['#ff6fb5', 33, 84, 30, 46], ['#24c6ff', 66, 76, 92, 42], ['#1a0f4a', 100, 12, 10, 54]] },
+    { name: 'Pistachio', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#eef7e4', grain: 6, blur: 98, stops: [['#b8e09a', 0, 16, 20, 56], ['#fff4d6', 33, 80, 22, 50], ['#ffc2a8', 66, 76, 86, 50], ['#9fd6c8', 100, 14, 88, 42]] },
+    { name: 'Ultraviolet', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#5b2bff', grain: 10, blur: 92, stops: [['#ff4fd8', 0, 20, 24, 54], ['#7ae7ff', 33, 84, 30, 48], ['#2a0fa0', 66, 72, 90, 56], ['#ffd6f5', 100, 14, 88, 38]] },
+  ];
+
+  function buildCards() {
+    const box = $('askCards'); box.innerHTML = '';
+    const pool = [...CARD_SET].sort(() => Math.random() - .5);
+    // no two cards from the same corner of the colour wheel
+    const hueOf = pr => { const [r, g, b] = toRgb(pr.stops[Math.floor(pr.stops.length / 2)][0]).map(v => v / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn || 1;
+      return Math.round((mx === r ? (g - b) / d : mx === g ? 2 + (b - r) / d : 4 + (r - g) / d) * 60 + 360) % 360; };
+    const pick = [];
+    for (const pr of pool) { if (pick.length < 5 && pick.every(q => Math.min(Math.abs(hueOf(q) - hueOf(pr)), 360 - Math.abs(hueOf(q) - hueOf(pr))) > 28)) pick.push(pr); }
+    for (const pr of pool) if (pick.length < 5 && !pick.includes(pr)) pick.push(pr);
+    pick.forEach((pr, i) => {
+      const slot = document.createElement('div'), b = document.createElement('button'), L = CARD_LOOK[i];
+      slot.className = 'ask-slot'; slot.style.cssText = `--x:${L.x}px; --y:${L.y + 10}px`;
+      b.type = 'button'; b.className = 'ask-card'; b.setAttribute('aria-label', `Start from ${pr.name}`);
+      b.style.cssText = `--i:${i}; --r:${L.r}deg`;
+      const c = document.createElement('canvas'); c.width = 248; c.height = 184; b.appendChild(c);
+      const st = fromPreset(pr);
+      paint(c.getContext('2d', { willReadFrequently: true }), c.width, c.height, { ...st, format: '16:9', grain: st.grain * .6, texture: { ...st.texture, on: false } });
+      // touch screens can't hover: the first tap previews a card (it lifts, the backdrop takes its colours),
+      // a second tap on it, or the arrow, goes in with it
+      b.onclick = () => {
+        if (matchMedia('(hover: none)').matches && !slot.classList.contains('picked')) {
+          box.querySelectorAll('.ask-slot.picked').forEach(x => x.classList.remove('picked'));
+          slot.classList.add('picked'); introCard = st; setIntroBg(calmed(st, .35));
+          $('askHint').innerHTML = 'Tap it again, or <b>→</b>, to start with this one';
+          return;
+        }
+        introPick = st; leaveIntro('go');
+      };
+      slot.onmouseenter = b.onfocus = () => setIntroBg(calmed(st, .35));
+      slot.onmouseleave = b.onblur = () => setIntroBg(introTyped || fromPreset(CALM));
+      slot.appendChild(b); box.appendChild(slot);
+    });
+  }
+  const TRY = ['unicorn party', 'midnight velvet', 'mango smoothie', 'stormy sea', 'cotton candy', 'deep forest', 'mermaid dreams', 'obsidian',
+    'bubblegum galaxy', 'wine cellar', 'pink lemonade', 'nebula', 'lava lamp', 'espresso', 'jellyfish glow', 'neon noir', 'sunday pancakes', 'haunted house', 'dark matter', 'birthday cake']
+  let phAt = -1, phTimer = 0;
+  function nextPh(first) {
+    phAt = (phAt + 1) % TRY.length;
+    const win = $('phWin'), old = win.querySelector('span:not(.above)');
+    const sp = document.createElement('span'); sp.textContent = `“${TRY[phAt]}”`;
+    if (!first) sp.className = 'below';
+    win.appendChild(sp);
+    win.style.width = sp.offsetWidth + 'px';
+    if (old) { old.className = 'above'; setTimeout(() => old.remove(), 450); }
+    requestAnimationFrame(() => requestAnimationFrame(() => sp.classList.remove('below')));
+  }
+  function startPh() { clearInterval(phTimer); $('phWin').innerHTML = ''; phAt = Math.floor(Math.random() * TRY.length) - 1; nextPh(true); phTimer = setInterval(() => nextPh(), 3000); }
+  $('askInput').addEventListener('keydown', e => {
+    if (e.key === 'Tab' && !$('askInput').value && phAt >= 0) { e.preventDefault(); $('askInput').value = TRY[phAt]; $('askInput').dispatchEvent(new Event('input')); }
+  });
+  let introTyped = null, typeT = 0, introCard = null;
+  $('askInput').addEventListener('input', () => {
+    clearTimeout(typeT);
+    $('askInput').parentElement.classList.toggle('filled', !!$('askInput').value);
+    if (introCard) { introCard = null; document.querySelectorAll('.ask-slot.picked').forEach(x => x.classList.remove('picked')); }
+    $('askHint').classList.remove('miss');
+    $('askHint').textContent = '';
+    typeT = setTimeout(() => {
+      const v = $('askInput').value;
+      const st = readPrompt(v, true);
+      // every word gets a tag with its colours; words it doesn't know show the colours made up for them
+      const { read } = interpret(v, true), box = $('askRead');
+      const key = JSON.stringify(read.map(r => [r.w, r.mod, !!r.unknown]));
+      if (box.dataset.key !== key) {
+        box.dataset.key = key;
+        const own = wordPalette;
+        // words joined for reading are shown the way they were typed
+        const low = v.toLowerCase(), LABEL = { blackhole: /dark matter/.test(low) ? 'dark matter' : 'black hole', deepsea: 'deep sea', dragonfruit: 'dragon fruit', icecream: 'ice cream', sakura: /cherry blossom/.test(low) ? 'cherry blossom' : 'sakura' };
+        read.forEach(r => { if (LABEL[r.w]) r.w = LABEL[r.w]; });
+        box.innerHTML = read.slice(0, 7).map(r => r.mod ? `<span class="ask-chip mod">${r.w}</span>`
+          : `<span class="ask-chip"><i>${(r.unknown ? own(r.w) : r.cols).map(c => `<b style="background:${c}"></b>`).join('')}</i>${r.hint ? 'hint of ' : ''}${r.w}</span>`).join('');
+      }
+      introTyped = st ? calmed(st, .12) : null;   // shown close to true, so dark words really look dark
+      setIntroBg(introTyped || fromPreset(CALM));
+    }, 140);
+  });
+  $('askForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const v = $('askInput').value.trim();
+    if (!v && introCard) { introPick = introCard; leaveIntro('go'); return; }
+    if (!v) { $('askInput').focus(); return; }
+    const st = readPrompt(v);
+    if (!st) {
+      $('askHint').classList.add('miss');
+      $('askHint').textContent = 'Try colours or a mood, like “peach and lilac” or “deep ocean night”.';
+      return;
+    }
+    introPick = st; leaveIntro('go');
+  });
+
+  function openIntro() {
+    introEl.hidden = false; introEl.classList.remove('leaving');
+    const g = document.createElement('canvas'); g.width = g.height = 160;
+    const gx = g.getContext('2d'), d = gx.createImageData(160, 160);
+    for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 60; }
+    gx.putImageData(d, 0, 0);
+    document.querySelector('.intro-grain').style.backgroundImage = `url(${g.toDataURL()})`;
+    sizeIntro(); introT0 = performance.now();
+    $('askRead').innerHTML = ''; $('askRead').dataset.key = '';
+    introTyped = null; introPick = null; introCard = null; $('askInput').value = ''; $('askInput').parentElement.classList.remove('filled');
+    startPh();
+    introBg = bgState(fromPreset(CALM)); setIntroBg(fromPreset(CALM));
+    cancelAnimationFrame(introRaf); introRaf = requestAnimationFrame(introFrame);
+    setTimeout(() => $('askInput').focus({ preventScroll: true }), 400);
+  }
+  // every way in lands in the editor and the tour picks up from the part you chose
+  function leaveIntro(way = 'go') {
+    if (way === 'random') randomize();
+    else if (way === 'go' && introPick) { S = { ...introPick, format: '16:9' }; sel = 0; fit(); draw(); }
+    else { fit(); draw(); }
+    store.set('gb-onboarded', 1);
+    introEl.classList.add('leaving');
+    setTimeout(() => {
+      introEl.hidden = true; cancelAnimationFrame(introRaf); introRaf = 0; clearInterval(phTimer);
+      if (way === 'fun') { openMix(); openTour(4); }
+      else if (way === 'presets') { openPresets(); openTour(3); }
+      else if (way === 'skip') {}
+      else openTour(1);
+    }, 750);
+  }
+  $('askDice').onclick = () => leaveIntro('random');
+  $('askFun').onclick = () => leaveIntro('fun');
+  $('introSkip').onclick = () => leaveIntro('skip');
+  addEventListener('resize', () => { if (introOpen()) sizeIntro(); });
+
   // ---------- Onboarding ----------
   // First visit: a welcome card, then a spotlight glides over each part with a line or two about it.
   // Enter / → next, ← back, Esc skips. The ? button (or the ? key) plays it again.
@@ -3250,6 +3805,10 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     store.set('gb-onboarded', 1);
     tourBack && tourBack.focus && tourBack.focus();
   }
+  // a first visit opens on the intro screen, and the tour follows once you are in;
+  // the Gradient name in the corner opens the intro again
+  // the keyword intro is still being built, so for now every first visit starts with the tour
+  function maybeTour() { if (!store.get('gb-onboarded', 0) && $('mixView').hidden) openTour(); }
   $('tourNext').onclick = () => tourAt < TOUR.length - 1 ? showTourStep(tourAt + 1) : endTour();
   $('tourSkip').onclick = () => tourAt === TOUR.length - 1 ? showTourStep(tourAt - 1) : endTour();
   addEventListener('resize', placeTour);
@@ -3265,7 +3824,18 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   ['overlay', 'mixView', 'libView'].forEach(id => new MutationObserver(tourAway).observe($(id), { attributes: true, attributeFilter: ['hidden'] }));
   // while the tour is up it owns the keyboard, so R, S, F and friends don't fire underneath it
   addEventListener('keydown', e => {
-    if (tourAt < 0) return;
+    if (introOpen()) {
+      // space on an empty prompt jumps straight in; any other typing (and Tab for a suggestion) goes to the prompt
+      if (e.key === ' ' && !$('askInput').value) { e.stopImmediatePropagation(); e.preventDefault(); leaveIntro('skip'); return; }
+      if (e.target === $('askInput') && e.key !== 'Escape') return;
+      e.stopImmediatePropagation();
+      if (e.key === 'Escape') { e.preventDefault(); leaveIntro('skip'); }
+      return;
+    }
+    if (tourAt < 0) {
+      if (e.key === '?' && !/input|textarea|select/i.test(e.target.tagName) && $('overlay').hidden) { e.preventDefault(); if ($('mixView').hidden) openTour(); }
+      return;
+    }
     if (tourEl.classList.contains('away')) return;
     const st = TOUR[tourAt], t = tourTarget(st), typing = /input|textarea|select/i.test(e.target.tagName);
     if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); endTour(); return; }
@@ -3276,12 +3846,11 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (e.key === 'ArrowRight' || (e.key === 'Enter' && e.target === document.body)) { e.preventDefault(); $('tourNext').click(); }
     else if (e.key === 'ArrowLeft' && tourAt > 0) { e.preventDefault(); showTourStep(tourAt - 1); }
   }, true);
-  // phones get the tour on a first visit (the desktop keeps its current start for now)
-  if (onPhone() && !store.get('gb-onboarded', 0)) setTimeout(() => { if ($('mixView').hidden) openTour(); }, 400);
 
   renderLibrary();
   fit();
   draw();
+  setTimeout(maybeTour, 300);
 })();
 </script>
 </body>
