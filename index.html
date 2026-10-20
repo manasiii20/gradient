@@ -562,10 +562,8 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro-skip .th { display: none; }
 @media (hover: none), (pointer: coarse), (max-width: 860px) { .intro-skip .kh { display: none; } .intro-skip .th { display: inline; } }
 @media (max-width: 860px) {
-  .intro-top { align-self: stretch; width: 100%; text-align: right; padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px 0; }
-  .intro-skip { height: 34px; padding: 0 14px; border-radius: 999px; font: 500 13px/1 var(--sans); color: rgba(29,29,34,.7);
-    background: rgba(255,255,255,.45); box-shadow: inset 0 0 0 1px rgba(255,255,255,.65); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
-  .intro.dim .intro-skip { color: rgba(255,255,255,.85); background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+  .intro-top { visibility: hidden; }
+  .ask-read { left: 6px; right: 6px; justify-content: flex-start; }
 }
 .intro { transition: opacity .7s ease, transform .9s cubic-bezier(.22,1,.36,1); }
 .intro.dim .ask-hint, .intro.dim .intro-skip { color: rgba(255,255,255,.6); }
@@ -596,13 +594,12 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   /* suggestions read as something to tap, not as tags: plain words in a thin outline, no colour dots */
   .try-chip { display: inline-flex; align-items: center; height: 32px; padding: 0 13px; border: 1px solid rgba(29,29,34,.16); border-radius: 999px; background: none; font: 400 13px var(--sans); color: rgba(29,29,34,.62); white-space: nowrap;
     animation: chipin .4s cubic-bezier(.22,1,.36,1) both; animation-delay: calc(var(--i, 0) * 70ms); transition: transform .2s, color .2s, border-color .2s, background-color .2s; }
-  .try-chip::before { content: "Try "; opacity: .55; margin-right: 3px; }
   .try-chip:active { transform: scale(.96); }
   .try-chip.on { color: #1d1d22; border-color: rgba(29,29,34,.4); background: rgba(255,255,255,.35); }
   .intro.dim .try-chip { color: rgba(255,255,255,.72); border-color: rgba(255,255,255,.24); }
   .intro.dim .try-chip.on { color: #fff; border-color: rgba(255,255,255,.55); background: rgba(255,255,255,.1); }
 }
-@media (max-width: 380px) { .try-chip { padding: 0 11px; font-size: 12.5px; } .try-chip::before { display: none; } .ask-ph .ph-phone { display: none; } .ask-ph .ph-short { display: inline; } }
+@media (max-width: 380px) { .try-chip { padding: 0 11px; font-size: 12.5px; } .ask-ph .ph-phone { display: none; } .ask-ph .ph-short { display: inline; } }
 @media (prefers-reduced-motion: reduce) { .ask-card, .ask-glass { animation: none; } }
 
 /* ---------- Onboarding: a welcome card, then a spotlight that glides from part to part ---------- */
