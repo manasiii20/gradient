@@ -540,7 +540,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .ask-read:empty { display: none; }
 .ask-chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 6px; border-radius: 8px; font: 500 12px var(--sans); color: rgba(29,29,34,.72);
   background: rgba(255,255,255,.5); box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: chipin .35s cubic-bezier(.22,1,.36,1) both; }
-.ask-chip.mod { padding-left: 10px; color: rgba(29,29,34,.5); font-style: italic; font-weight: 400; }
+.ask-chip.mod { color: rgba(29,29,34,.6); font-style: italic; font-weight: 400; }
 .ask-chip i { display: inline-flex; }
 .ask-chip i b { width: 12px; height: 12px; border-radius: 50%; margin-left: -3px; box-shadow: 0 0 0 1.5px rgba(255,255,255,.9); }
 .ask-chip i b:first-child { margin-left: 0; }
@@ -3438,11 +3438,11 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       const r = m * (calm ? .2 : .3) * k * (1 + .12 * Math.sin(t * .16 + i));
       return { x: W * (.5 + .44 * Math.sin(t * f.w1 * 3 + f.a)), y: H * (.5 + .42 * Math.cos(t * f.w2 * 3 + f.b)), q: 1 / (r * r), lab: flowLabs[i + 1] };
     });
-    const bw = calm ? .22 : .015, bl = flowLabs[0], d = flowImg.data;
+    const bw = calm ? .22 : .015, bl = flowLabs[0], d = flowImg.data, firm = calm ? 1 : 1.7;
     for (let y = 0, o = 0; y < H; y++) for (let x = 0; x < W; x++, o += 4) {
       let L = bl[0] * bw, A = bl[1] * bw, B = bl[2] * bw, sw = bw;
       for (const p of pts) {
-        const dx = x - p.x, dy = y - p.y, w = Math.exp(-(dx * dx + dy * dy) * p.q);
+        const dx = x - p.x, dy = y - p.y, w = Math.exp(-(dx * dx + dy * dy) * p.q * firm);
         L += p.lab[0] * w; A += p.lab[1] * w; B += p.lab[2] * w; sw += w;
       }
       L /= sw; A /= sw; B /= sw;
@@ -3459,6 +3459,25 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if ('filter' in ictx) ictx.filter = `blur(${Math.round(icv.width / 120)}px)`;
     ictx.drawImage(flowCv, -icv.width * .03, -icv.height * .03, icv.width * 1.06, icv.height * 1.06);
     ictx.restore();
+    if (calm) return;
+    // a typed backdrop gets depth and texture: the edges fall gently into shadow, and a fine grain sits over it
+    const cw = icv.width, ch = icv.height;
+    if (!vignette || vignette.w !== cw || vignette.h !== ch) {
+      const v = ictx.createRadialGradient(cw / 2, ch * .45, Math.min(cw, ch) * .25, cw / 2, ch * .45, Math.hypot(cw, ch) * .62);
+      v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.28)');
+      vignette = { g: v, w: cw, h: ch };
+    }
+    ictx.fillStyle = vignette.g; ictx.fillRect(0, 0, cw, ch);
+    grainFill = grainFill || ictx.createPattern(grainTile, 'repeat');
+    ictx.save(); ictx.globalAlpha = .07; ictx.globalCompositeOperation = 'overlay'; ictx.fillStyle = grainFill; ictx.fillRect(0, 0, cw, ch); ictx.restore();
+  }
+  let vignette = null, grainFill = null;
+  const grainTile = document.createElement('canvas');
+  {
+    grainTile.width = grainTile.height = 128;
+    const g = grainTile.getContext('2d'), img = g.createImageData(128, 128);
+    for (let n = 0; n < img.data.length; n += 4) { const v = Math.random() * 255; img.data[n] = img.data[n + 1] = img.data[n + 2] = v; img.data[n + 3] = 255; }
+    g.putImageData(img, 0, 0);
   }
   function setIntroBg(st) {
     const pc = iprev.getContext('2d'); pc.clearRect(0, 0, iprev.width, iprev.height); pc.drawImage(icv, 0, 0);
@@ -3755,7 +3774,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
         const low = v.toLowerCase(), LABEL = { blackhole: /dark matter/.test(low) ? 'dark matter' : 'black hole', deepsea: 'deep sea', dragonfruit: 'dragon fruit', icecream: 'ice cream', sakura: /cherry blossom/.test(low) ? 'cherry blossom' : 'sakura',
           smores: 'burnt marshmallow', mariokart: 'mario kart', feverdream: 'fever dream', rainbowroad: 'rainbow road' };
         read.forEach(r => { if (LABEL[r.w]) r.w = LABEL[r.w]; });
-        box.innerHTML = read.slice(0, 7).map(r => r.mod ? `<span class="ask-chip mod">${r.w}</span>`
+        box.innerHTML = read.slice(0, 7).map(r => r.mod ? `<span class="ask-chip mod"><i>${['#e8833a', '#4a7fd6', '#c74f9a'].map(c => `<b style="background:${applyMod(c, r.mod, 1.4)}"></b>`).join('')}</i>${r.w}</span>`
           : `<span class="ask-chip"><i>${(r.unknown ? own(r.w) : r.cols).map(c => `<b style="background:${c}"></b>`).join('')}</i>${r.hint ? 'hint of ' : ''}${r.w}</span>`).join('');
       }
       introTyped = st ? calmed(st, .12) : null;   // shown close to true, so dark words really look dark
