@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="gb-build" content="37">
+<meta name="gb-build" content="38">
 <script>
 // phones and in-app browsers keep an old copy of the page for a while: if the live page is a newer build,
 // load it once, fresh
@@ -610,6 +610,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   .intro-mid { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 2vh + 58px); }
   .ask-try { position: absolute; left: 6px; right: 6px; top: 100%; margin-top: 14px; display: flex; justify-content: flex-start; gap: 6px; transition: opacity .3s; }
   .ask-try.swap { opacity: 0; }
+  .try-chip.out { opacity: 0; transition: opacity .3s; }
   .intro.typing .ask-try, .ask:has(.ask-hint:not(:empty)) .ask-try { opacity: 0; pointer-events: none; }
   /* suggestions read as something to tap, not as tags: plain words in a thin outline, no colour dots */
   .try-chip { display: inline-flex; align-items: center; height: 32px; padding: 0 13px; border: 1px solid rgba(29,29,34,.16); border-radius: 999px; background: none; font: 400 13px var(--sans); color: rgba(29,29,34,.62); white-space: nowrap;
@@ -3784,34 +3785,55 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   // and the backdrop turns into it, without opening the keyboard; only the arrow takes it into the editor
   const tryPhone = () => matchMedia('(max-width: 860px)').matches;
   let tryAt = 0, tryTimer = 0, tryTyping = 0;
+  // the picked word stays put, in its place, while the others around it keep changing
+  let tryPin = null;
   function showTry(first) {
-    const box = $('askTry'), v = $('askInput').value.trim().toLowerCase();
+    const box = $('askTry'), inp = $('askInput');
+    // typing something else lets the picked word go
+    if (tryPin && !tryTyping && inp.value.trim().toLowerCase() !== tryPin.w) tryPin = null;
     const fill = () => {
-      const words = Array.from({ length: 3 }, (_, k) => TRY[(tryAt + k) % TRY.length]);
-      box.innerHTML = words.map((w, k) => `<button type="button" class="try-chip${w === v ? ' on' : ''}" style="--i:${k}" data-w="${w}">${w}</button>`).join('');
-      // as many as fit across the screen, never more than three
+      const old = tryPin && [...box.children].find(c => c.dataset.w === tryPin.w);
+      const pool = TRY.filter(w => !tryPin || w !== tryPin.w);
+      const slots = 3, words = [];
+      for (let k = 0, j = 0; k < slots; k++) words.push(tryPin && k === tryPin.slot ? tryPin.w : pool[(tryAt + j++) % pool.length]);
+      box.innerHTML = '';
+      words.forEach((w, k) => {
+        const pinned = tryPin && w === tryPin.w;
+        const c = pinned && old ? old : Object.assign(document.createElement('button'), { type: 'button', className: 'try-chip' + (pinned ? ' on' : ''), textContent: w });
+        c.dataset.w = w; c.style.setProperty('--i', k); c.classList.remove('out');
+        box.appendChild(c);
+      });
+      // as many as fit across the screen, never more than three; the picked one always stays
       const room = box.clientWidth, gap = parseFloat(getComputedStyle(box).columnGap) || 0;
       let chips = [...box.children];
-      while (chips.length > 1 && chips.reduce((a, c) => a + c.offsetWidth, 0) + gap * (chips.length - 1) > room) chips.pop().remove();
-      tryAt = (tryAt + chips.length - 3 + TRY.length) % TRY.length;
+      while (chips.length > 1 && chips.reduce((a, c) => a + c.offsetWidth, 0) + gap * (chips.length - 1) > room) {
+        const drop = [...chips].reverse().find(c => !tryPin || c.dataset.w !== tryPin.w);
+        drop.remove(); chips = chips.filter(c => c !== drop);
+      }
+      if (tryPin) tryPin.slot = chips.findIndex(c => c.dataset.w === tryPin.w);
+      tryAt = (tryAt + chips.filter(c => !tryPin || c.dataset.w !== tryPin.w).length - (tryPin ? 2 : 3) + TRY.length) % TRY.length;
       box.classList.remove('swap');
     };
     if (first) return fill();
-    box.classList.add('swap'); setTimeout(fill, 300);
+    // only the words that are leaving fade out; the picked one stays where it is
+    if (tryPin) { [...box.children].forEach(c => { if (c.dataset.w !== tryPin.w) c.classList.add('out'); }); setTimeout(fill, 300); }
+    else { box.classList.add('swap'); setTimeout(fill, 300); }
   }
   function startTry() {
-    clearInterval(tryTimer); tryAt = Math.floor(Math.random() * TRY.length); showTry(true);
-    tryTimer = setInterval(() => { if ($('intro').classList.contains('typing')) return; tryAt = (tryAt + 3) % TRY.length; showTry(); }, 3600);
+    clearInterval(tryTimer); tryPin = null; tryAt = Math.floor(Math.random() * TRY.length); showTry(true);
+    tryTimer = setInterval(() => { if ($('intro').classList.contains('typing')) return; tryAt = (tryAt + (tryPin ? 2 : 3)) % TRY.length; showTry(); }, 3600);
   }
   // the word types itself in, a letter at a time
-  function playWord(w) {
+  function playWord(w, chip) {
     clearInterval(tryTyping);
     const inp = $('askInput'); let n = 0;
     inp.value = ''; inp.dispatchEvent(new Event('input'));
-    $('askTry').querySelectorAll('.try-chip').forEach(c => c.classList.toggle('on', c.dataset.w === w));
-    tryTyping = setInterval(() => { inp.value = w.slice(0, ++n); inp.dispatchEvent(new Event('input')); if (n >= w.length) clearInterval(tryTyping); }, 38);
+    const chips = [...$('askTry').querySelectorAll('.try-chip')];
+    chips.forEach(c => c.classList.toggle('on', c.dataset.w === w));
+    tryPin = chip ? { w, slot: chips.indexOf(chip) } : null;
+    tryTyping = setInterval(() => { inp.value = w.slice(0, ++n); inp.dispatchEvent(new Event('input')); if (n >= w.length) { clearInterval(tryTyping); tryTyping = 0; } }, 38);
   }
-  $('askTry').addEventListener('click', e => { const c = e.target.closest('.try-chip'); if (c) playWord(c.dataset.w); });
+  $('askTry').addEventListener('click', e => { const c = e.target.closest('.try-chip'); if (c) playWord(c.dataset.w, c); });
   $('askInput').addEventListener('focus', () => { if (tryPhone()) $('intro').classList.add('typing'); });
   $('askInput').addEventListener('blur', () => $('intro').classList.remove('typing'));
   let introTyped = null, typeT = 0, introCard = null;
