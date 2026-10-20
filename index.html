@@ -292,8 +292,11 @@ body, .card { transition: background-color .3s ease, color .3s ease, box-shadow 
   height: 28px; border-radius: 9px;
   background: linear-gradient(to right, var(--card-line-strong) var(--p, 50%), var(--card-sel) var(--p, 50%));
 }
+/* the thumb is as tall as the track and paints its short line in the middle, so the line sits centred
+   whether or not the browser centres the thumb on its own (Safari on iPhone does, Chrome doesn't) */
 .card input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 3px; height: 14px; margin-top: 7px; border-radius: 1.5px; background: var(--fg); opacity: .5;
+  -webkit-appearance: none; width: 3px; height: 28px; margin-top: 0; border: 0; border-radius: 0; opacity: .5;
+  background: linear-gradient(transparent calc(50% - 7px), var(--fg) 0, var(--fg) calc(50% + 7px), transparent 0);
 }
 .card input[type="range"]:hover::-webkit-slider-thumb, .card input[type="range"]:active::-webkit-slider-thumb { opacity: .9; }
 .card input[type="range"]::-moz-range-track { height: 28px; border-radius: 9px; background: var(--card-sel); }
@@ -858,8 +861,11 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
   .app { grid-template-columns: minmax(0, 1fr); }
   .dock { width: 100%; }
   .dock .tiles { flex: 1 1 0; min-width: 0; }
-  .dtools { display: flex; flex: none; border-left: 1px solid var(--card-line); padding-left: 6px; }
-  .sidebtn { display: inline-flex; gap: 6px; padding: 0 10px; }
+  /* Settings matches Presets and Fun mode, with the same thin divider in front of it */
+  .dtools { display: flex; flex: none; gap: 4px; }
+  .dtools::before { content: ""; width: 1px; margin: 9px 0; background: var(--card-line); flex: none; align-self: stretch; }
+  .sidebtn { display: inline-flex; gap: 6px; height: 42px; padding: 0 12px; border-radius: 12px; font: 600 13.5px/17px var(--sans); transition: background-color .2s ease, transform .2s ease; }
+  .sidebtn:active { transform: scale(.98); }
   /* the right column becomes a card that opens above the dock */
   /* settings open as a sheet over the lower half; the canvas moves up into the space above it, so you
      can watch every change as you make it */
@@ -891,11 +897,12 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
   .savebar { width: auto; gap: 2px; }
   .barbtn { height: 42px; padding: 0 12px; gap: 9px; min-width: 0; }
   .barbtn kbd, .bt2 { display: none; }
-  .pgrid { overflow-x: auto; scrollbar-width: none; padding: 14px 5px 8px; margin-top: -14px; }
+  /* presets run edge to edge across the screen as an endless carousel */
+  .pexp { left: 50%; right: auto; width: 100vw; transform: translateX(-50%); }
+  .pgrid { overflow-x: auto; scrollbar-width: none; padding: 14px 0 8px; margin-top: -14px; gap: 10px; overscroll-behavior-x: contain; }
   .pgrid::-webkit-scrollbar { display: none; }
-  .pcell { flex: 0 0 66px; }
-  .dtools { align-items: center; }
-  .dtools { border-left: 1px solid var(--card-line); }
+  .pcell { flex: 0 0 96px; }
+  .dtools { align-items: stretch; }
 }
 /* ---------- Touch screens: bigger targets, no keyboard hints ---------- */
 button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -909,8 +916,13 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   .card .row { min-height: 44px; }
   .card .ib { width: 40px; height: 40px; }
   .card .seg button { height: 38px; }
-  .card input[type="range"], .card input[type="range"]::-webkit-slider-runnable-track, .card input[type="range"]::-moz-range-track, .card input[type="range"]::-moz-range-progress { height: 40px; }
-  .card input[type="range"]::-webkit-slider-thumb { height: 18px; margin-top: 11px; }
+  /* kept as separate rules: a browser drops a whole selector list when one of its pseudo-elements is
+     another engine's, which is what left the thumb line sitting low on iPhones */
+  .card input[type="range"] { height: 40px; }
+  .card input[type="range"]::-webkit-slider-runnable-track { height: 40px; }
+  .card input[type="range"]::-moz-range-track { height: 40px; }
+  .card input[type="range"]::-moz-range-progress { height: 40px; }
+  .card input[type="range"]::-webkit-slider-thumb { height: 40px; background: linear-gradient(transparent calc(50% - 9px), var(--fg) 0, var(--fg) calc(50% + 9px), transparent 0); }
   .card .switch { width: 42px; height: 24px; }
   .card .switch span::after { top: 3px; left: 3px; width: 18px; height: 18px; }
   .card .switch input:checked + span::after { transform: translateX(18px); }
@@ -966,7 +978,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 }
 @media (max-width: 340px) { .top-actions { flex-wrap: wrap; } }
 @media (max-width: 480px) { .bt1 .xl { display: none; } }
-@media (max-width: 380px) { .side[data-tab="export"] .side-foot { grid-template-columns: repeat(4, minmax(0, 1fr)); padding-left: 12px; padding-right: 12px; } .side .side-foot .fbtn svg { display: none; } .dtools .dbtn { padding: 0 12px; } .barbtn { padding: 0 10px; gap: 7px; } }
+@media (max-width: 380px) { .side[data-tab="export"] .side-foot { grid-template-columns: repeat(4, minmax(0, 1fr)); padding-left: 12px; padding-right: 12px; } .side .side-foot .fbtn svg { display: none; } .dtools .dbtn { padding: 0 10px; } .barbtn { padding: 0 10px; gap: 7px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -1780,7 +1792,20 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
   // ---------- Canvas handles ----------
   const handles = $('handles');
+  let drag = null;
   function renderHandles() {
+    // while a dot is held, move the existing dots instead of rebuilding them: iOS stops sending
+    // touch moves once the element under the finger is taken out of the page
+    const want = S.mode === 'mesh' ? S.stops.length : S.mode !== 'linear' ? 1 : 0;
+    const hs = handles.children;
+    if (drag && hs.length === want) {
+      [...hs].forEach((h, i) => {
+        const o = S.mode === 'mesh' ? S.stops[i] : { x: S.cx, y: S.cy };
+        h.style.left = clamp(o.x, 0, 100) + '%'; h.style.top = clamp(o.y, 0, 100) + '%';
+        if (S.mode === 'mesh') { h.style.setProperty('--c', o.c); h.classList.toggle('sel', i === sel); }
+      });
+      return;
+    }
     handles.innerHTML = '';
     if (S.mode === 'mesh') {
       S.stops.forEach((s, i) => {
@@ -1804,7 +1829,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     handles.appendChild(h);
     return h;
   }
-  let drag = null;
   handles.addEventListener('pointerdown', e => {
     const h = e.target.closest('.h'); if (!h) return;
     e.preventDefault();
@@ -2551,6 +2575,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     presetSet = 1 - presetSet;
     renderLibrary();
     dockEl.classList.add('popen'); pPanel.inert = false; presetBtn.setAttribute('aria-expanded', 'true');
+    pStart();
   }
   function closePresets(refocus) {
     if (!presetsOpen()) return;
@@ -2564,19 +2589,51 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const list = PRESET_SETS[presetSet].slice();
     for (let i = list.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [list[i], list[j]] = [list[j], list[i]]; }
     const same = presetOn && JSON.stringify(S) === JSON.stringify(fromPreset(presetOn));
-    list.forEach((pr, i) => {
+    // on phones the row runs edge to edge as an endless carousel, so the tiles are laid out three times
+    const copies = phoneRow() ? 3 : 1;
+    for (let k = 0; k < copies; k++) list.forEach((pr, i) => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'pcell'; b.style.setProperty('--i', i); b.setAttribute('aria-label', `Load ${pr.name}`);
+      b.dataset.k = i;
+      if (k !== 1 && copies > 1) { b.tabIndex = -1; b.setAttribute('aria-hidden', 'true'); }
       b.innerHTML = '<span class="pv"></span>';
       b.firstChild.style.background = gradient(fromPreset(pr), false);
       b.classList.toggle('on', same && pr === presetOn);
       b.onclick = () => {
         S = fromPreset(pr); sel = 0; draw();
-        presetOn = pr; p.querySelectorAll('.pcell').forEach(c => c.classList.toggle('on', c === b));
+        presetOn = pr; p.querySelectorAll('.pcell').forEach(c => c.classList.toggle('on', c.dataset.k === b.dataset.k));
       };
       p.appendChild(b);
     });
   }
+  const phoneRow = () => matchMedia('(max-width: 860px)').matches;
+  // the phone carousel drifts on its own and can be swiped either way; it pauses while a finger is on
+  // it and, once the row comes to rest, jumps by one set of tiles so it never runs out
+  const pRow = $('presets');
+  let pPos = 0, pHeld = false, pIdle = 0, pRaf = 0, pLast = 0;
+  const pSet = () => { const c = pRow.children, n = c.length / 3; return n >= 1 ? c[n].offsetLeft - c[0].offsetLeft : 0; };
+  function pTick(t) {
+    pRaf = 0;
+    if (!presetsOpen() || !phoneRow()) return;
+    const dt = Math.min(50, t - (pLast || t)); pLast = t;
+    if (!pHeld && t > pIdle) {
+      const w = pSet();
+      if (Math.abs(pRow.scrollLeft - pPos) > 1) pPos = pRow.scrollLeft;
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) pPos += dt * .028;
+      if (pPos >= 2 * w) pPos -= w; else if (pPos < w * .5) pPos += w;
+      pRow.scrollLeft = Math.round(pPos);
+    }
+    pRaf = requestAnimationFrame(pTick);
+  }
+  function pStart() {
+    if (!phoneRow()) return;
+    pPos = pSet(); pRow.scrollLeft = Math.round(pPos); pLast = 0; pIdle = 0;
+    if (!pRaf) pRaf = requestAnimationFrame(pTick);
+  }
+  pRow.addEventListener('pointerdown', () => { pHeld = true; });
+  const pLet = () => { pHeld = false; pIdle = performance.now() + 900; };
+  pRow.addEventListener('pointerup', pLet); pRow.addEventListener('pointercancel', pLet);
+  pRow.addEventListener('scroll', () => { if (!pHeld && Math.abs(pRow.scrollLeft - Math.round(pPos)) > 1) pIdle = performance.now() + 250; }, { passive: true });
 
   // ---------- Copy + export ----------
   const toastEl = $('toast'); let tt;
