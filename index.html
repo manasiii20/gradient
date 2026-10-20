@@ -561,6 +561,12 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro-skip .kh { display: inline; }
 .intro-skip .th { display: none; }
 @media (hover: none), (pointer: coarse), (max-width: 860px) { .intro-skip .kh { display: none; } .intro-skip .th { display: inline; } }
+@media (max-width: 860px) {
+  .intro-top { align-self: stretch; width: 100%; text-align: right; padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px 0; }
+  .intro-skip { height: 34px; padding: 0 14px; border-radius: 999px; font: 500 13px/1 var(--sans); color: rgba(29,29,34,.7);
+    background: rgba(255,255,255,.45); box-shadow: inset 0 0 0 1px rgba(255,255,255,.65); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+  .intro.dim .intro-skip { color: rgba(255,255,255,.85); background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+}
 .intro { transition: opacity .7s ease, transform .9s cubic-bezier(.22,1,.36,1); }
 .intro.dim .ask-hint, .intro.dim .intro-skip { color: rgba(255,255,255,.6); }
 .intro.dim .ask-glass { background: rgba(255,255,255,.14); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 24px 50px -30px rgba(0,0,0,.6); }
@@ -584,20 +590,19 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   .ask-ph .ph-desk { display: none; }
   .ask-ph .ph-phone { display: inline; }
   .intro-mid { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5vh + 62px); }
-  .ask-try { position: absolute; left: 0; right: 0; top: 100%; margin-top: 16px; display: flex; justify-content: center; gap: 8px; transition: opacity .3s; }
+  .ask-try { position: absolute; left: 6px; right: 6px; top: 100%; margin-top: 14px; display: flex; justify-content: flex-start; gap: 6px; transition: opacity .3s; }
   .ask-try.swap { opacity: 0; }
   .intro.typing .ask-try, .ask:has(.ask-hint:not(:empty)) .ask-try { opacity: 0; pointer-events: none; }
-  .try-chip { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px 0 8px; border: 0; border-radius: 10px; font: 500 13px var(--sans); color: rgba(29,29,34,.78); white-space: nowrap;
-    background: rgba(255,255,255,.5); box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: chipin .4s cubic-bezier(.22,1,.36,1) both; animation-delay: calc(var(--i, 0) * 70ms); transition: transform .2s, background-color .2s; }
+  /* suggestions read as something to tap, not as tags: plain words in a thin outline, no colour dots */
+  .try-chip { display: inline-flex; align-items: center; height: 32px; padding: 0 13px; border: 1px solid rgba(29,29,34,.16); border-radius: 999px; background: none; font: 400 13px var(--sans); color: rgba(29,29,34,.62); white-space: nowrap;
+    animation: chipin .4s cubic-bezier(.22,1,.36,1) both; animation-delay: calc(var(--i, 0) * 70ms); transition: transform .2s, color .2s, border-color .2s, background-color .2s; }
+  .try-chip::before { content: "Try "; opacity: .55; margin-right: 3px; }
   .try-chip:active { transform: scale(.96); }
-  .try-chip.on { background: rgba(255,255,255,.9); color: #1d1d22; }
-  .try-chip i { display: inline-flex; }
-  .try-chip i b { width: 13px; height: 13px; border-radius: 50%; margin-left: -3px; box-shadow: 0 0 0 1.5px rgba(255,255,255,.9); }
-  .try-chip i b:first-child { margin-left: 0; }
-  .intro.dim .try-chip { color: rgba(255,255,255,.88); background: rgba(255,255,255,.14); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
-  .intro.dim .try-chip.on { background: rgba(255,255,255,.3); color: #fff; }
+  .try-chip.on { color: #1d1d22; border-color: rgba(29,29,34,.4); background: rgba(255,255,255,.35); }
+  .intro.dim .try-chip { color: rgba(255,255,255,.72); border-color: rgba(255,255,255,.24); }
+  .intro.dim .try-chip.on { color: #fff; border-color: rgba(255,255,255,.55); background: rgba(255,255,255,.1); }
 }
-@media (max-width: 380px) { .try-chip { padding: 0 10px 0 7px; font-size: 12.5px; } .ask-try { gap: 6px; } .ask-ph .ph-phone { display: none; } .ask-ph .ph-short { display: inline; } }
+@media (max-width: 380px) { .try-chip { padding: 0 11px; font-size: 12.5px; } .try-chip::before { display: none; } .ask-ph .ph-phone { display: none; } .ask-ph .ph-short { display: inline; } }
 @media (prefers-reduced-motion: reduce) { .ask-card, .ask-glass { animation: none; } }
 
 /* ---------- Onboarding: a welcome card, then a spotlight that glides from part to part ---------- */
@@ -3736,12 +3741,11 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   // and the backdrop turns into it, without opening the keyboard; only the arrow takes it into the editor
   const tryPhone = () => matchMedia('(max-width: 860px)').matches;
   let tryAt = 0, tryTimer = 0, tryHold = 0, tryTyping = 0;
-  const tryCols = w => { const { cols } = interpret(w); return (cols.length ? cols : wordPalette(w)).slice(0, 3); };
   function showTry(first) {
     const box = $('askTry'), v = $('askInput').value.trim().toLowerCase();
     const fill = () => {
       const words = Array.from({ length: 3 }, (_, k) => TRY[(tryAt + k) % TRY.length]);
-      box.innerHTML = words.map((w, k) => `<button type="button" class="try-chip${w === v ? ' on' : ''}" style="--i:${k}" data-w="${w}"><i>${tryCols(w).map(c => `<b style="background:${c}"></b>`).join('')}</i>${w}</button>`).join('');
+      box.innerHTML = words.map((w, k) => `<button type="button" class="try-chip${w === v ? ' on' : ''}" style="--i:${k}" data-w="${w}">${w}</button>`).join('');
       // as many as fit across the screen, never more than three
       const room = box.clientWidth, gap = parseFloat(getComputedStyle(box).columnGap) || 0;
       let chips = [...box.children];
@@ -3788,6 +3792,11 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
         const low = v.toLowerCase(), LABEL = { blackhole: /dark matter/.test(low) ? 'dark matter' : 'black hole', deepsea: 'deep sea', dragonfruit: 'dragon fruit', icecream: 'ice cream', sakura: /cherry blossom/.test(low) ? 'cherry blossom' : 'sakura',
           smores: 'burnt marshmallow', mariokart: 'mario kart', feverdream: 'fever dream', rainbowroad: 'rainbow road' };
         read.forEach(r => { if (LABEL[r.w]) r.w = LABEL[r.w]; });
+        for (let i = read.length - 1; i >= 0; i--) {
+          const r = read[i];
+          if (r.mod || r.unknown || !r.w.includes(' ')) continue;
+          read.splice(i, 1, ...r.w.split(' ').map(p => ({ ...r, w: p, cols: WORDS[p] && WORDS[p].length ? WORDS[p].slice(0, 3) : r.cols })));
+        }
         box.innerHTML = read.slice(0, 7).map(r => r.mod ? `<span class="ask-chip mod"><i>${['#e8833a', '#4a7fd6', '#c74f9a'].map(c => `<b style="background:${applyMod(c, r.mod, 1.4)}"></b>`).join('')}</i>${r.w}</span>`
           : `<span class="ask-chip"><i>${(r.unknown ? own(r.w) : r.cols).map(c => `<b style="background:${c}"></b>`).join('')}</i>${r.hint ? 'hint of ' : ''}${r.w}</span>`).join('');
       }
