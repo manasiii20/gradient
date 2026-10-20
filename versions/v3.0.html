@@ -564,9 +564,9 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 @media (max-width: 860px) {
   /* Skip: a small glass pill in the top left corner, lined up with everything else */
   .intro-top { align-self: stretch; width: 100%; text-align: left; padding: calc(env(safe-area-inset-top, 0px) + 30px) 26px 0; }
-  .intro-skip { height: 34px; padding: 0 14px; border-radius: 999px; font: 500 13px/1 var(--sans); color: rgba(29,29,34,.7);
+  .intro-skip { height: 34px; padding: 0 14px; border-radius: 999px; font: 500 13px/1 var(--sans); color: rgba(29,29,34,.45);
     background: rgba(255,255,255,.45); box-shadow: inset 0 0 0 1px rgba(255,255,255,.65); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
-  .intro.dim .intro-skip { color: rgba(255,255,255,.85); background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+  .intro.dim .intro-skip { color: rgba(255,255,255,.6); background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
   .ask-read { left: 6px; right: 6px; justify-content: flex-start; }
 }
 .intro { transition: opacity .7s ease, transform .9s cubic-bezier(.22,1,.36,1); }
@@ -692,7 +692,9 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .barbtn kbd { margin-left: auto; opacity: .45; font-size: 10.5px; padding: 1px 5px; }
 .sbdiv { width: 1px; margin: 9px 0; background: var(--card-line); flex: none; }
 /* on phones, saving lives in the settings sheet's Export tab, next to Copy CSS, Image and Video */
-#saveTopBtn, #saveSheetBtn { display: none; }
+#saveTopBtn, #saveSheetBtn, #introBack { display: none; }
+/* phones: a back arrow on the left of the top bar returns to the keyword screen (desktop uses the Gradient name) */
+@media (max-width: 860px) { .top .brand { display: none; } #introBack { display: inline-flex; margin-right: auto; flex: none; } }
 @media (max-width: 860px) {
   #saveSheetBtn { display: inline-flex; }
   .side[data-tab="export"] .side-foot { grid-template-columns: repeat(4, auto); }
@@ -1003,6 +1005,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   .top #randomBtn { padding: 0 10px; }
 }
 @media (max-width: 340px) { .top-actions { flex-wrap: wrap; } }
+#randomBtn .rdi { display: none; }
+/* the narrowest phones: Randomize becomes its shuffle icon, so the top bar stays on one row */
+@media (max-width: 360px) { #randomBtn .rdi { display: block; } #randomBtn .rdl { display: none; } .top #randomBtn { width: 38px; padding: 0; justify-content: center; } }
 @media (max-width: 480px) { .bt1 .xl { display: none; } }
 @media (max-width: 380px) { .side[data-tab="export"] .side-foot { grid-template-columns: repeat(4, minmax(0, 1fr)); padding-left: 12px; padding-right: 12px; } .side .side-foot .fbtn svg { display: none; } .dtools .dbtn { padding: 0 10px; } .barbtn { padding: 0 10px; gap: 7px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -1012,6 +1017,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
 <header class="top">
   <div class="brand">Gradient</div>
+  <button class="btn icon" id="introBack" type="button" aria-label="Back to the start" title="Back to the start"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M16 10H4M9 5l-5 5 5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   <div class="top-actions">
     <div class="hist" role="group" aria-label="History">
       <button class="btn icon" id="undoBtn" type="button" aria-label="Undo" title="Undo (Ctrl+Z / ⌘Z)" disabled><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M7.5 4.5L4 8l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M4 8h7.5a4.5 4.5 0 0 1 0 9H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
@@ -1024,7 +1030,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       <button class="btn" id="sizeBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sizeMenu" title="Size"><span class="szi" id="sizeIcon" aria-hidden="true"></span><span class="szl" id="sizeName"></span><svg class="chev" viewBox="0 0 11 7" width="11" height="7" aria-hidden="true"><path d="M1 1l4.5 4.5L10 1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <div class="pop card menu" id="sizeMenu" role="menu" aria-label="Size" hidden></div>
     </div>
-    <button class="btn primary" id="randomBtn" type="button">Randomize <kbd>R</kbd></button>
+    <button class="btn primary" id="randomBtn" type="button" aria-label="Randomize"><svg class="rdi" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M3.5 7.5h3.2c1.9 0 3 .9 4 2.4l2.6 4.2c1 1.5 2.1 2.4 4 2.4h3.2M3.5 16.5h3.2c1.4 0 2.4-.5 3.2-1.3M14.1 8.8c.8-.8 1.8-1.3 3.2-1.3h3.2M18 5l2.5 2.5L18 10M18 14l2.5 2.5L18 19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="rdl">Randomize</span> <kbd>R</kbd></button>
   </div>
 </header>
 
@@ -3982,7 +3988,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   // the Gradient name in the corner opens the intro again
   // every visit opens on the keyword intro; the tour after it only comes on the very first visit
   function maybeTour() { if ($('mixView').hidden) openIntro(); }
-  document.querySelector('.top .brand').addEventListener('click', () => { if ($('mixView').hidden && $('libView').hidden && tourAt < 0) openIntro(); });
+  const backToIntro = () => { if ($('mixView').hidden && $('libView').hidden && tourAt < 0) { closeSide(); closePresets(); openIntro(); } };
+  document.querySelector('.top .brand').addEventListener('click', backToIntro);
+  $('introBack').addEventListener('click', backToIntro);
   $('tourNext').onclick = () => tourAt < TOUR.length - 1 ? showTourStep(tourAt + 1) : endTour();
   $('tourSkip').onclick = () => tourAt === TOUR.length - 1 ? showTourStep(tourAt - 1) : endTour();
   addEventListener('resize', placeTour);
