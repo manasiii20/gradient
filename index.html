@@ -555,14 +555,11 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro-top { padding-top: calc(env(safe-area-inset-top, 0px) + 18px); }
 .intro-skip { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; color: rgba(29,29,34,.55); font: 400 12.5px/1 var(--sans); letter-spacing: .01em; padding: 6px 8px; border-radius: 8px; transition: color .2s; }
 .intro-skip:hover { color: #1d1d22; }
-.intro-skip .kh { display: inline-flex; align-items: center; gap: 8px; }
+.intro-skip .kh { display: inline; }
 .intro { transition: opacity .7s ease, transform .9s cubic-bezier(.22,1,.36,1); }
 .intro.dim .ask-hint, .intro.dim .intro-skip { color: rgba(255,255,255,.6); }
 .intro.dim .ask-glass { background: rgba(255,255,255,.14); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 24px 50px -30px rgba(0,0,0,.6); }
-.intro-skip .spacek { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; height: 22px; min-width: 64px; margin: 0; padding: 0 10px 1px; border-radius: 6px; font: 500 10.5px/1 var(--sans); letter-spacing: .04em; color: rgba(29,29,34,.62); opacity: 1;
-  background: rgba(255,255,255,.55); border: 1px solid rgba(29,29,34,.16); border-bottom-width: 2px; }
-.intro.dim .intro-skip .spacek { color: rgba(255,255,255,.8); background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.28); }
-@media (hover: none), (pointer: coarse) { .intro-skip .spacek { min-width: 0; } }
+.intro-skip .spacek { all: unset; font-weight: 600; color: inherit; }
 @media (max-width: 480px) {
   .ask-ph { font-size: 14px; }
   .ask-bar { gap: 0; padding-right: 7px; }
@@ -3299,9 +3296,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   const introEl = $('intro'), icv = $('introCv'), ictx = icv.getContext('2d'), iprev = $('introPrev');
   let introRaf = 0, introT0 = 0, introLast = 0, introBg = null, introPick = null;
   const introOpen = () => !introEl.hidden && !introEl.classList.contains('leaving');
-  // the resting backdrop: pale lavender, blue and blush, barely moving
-  const CALM = { name: 'Calm', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#f6f2ee', grain: 0, blur: 100,
-    stops: [['#ffffff', 0, 30, 30, 60], ['#6fa8ff', 25, 75, 25, 60], ['#ff8a3d', 50, 25, 75, 60], ['#ff8fb8', 75, 80, 80, 60], ['#fff3e6', 100, 50, 50, 60]] };
+  // the resting backdrop: mostly white and sky blue, with a touch of warm orange
+  const CALM = { name: 'Calm', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#fbfcff', grain: 0, blur: 100,
+    stops: [['#6ea6ff', 0, 15, 40, 60], ['#ffffff', 20, 50, 50, 60], ['#b4d0ff', 40, 85, 40, 60], ['#ffffff', 60, 50, 50, 60], ['#ffd3b3', 80, 70, 80, 60], ['#ffffff', 100, 30, 70, 60]] };
   // soften a gradient toward the paper colour so the backdrop never shouts
   const calmed = (st, k = .5) => {
     const mix = c => { const a = toRgb(c), w = [243, 242, 247]; return toHex(a.map((v, i) => v + (w[i] - v) * k)); };
@@ -3327,17 +3324,19 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     g.fillStyle = introBg.base; g.fillRect(0, 0, W, H);
     cols.slice(0, 6).forEach((c, i) => {
       const f = FLOW_SEEDS[i], m = Math.max(W, H);
-      const x = W * (.5 + .42 * Math.sin(t * f.w1 * 6 + f.a)), y = H * (.5 + .4 * Math.cos(t * f.w2 * 6 + f.b));
-      g.save(); g.translate(x, y); g.rotate(t * f.r * 6 + f.a); g.scale(1.9, .62);
-      const rr = m * (.42 + .1 * Math.sin(t * .2 + i));
+      const x = W * (.5 + .42 * Math.sin(t * f.w1 * 4.8 + f.a)), y = H * (.5 + .4 * Math.cos(t * f.w2 * 4.8 + f.b));
+      g.save(); g.translate(x, y); g.rotate(t * f.r * 4.8 + f.a); g.scale(1.9, .62);
+      const rr = m * (.42 + .1 * Math.sin(t * .16 + i));
       const gr = g.createRadialGradient(0, 0, 0, 0, 0, rr);
       gr.addColorStop(0, c); gr.addColorStop(.55, c + 'aa'); gr.addColorStop(1, c + '00');
       g.globalAlpha = .9; g.fillStyle = gr; g.fillRect(-rr, -rr, rr * 2, rr * 2); g.restore();
     });
     ictx.save();
-    if ('filter' in ictx) ictx.filter = `blur(${Math.round(icv.width / 26)}px)`;
+    if ('filter' in ictx) ictx.filter = `blur(${Math.round(icv.width / 40)}px)`;
     ictx.drawImage(flowCv, -icv.width * .08, -icv.height * .08, icv.width * 1.16, icv.height * 1.16);
     ictx.restore();
+    // seen through fluted glass: soft vertical ribs, about fourteen across
+    applyTexture(ictx, icv.width, icv.height, { texture: { on: true, kind: 'fluted', scale: Math.round((icv.width / 14 / Math.min(icv.width, icv.height) - .025) / .0011), depth: 45 } });
   }
   function setIntroBg(st) {
     const pc = iprev.getContext('2d'); pc.clearRect(0, 0, iprev.width, iprev.height); pc.drawImage(icv, 0, 0);
