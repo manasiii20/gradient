@@ -462,7 +462,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro-top, .intro-mid, .intro-bottom { position: relative; z-index: 1; text-align: center; }
 .intro-top { padding-top: calc(env(safe-area-inset-top, 0px) + 24px); }
 .intro-mark { font: 500 14px var(--sans); letter-spacing: -.01em; opacity: .55; }
-.intro-mid { flex: 1; display: flex; align-items: flex-end; justify-content: center; width: 100%; padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 7vh + 14px); }
+.intro-mid { flex: 1; display: flex; align-items: flex-end; justify-content: center; width: 100%; padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 5vh + 8px); }
 .ask { position: relative; width: min(820px, 100%); }
 /* the cards tuck behind the top of the glass, like papers in a folder */
 .ask-cards { position: absolute; left: 0; right: 0; top: 0; height: 150px; display: flex; justify-content: center; }
@@ -552,13 +552,15 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .ask-hint.miss { color: rgba(29,29,34,.75); }
 .intro-bottom { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 26px); }
 .intro-top { padding-top: calc(env(safe-area-inset-top, 0px) + 18px); }
-.intro-skip { display: inline-flex; align-items: center; border: 0; background: none; color: rgba(29,29,34,.5); font: 400 13px var(--sans); padding: 5px 8px; border-radius: 7px; transition: color .2s; }
+.intro-skip { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; color: rgba(29,29,34,.55); font: 400 12.5px/1 var(--sans); letter-spacing: .01em; padding: 6px 8px; border-radius: 8px; transition: color .2s; }
 .intro-skip:hover { color: #1d1d22; }
+.intro-skip .kh { display: inline-flex; align-items: center; gap: 8px; }
 .intro { transition: opacity .7s ease, transform .9s cubic-bezier(.22,1,.36,1); }
 .intro.dim .ask-hint, .intro.dim .intro-skip { color: rgba(255,255,255,.6); }
 .intro.dim .ask-glass { background: rgba(255,255,255,.14); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 24px 50px -30px rgba(0,0,0,.6); }
-.intro-skip kbd { margin: 0 4px; opacity: .7; }
-.intro-skip .spacek { display: inline-flex; align-items: center; justify-content: center; height: 20px; min-width: 54px; margin: 0 7px; padding: 0 8px; border-radius: 5px; font: 400 11.5px/1 var(--sans); color: inherit; background: none; border: 1px solid currentColor; opacity: .8; vertical-align: middle; position: relative; top: -1px; }
+.intro-skip .spacek { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; height: 22px; min-width: 64px; margin: 0; padding: 0 10px 1px; border-radius: 6px; font: 500 10.5px/1 var(--sans); letter-spacing: .04em; color: rgba(29,29,34,.62); opacity: 1;
+  background: rgba(255,255,255,.55); border: 1px solid rgba(29,29,34,.16); border-bottom-width: 2px; }
+.intro.dim .intro-skip .spacek { color: rgba(255,255,255,.8); background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.28); }
 @media (hover: none), (pointer: coarse) { .intro-skip .spacek { min-width: 0; } }
 @media (max-width: 480px) {
   .ask-ph { font-size: 14px; }
@@ -3311,6 +3313,15 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   };
   // themes: a palette, and the many words that call for it
   const THEMES = [
+    [['#05060f', '#141a3a', '#2b2f7a', '#6a5cd6'], 'midnight abyss void deepsea underwater trench nocturnal insomnia 3am witching'],
+    [['#060606', '#1c1c22', '#3a3a44', '#8a8a96'], 'noir obsidian onyx ink charcoal smoke smoky ash ashes graphite carbon soot black'],
+    [['#0b0410', '#2a0a2e', '#5a1258', '#c2185b'], 'velvet mystery seduction temptation sin opera theatre burlesque'],
+    [['#0a1410', '#123326', '#1f5a3d', '#7aa874'], 'jungle rainforest woods woodland pine pines evergreen moss mossy swamp bog'],
+    [['#120606', '#3a0b0f', '#7a1220', '#c9502e'], 'wine merlot bordeaux cellar whiskey bourbon cognac embers ember'],
+    [['#04070d', '#0c2238', '#1f4f7a', '#8fc4e8'], 'storm stormy tempest thunderstorm hurricane monsoon squall'],
+    [['#0a0612', '#22104a', '#4b1fa0', '#ff4fd8'], 'nebula cosmic eclipse blackhole supernova stardust'],
+    [['#0d0805', '#2b1a10', '#5a3420', '#c8956a'], 'espresso cocoa mocha chocolate leather tobacco mahogany walnut'],
+    [['#060c0c', '#0f2b2b', '#1a5050', '#5fb3a8'], 'deepwater lagoonnight emerald jade abyssal kelp'],
     [['#0b0a0d', '#4a0a12', '#1f0f1c', '#8a1010'], 'horror scary scare creepy spooky fear terror terrifying nightmare nightmares haunted haunt ghost ghosts ghoul demon demons devil evil death dead deadly blood bloody vampire vampires zombie zombies witch witches curse cursed grave graveyard crypt gothic goth sinister doom dread skull bones killer murder slasher monster monsters creature cult occult shadow shadows'],
     [['#2b0505', '#b3120f', '#ff3d1a', '#120404'], 'anger angry rage furious fury mad hate war battle violence aggressive intense danger dangerous alarm emergency'],
     [['#04141f', '#00e5ff', '#2b6bff', '#0a0a1a'], 'tech technology cyber cyberpunk robot robots digital future futuristic ai code coding computer hacker matrix data machine circuit hologram sci scifi'],
@@ -3383,7 +3394,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   }
   // read the words: what colours they bring, how they change those colours, and how they are put together
   function interpret(text, typing = false) {
-    const raw = text.toLowerCase().replace(/[^a-z\s'-]/g, ' ').replace(/ice cream/g, 'icecream').replace(/cherry blossom/g, 'sakura').replace(/dragon fruit/g, 'dragonfruit').replace(/cotton candy/g, 'candy').replace(/\b70s\b/g, 'retro');
+    const raw = text.toLowerCase().replace(/[^a-z\s'-]/g, ' ').replace(/ice cream/g, 'icecream').replace(/cherry blossom/g, 'sakura').replace(/dragon fruit/g, 'dragonfruit').replace(/dark matter/g, 'blackhole').replace(/black hole/g, 'blackhole').replace(/deep sea/g, 'deepsea').replace(/cotton candy/g, 'candy').replace(/\b70s\b/g, 'retro');
     const words = raw.split(/[\s-]+/).filter(Boolean);
     const read = [], cols = [], hints = [];
     let boost = 1, hint = false, pending = [];
@@ -3504,8 +3515,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       slot.appendChild(b); box.appendChild(slot);
     });
   }
-  const TRY = ['unicorn party', 'mango smoothie', 'dragonfruit disco', 'cotton candy', 'mermaid dreams', 'bubblegum galaxy', 'alien rave', 'rose garden',
-    'lava lamp', 'jellyfish glow', 'pink lemonade', 'sleepy cloud', 'midnight tacos', 'sunday pancakes', 'haunted house', 'dinosaur love', 'neon ramen', 'birthday cake']
+  const TRY = ['unicorn party', 'midnight velvet', 'mango smoothie', 'stormy sea', 'cotton candy', 'deep forest', 'mermaid dreams', 'obsidian',
+    'bubblegum galaxy', 'wine cellar', 'pink lemonade', 'nebula', 'lava lamp', 'espresso', 'jellyfish glow', 'neon noir', 'sunday pancakes', 'haunted house', 'dark matter', 'birthday cake']
   let phAt = -1, phTimer = 0;
   function nextPh(first) {
     phAt = (phAt + 1) % TRY.length;
@@ -3537,6 +3548,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       if (box.dataset.key !== key) {
         box.dataset.key = key;
         const own = wordPalette;
+        // words joined for reading are shown the way they were typed
+        const low = v.toLowerCase(), LABEL = { blackhole: /dark matter/.test(low) ? 'dark matter' : 'black hole', deepsea: 'deep sea', dragonfruit: 'dragon fruit', icecream: 'ice cream', sakura: /cherry blossom/.test(low) ? 'cherry blossom' : 'sakura' };
+        read.forEach(r => { if (LABEL[r.w]) r.w = LABEL[r.w]; });
         box.innerHTML = read.slice(0, 7).map(r => r.mod ? `<span class="ask-chip mod">${r.w}</span>`
           : `<span class="ask-chip"><i>${(r.unknown ? own(r.w) : r.cols).map(c => `<b style="background:${c}"></b>`).join('')}</i>${r.hint ? 'hint of ' : ''}${r.w}</span>`).join('');
       }
