@@ -3469,7 +3469,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     }
     ictx.fillStyle = vignette.g; ictx.fillRect(0, 0, cw, ch);
     grainFill = grainFill || ictx.createPattern(grainTile, 'repeat');
-    ictx.save(); ictx.globalAlpha = .07; ictx.globalCompositeOperation = 'overlay'; ictx.fillStyle = grainFill; ictx.fillRect(0, 0, cw, ch); ictx.restore();
+    ictx.save(); ictx.globalAlpha = .05; ictx.fillStyle = grainFill; ictx.fillRect(0, 0, cw, ch); ictx.restore();
   }
   let vignette = null, grainFill = null;
   const grainTile = document.createElement('canvas');
