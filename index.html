@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="gb-build" content="38">
+<meta name="gb-build" content="39">
 <script>
 // phones and in-app browsers keep an old copy of the page for a while: if the live page is a newer build,
 // load it once, fresh
@@ -611,6 +611,9 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
   .ask-try { position: absolute; left: 6px; right: 6px; top: 100%; margin-top: 14px; display: flex; justify-content: flex-start; gap: 6px; transition: opacity .3s; }
   .ask-try.swap { opacity: 0; }
   .try-chip.out { opacity: 0; transition: opacity .3s; }
+  /* while a word is picked, every chip keeps a fixed spot, so the picked one never moves */
+  .ask-try.pinned { height: 32px; }
+  .ask-try.pinned .try-chip { position: absolute; top: 0; }
   .intro.typing .ask-try, .ask:has(.ask-hint:not(:empty)) .ask-try { opacity: 0; pointer-events: none; }
   /* suggestions read as something to tap, not as tags: plain words in a thin outline, no colour dots */
   .try-chip { display: inline-flex; align-items: center; height: 32px; padding: 0 13px; border: 1px solid rgba(29,29,34,.16); border-radius: 999px; background: none; font: 400 13px var(--sans); color: rgba(29,29,34,.62); white-space: nowrap;
@@ -3785,43 +3788,64 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   // and the backdrop turns into it, without opening the keyboard; only the arrow takes it into the editor
   const tryPhone = () => matchMedia('(max-width: 860px)').matches;
   let tryAt = 0, tryTimer = 0, tryTyping = 0;
-  // the picked word stays put, in its place, while the others around it keep changing
+  // the picked word stays put, exactly where it is, while new words come and go in the room around it
   let tryPin = null;
+  const tryGap = () => parseFloat(getComputedStyle($('askTry')).columnGap) || 6;
+  function newChip(w) { const c = Object.assign(document.createElement('button'), { type: 'button', className: 'try-chip', textContent: w }); c.dataset.w = w; return c; }
+  // pin every chip where it sits now, so nothing shifts when the picked one is held in place
+  function holdChips() {
+    const box = $('askTry'), chips = [...box.children], xs = chips.map(c => c.offsetLeft);
+    box.classList.add('pinned');
+    chips.forEach((c, i) => { c.style.left = xs[i] + 'px'; });
+  }
   function showTry(first) {
     const box = $('askTry'), inp = $('askInput');
     // typing something else lets the picked word go
-    if (tryPin && !tryTyping && inp.value.trim().toLowerCase() !== tryPin.w) tryPin = null;
-    const fill = () => {
-      const old = tryPin && [...box.children].find(c => c.dataset.w === tryPin.w);
-      const pool = TRY.filter(w => !tryPin || w !== tryPin.w);
-      const slots = 3, words = [];
-      for (let k = 0, j = 0; k < slots; k++) words.push(tryPin && k === tryPin.slot ? tryPin.w : pool[(tryAt + j++) % pool.length]);
+    if (tryPin && !tryTyping && inp.value.trim().toLowerCase() !== tryPin.w) {
+      tryPin = null; box.classList.remove('pinned'); [...box.children].forEach(c => { c.style.left = ''; });
+    }
+    const fillFree = () => {
       box.innerHTML = '';
-      words.forEach((w, k) => {
-        const pinned = tryPin && w === tryPin.w;
-        const c = pinned && old ? old : Object.assign(document.createElement('button'), { type: 'button', className: 'try-chip' + (pinned ? ' on' : ''), textContent: w });
-        c.dataset.w = w; c.style.setProperty('--i', k); c.classList.remove('out');
-        box.appendChild(c);
-      });
-      // as many as fit across the screen, never more than three; the picked one always stays
-      const room = box.clientWidth, gap = parseFloat(getComputedStyle(box).columnGap) || 0;
+      Array.from({ length: 3 }, (_, k) => TRY[(tryAt + k) % TRY.length]).forEach((w, k) => { const c = newChip(w); c.style.setProperty('--i', k); box.appendChild(c); });
+      // as many as fit across the screen, never more than three
+      const room = box.clientWidth, gap = tryGap();
       let chips = [...box.children];
-      while (chips.length > 1 && chips.reduce((a, c) => a + c.offsetWidth, 0) + gap * (chips.length - 1) > room) {
-        const drop = [...chips].reverse().find(c => !tryPin || c.dataset.w !== tryPin.w);
-        drop.remove(); chips = chips.filter(c => c !== drop);
-      }
-      if (tryPin) tryPin.slot = chips.findIndex(c => c.dataset.w === tryPin.w);
-      tryAt = (tryAt + chips.filter(c => !tryPin || c.dataset.w !== tryPin.w).length - (tryPin ? 2 : 3) + TRY.length) % TRY.length;
+      while (chips.length > 1 && chips.reduce((a, c) => a + c.offsetWidth, 0) + gap * (chips.length - 1) > room) chips.pop().remove();
+      tryAt = (tryAt + chips.length) % TRY.length;
       box.classList.remove('swap');
     };
-    if (first) return fill();
-    // only the words that are leaving fade out; the picked one stays where it is
-    if (tryPin) { [...box.children].forEach(c => { if (c.dataset.w !== tryPin.w) c.classList.add('out'); }); setTimeout(fill, 300); }
-    else { box.classList.add('swap'); setTimeout(fill, 300); }
+    const fillAround = () => {
+      const pin = [...box.children].find(c => c.dataset.w === tryPin.w);
+      [...box.children].forEach(c => { if (c !== pin) c.remove(); });
+      const room = box.clientWidth, gap = tryGap(), pl = pin.offsetLeft, pr = pl + pin.offsetWidth;
+      // new words fill the space to the left of the picked one, then to its right, as far as they fit
+      const spans = [[0, pl - gap], [pr + gap, room]];
+      // each gap takes the next words in the list that fit it, so short ones fill small gaps
+      const used = new Set([tryPin.w]);
+      let k = 0;
+      for (const [from, to] of spans) {
+        let x = from;
+        for (let t = 0; t < TRY.length && box.children.length < 3; t++) {
+          const w = TRY[(tryAt + t) % TRY.length];
+          if (used.has(w)) continue;
+          const c = newChip(w); c.style.visibility = 'hidden'; box.appendChild(c);
+          const cw = c.offsetWidth;
+          if (x + cw > to) { c.remove(); continue; }
+          c.style.left = x + 'px'; c.style.visibility = ''; c.style.setProperty('--i', k++);
+          used.add(w); x += cw + gap;
+        }
+      }
+      // next time, carry on from after the last word shown
+      const last = [...box.children].filter(c => c !== pin).map(c => TRY.indexOf(c.dataset.w));
+      if (last.length) tryAt = (Math.max(...last.map(i => (i - tryAt + TRY.length) % TRY.length)) + tryAt + 1) % TRY.length;
+    };
+    if (first) return fillFree();
+    if (tryPin) { [...box.children].forEach(c => { if (c.dataset.w !== tryPin.w) c.classList.add('out'); }); setTimeout(fillAround, 300); }
+    else { box.classList.add('swap'); setTimeout(fillFree, 300); }
   }
   function startTry() {
-    clearInterval(tryTimer); tryPin = null; tryAt = Math.floor(Math.random() * TRY.length); showTry(true);
-    tryTimer = setInterval(() => { if ($('intro').classList.contains('typing')) return; tryAt = (tryAt + (tryPin ? 2 : 3)) % TRY.length; showTry(); }, 3600);
+    clearInterval(tryTimer); tryPin = null; $('askTry').classList.remove('pinned'); tryAt = Math.floor(Math.random() * TRY.length); showTry(true);
+    tryTimer = setInterval(() => { if (!$('intro').classList.contains('typing')) showTry(); }, 3600);
   }
   // the word types itself in, a letter at a time
   function playWord(w, chip) {
@@ -3830,7 +3854,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     inp.value = ''; inp.dispatchEvent(new Event('input'));
     const chips = [...$('askTry').querySelectorAll('.try-chip')];
     chips.forEach(c => c.classList.toggle('on', c.dataset.w === w));
-    tryPin = chip ? { w, slot: chips.indexOf(chip) } : null;
+    if (chip) { if (!tryPin) holdChips(); tryPin = { w }; }
     tryTyping = setInterval(() => { inp.value = w.slice(0, ++n); inp.dispatchEvent(new Event('input')); if (n >= w.length) { clearInterval(tryTyping); tryTyping = 0; } }, 38);
   }
   $('askTry').addEventListener('click', e => { const c = e.target.closest('.try-chip'); if (c) playWord(c.dataset.w, c); });
