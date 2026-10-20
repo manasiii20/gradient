@@ -292,8 +292,11 @@ body, .card { transition: background-color .3s ease, color .3s ease, box-shadow 
   height: 28px; border-radius: 9px;
   background: linear-gradient(to right, var(--card-line-strong) var(--p, 50%), var(--card-sel) var(--p, 50%));
 }
+/* the thumb is as tall as the track and paints its short line in the middle, so the line sits centred
+   whether or not the browser centres the thumb on its own (Safari on iPhone does, Chrome doesn't) */
 .card input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 3px; height: 14px; margin-top: 7px; border-radius: 1.5px; background: var(--fg); opacity: .5;
+  -webkit-appearance: none; width: 3px; height: 28px; margin-top: 0; border: 0; border-radius: 0; opacity: .5;
+  background: linear-gradient(transparent calc(50% - 7px), var(--fg) 0, var(--fg) calc(50% + 7px), transparent 0);
 }
 .card input[type="range"]:hover::-webkit-slider-thumb, .card input[type="range"]:active::-webkit-slider-thumb { opacity: .9; }
 .card input[type="range"]::-moz-range-track { height: 28px; border-radius: 9px; background: var(--card-sel); }
@@ -856,8 +859,11 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
   .app { grid-template-columns: minmax(0, 1fr); }
   .dock { width: 100%; }
   .dock .tiles { flex: 1 1 0; min-width: 0; }
-  .dtools { display: flex; flex: none; border-left: 1px solid var(--card-line); padding-left: 6px; }
-  .sidebtn { display: inline-flex; gap: 6px; padding: 0 10px; }
+  /* Settings matches Presets and Fun mode, with the same thin divider in front of it */
+  .dtools { display: flex; flex: none; gap: 4px; }
+  .dtools::before { content: ""; width: 1px; margin: 9px 0; background: var(--card-line); flex: none; align-self: stretch; }
+  .sidebtn { display: inline-flex; gap: 6px; height: 42px; padding: 0 12px; border-radius: 12px; font: 600 13.5px/17px var(--sans); transition: background-color .2s ease, transform .2s ease; }
+  .sidebtn:active { transform: scale(.98); }
   /* the right column becomes a card that opens above the dock */
   /* settings open as a sheet over the lower half; the canvas moves up into the space above it, so you
      can watch every change as you make it */
@@ -889,11 +895,12 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
   .savebar { width: auto; gap: 2px; }
   .barbtn { height: 42px; padding: 0 12px; gap: 9px; min-width: 0; }
   .barbtn kbd, .bt2 { display: none; }
-  .pgrid { overflow-x: auto; scrollbar-width: none; padding: 14px 5px 8px; margin-top: -14px; }
+  /* presets run edge to edge across the screen as an endless row you swipe through */
+  .pexp { left: 50%; right: auto; width: 100vw; transform: translateX(-50%); }
+  .pgrid { overflow-x: auto; scrollbar-width: none; padding: 14px 0 24px; margin: -14px 0 -12px; gap: 10px; overscroll-behavior-x: contain; }
   .pgrid::-webkit-scrollbar { display: none; }
-  .pcell { flex: 0 0 66px; }
-  .dtools { align-items: center; }
-  .dtools { border-left: 1px solid var(--card-line); }
+  .pcell { flex: 0 0 86px; }
+  .dtools { align-items: stretch; }
 }
 /* ---------- Touch screens: bigger targets, no keyboard hints ---------- */
 button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -907,8 +914,13 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   .card .row { min-height: 44px; }
   .card .ib { width: 40px; height: 40px; }
   .card .seg button { height: 38px; }
-  .card input[type="range"], .card input[type="range"]::-webkit-slider-runnable-track, .card input[type="range"]::-moz-range-track, .card input[type="range"]::-moz-range-progress { height: 40px; }
-  .card input[type="range"]::-webkit-slider-thumb { height: 18px; margin-top: 11px; }
+  /* kept as separate rules: a browser drops a whole selector list when one of its pseudo-elements is
+     another engine's, which is what left the thumb line sitting low on iPhones */
+  .card input[type="range"] { height: 40px; }
+  .card input[type="range"]::-webkit-slider-runnable-track { height: 40px; }
+  .card input[type="range"]::-moz-range-track { height: 40px; }
+  .card input[type="range"]::-moz-range-progress { height: 40px; }
+  .card input[type="range"]::-webkit-slider-thumb { height: 40px; background: linear-gradient(transparent calc(50% - 9px), var(--fg) 0, var(--fg) calc(50% + 9px), transparent 0); }
   .card .switch { width: 42px; height: 24px; }
   .card .switch span::after { top: 3px; left: 3px; width: 18px; height: 18px; }
   .card .switch input:checked + span::after { transform: translateX(18px); }
@@ -964,7 +976,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 }
 @media (max-width: 340px) { .top-actions { flex-wrap: wrap; } }
 @media (max-width: 480px) { .bt1 .xl { display: none; } }
-@media (max-width: 380px) { .side[data-tab="export"] .side-foot { grid-template-columns: repeat(4, minmax(0, 1fr)); padding-left: 12px; padding-right: 12px; } .side .side-foot .fbtn svg { display: none; } .dtools .dbtn { padding: 0 12px; } .barbtn { padding: 0 10px; gap: 7px; } }
+@media (max-width: 380px) { .side[data-tab="export"] .side-foot { grid-template-columns: repeat(4, minmax(0, 1fr)); padding-left: 12px; padding-right: 12px; } .side .side-foot .fbtn svg { display: none; } .dtools .dbtn { padding: 0 10px; } .barbtn { padding: 0 10px; gap: 7px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -1778,7 +1790,20 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
   // ---------- Canvas handles ----------
   const handles = $('handles');
+  let drag = null;
   function renderHandles() {
+    // while a dot is held, move the existing dots instead of rebuilding them: iOS stops sending
+    // touch moves once the element under the finger is taken out of the page
+    const want = S.mode === 'mesh' ? S.stops.length : S.mode !== 'linear' ? 1 : 0;
+    const hs = handles.children;
+    if (drag && hs.length === want) {
+      [...hs].forEach((h, i) => {
+        const o = S.mode === 'mesh' ? S.stops[i] : { x: S.cx, y: S.cy };
+        h.style.left = clamp(o.x, 0, 100) + '%'; h.style.top = clamp(o.y, 0, 100) + '%';
+        if (S.mode === 'mesh') { h.style.setProperty('--c', o.c); h.classList.toggle('sel', i === sel); }
+      });
+      return;
+    }
     handles.innerHTML = '';
     if (S.mode === 'mesh') {
       S.stops.forEach((s, i) => {
@@ -1802,7 +1827,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     handles.appendChild(h);
     return h;
   }
-  let drag = null;
   handles.addEventListener('pointerdown', e => {
     const h = e.target.closest('.h'); if (!h) return;
     e.preventDefault();
@@ -2480,34 +2504,82 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   };
   // turn the bowl into a real mesh gradient: each drop becomes a colour you can keep editing
   // the bowl as a mesh gradient: each drop becomes a colour, the overall mix becomes the background
+  // The globe becomes a mesh gradient by fitting one: the mesh is drawn in miniature over the same
+  // sample points as the bowl, a colour is added wherever the two still differ most, and every colour
+  // is then nudged (place, size, shade) until the mesh looks like the bowl. The bowl's square maps onto
+  // the canvas, and the corners outside the round bowl take the colour of its nearest rim.
   function bowlState(extra = {}) {
-    const P = [], acc = [0, 0, 0];
+    const P = [];
     for (let j = 2; j < FN; j += 4) for (let i = 2; i < FN; i += 4) {
-      const x = i * FH - 1, y = j * FH - 1;
-      if (x * x + y * y > .9) continue;
-      const o = (j * FN + i) * 3;
-      P.push([x, y, FD[o], FD[o + 1], FD[o + 2]]); acc[0] += FD[o]; acc[1] += FD[o + 1]; acc[2] += FD[o + 2];
+      const x = i * FH - 1, y = j * FH - 1, r = Math.hypot(x, y), k = r > .94 ? .94 / r : 1;
+      const ii = Math.round((x * k + 1) / FH), jj = Math.round((y * k + 1) / FH), o = (jj * FN + ii) * 3;
+      P.push({ x: 50 + x * 50, y: 50 + y * 50, w: k < 1 ? .4 : 1, t: [FD[o], FD[o + 1], FD[o + 2]] });
     }
     if (!P.length) return null;
-    const K = 6;
-    let C = Array.from({ length: K }, (_, i) => [...P[Math.floor((i + .5) / K * P.length)], 0]);
-    for (let it = 0; it < 8; it++) {
-      const sum = C.map(() => [0, 0, 0, 0, 0, 0]);
-      for (const p of P) {
-        let bi = 0, bd = Infinity;
-        C.forEach((c, ci) => {
-          const d = (p[2] - c[2]) ** 2 + (p[3] - c[3]) ** 2 + (p[4] - c[4]) ** 2 + ((p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2) * 2500;
-          if (d < bd) { bd = d; bi = ci; }
+    const W = P.reduce((a, p) => a + p.w, 0);
+    const base = [0, 1, 2].map(q => P.reduce((a, p) => a + p.t[q] * p.w, 0) / W);
+    // the editor draws each colour as a soft disc fading from its centre to its edge, laid over the base
+    const alpha = (st, p) => Math.max(0, 1 - Math.hypot(p.x - st.x, p.y - st.y) / st.s);
+    const render = stops => P.map(p => {
+      const c = base.slice();
+      for (const st of stops) { const a = alpha(st, p); if (a) for (let q = 0; q < 3; q++) c[q] += (st.c[q] - c[q]) * a; }
+      return c;
+    });
+    const err = (stops, out = render(stops)) => P.reduce((e, p, n) => e + p.w * ((p.t[0] - out[n][0]) ** 2 + (p.t[1] - out[n][1]) ** 2 + (p.t[2] - out[n][2]) ** 2), 0);
+    // best shade for one colour, holding the rest: least squares over how much it shows at each point
+    function reshade(stops, k) {
+      const st = stops[k], num = [0, 0, 0], seen = [0, 0, 0]; let den = 0, sw = 0;
+      P.forEach(p => {
+        const c = base.slice(); let wk = 0;
+        stops.forEach((s2, m) => {
+          const a = alpha(s2, p); if (!a) return;
+          if (m === k) wk = a; else if (m > k) wk *= 1 - a;
+          for (let q = 0; q < 3; q++) c[q] += (s2.c[q] - c[q]) * a;
         });
-        const a = sum[bi]; for (let q = 0; q < 5; q++) a[q] += p[q]; a[5]++;
-      }
-      C = sum.map((a, ci) => a[5] ? [...a.slice(0, 5).map(v => v / a[5]), a[5]] : [...C[ci].slice(0, 5), 0]);
+        if (!wk) return;
+        den += p.w * wk * wk; sw += p.w * wk;
+        for (let q = 0; q < 3; q++) { num[q] += p.w * wk * (p.t[q] - c[q]); seen[q] += p.w * wk * p.t[q]; }
+      });
+      if (den < 1e-6) return;
+      // stay near the colours actually in the bowl under this spot, so no shade appears that isn't there
+      const want = st.c.map((v, q) => v + num[q] / den), mid = seen.map(v => v / sw);
+      const off = Math.hypot(want[0] - mid[0], want[1] - mid[1], want[2] - mid[2]), lim = 28;
+      st.c = want.map((v, q) => clamp(off > lim ? mid[q] + (v - mid[q]) * lim / off : v, 0, 255));
     }
-    // big regions first, so smaller pools of colour sit on top of them, as they do in the bowl
-    const live = C.filter(c => c[5] > P.length * .02).sort((a, b) => b[5] - a[5]);
-    return { ...S, ...extra, mode: 'mesh', base: toHex(acc.map(v => v / P.length)),
-      stops: live.map((c, i) => ({ c: toHex([c[2], c[3], c[4]]), p: r1(i / Math.max(1, live.length - 1) * 100),
-        x: r1(50 + c[0] * 50), y: r1(50 + c[1] * 50), s: clamp(Math.round(Math.sqrt(c[5] / P.length) * 120), 25, 120) })) };
+    const stops = [];
+    let cur = err(stops);
+    for (let k = 0; k < 9; k++) {
+      // a new colour goes where the mesh is furthest from the bowl, smoothed so one stray speck can't win
+      const out = render(stops);
+      const miss = P.map((p, n) => p.w * Math.hypot(p.t[0] - out[n][0], p.t[1] - out[n][1], p.t[2] - out[n][2]));
+      let bi = 0, bv = -1;
+      P.forEach((p, n) => {
+        let v = 0; P.forEach((p2, m) => { const d = (p.x - p2.x) ** 2 + (p.y - p2.y) ** 2; if (d < 150) v += miss[m]; });
+        if (v > bv) { bv = v; bi = n; }
+      });
+      let best = null;
+      for (const sz of [18, 28, 42, 60, 85]) {
+        const st = { x: P[bi].x, y: P[bi].y, s: sz, c: P[bi].t.slice() };
+        const e = err([...stops, st]);
+        if (!best || e < best.e) best = { e, st };
+      }
+      if (k > 3 && best.e > cur * .995) break;
+      stops.push(best.st); cur = best.e;
+      // settle every colour after each addition
+      for (let pass = 0; pass < 3; pass++) stops.forEach((st, i) => {
+        reshade(stops, i);
+        for (const [key, d] of [['x', 4], ['y', 4], ['s', 6]]) for (const sg of [1, -1]) {
+          const was = st[key]; st[key] = was + sg * d;
+          if (st.s < 15 || st.s > 120) { st[key] = was; continue; }
+          const e = err(stops);
+          if (e < cur) cur = e; else st[key] = was;
+        }
+      });
+    }
+    stops.forEach((_, i) => reshade(stops, i));
+    return { ...S, ...extra, mode: 'mesh', blur: 100, base: toHex(base),
+      stops: stops.map((st, i) => ({ c: toHex(st.c), p: r1(i / Math.max(1, stops.length - 1) * 100),
+        x: r1(st.x), y: r1(st.y), s: clamp(Math.round(st.s), 15, 120) })) };
   }
   // S in fun mode saves the globe itself (as a round mesh gradient) and sends it flying into Library
   function saveBowl() {
@@ -2520,7 +2592,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     S = st;
     sel = 0;
     closeMix(); fit(); draw();
-    toast('Your mix is now a mesh gradient');
   };
 
   // ---------- Library ----------
@@ -2549,6 +2620,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     presetSet = 1 - presetSet;
     renderLibrary();
     dockEl.classList.add('popen'); pPanel.inert = false; presetBtn.setAttribute('aria-expanded', 'true');
+    pStart();
   }
   function closePresets(refocus) {
     if (!presetsOpen()) return;
@@ -2562,19 +2634,39 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const list = PRESET_SETS[presetSet].slice();
     for (let i = list.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [list[i], list[j]] = [list[j], list[i]]; }
     const same = presetOn && JSON.stringify(S) === JSON.stringify(fromPreset(presetOn));
-    list.forEach((pr, i) => {
+    // on phones the row runs edge to edge as an endless carousel, so the tiles are laid out three times
+    const copies = phoneRow() ? 3 : 1;
+    for (let k = 0; k < copies; k++) list.forEach((pr, i) => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'pcell'; b.style.setProperty('--i', i); b.setAttribute('aria-label', `Load ${pr.name}`);
+      b.dataset.k = i;
+      if (k !== 1 && copies > 1) { b.tabIndex = -1; b.setAttribute('aria-hidden', 'true'); }
       b.innerHTML = '<span class="pv"></span>';
       b.firstChild.style.background = gradient(fromPreset(pr), false);
       b.classList.toggle('on', same && pr === presetOn);
       b.onclick = () => {
         S = fromPreset(pr); sel = 0; draw();
-        presetOn = pr; p.querySelectorAll('.pcell').forEach(c => c.classList.toggle('on', c === b));
+        presetOn = pr; p.querySelectorAll('.pcell').forEach(c => c.classList.toggle('on', c.dataset.k === b.dataset.k));
       };
       p.appendChild(b);
     });
   }
+  const phoneRow = () => matchMedia('(max-width: 860px)').matches;
+  // the phone carousel stays still until swiped, either way; once the row comes to rest it jumps by
+  // one set of tiles, out of sight, so it never runs out
+  const pRow = $('presets');
+  let pHeld = false, pRest = 0;
+  const pSet = () => { const c = pRow.children, n = c.length / 3; return n >= 1 ? c[n].offsetLeft - c[0].offsetLeft : 0; };
+  function pWrap() {
+    if (pHeld || !presetsOpen() || !phoneRow()) return;
+    const w = pSet(), x = pRow.scrollLeft;
+    if (x >= 2 * w) pRow.scrollLeft = x - w; else if (x < w * .5) pRow.scrollLeft = x + w;
+  }
+  function pStart() { if (phoneRow()) pRow.scrollLeft = pSet(); }
+  pRow.addEventListener('pointerdown', () => { pHeld = true; });
+  const pLet = () => { pHeld = false; clearTimeout(pRest); pRest = setTimeout(pWrap, 200); };
+  pRow.addEventListener('pointerup', pLet); pRow.addEventListener('pointercancel', pLet);
+  pRow.addEventListener('scroll', () => { clearTimeout(pRest); pRest = setTimeout(pWrap, 200); }, { passive: true });
 
   // ---------- Copy + export ----------
   const toastEl = $('toast'); let tt;
@@ -3307,7 +3399,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   const introOpen = () => !introEl.hidden && !introEl.classList.contains('leaving');
   // the resting backdrop: mostly white and sky blue, with a touch of warm orange
   const CALM = { name: 'Calm', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#fbfcff', grain: 0, blur: 100,
-    stops: [['#6ea6ff', 0, 15, 40, 60], ['#ffffff', 20, 50, 50, 60], ['#b4d0ff', 40, 85, 40, 60], ['#ffffff', 60, 50, 50, 60], ['#ff8f45', 80, 70, 80, 60], ['#ffffff', 100, 30, 70, 60]] };
+    stops: [['#6ea6ff', 0, 15, 40, 60], ['#ffffff', 20, 50, 50, 60], ['#b4d0ff', 40, 85, 40, 60], ['#ffffff', 60, 50, 50, 60], ['#ff8f45', 80, 70, 80, 47], ['#ffffff', 100, 30, 70, 60]] };
   // soften a gradient toward the paper colour so the backdrop never shouts
   const calmed = (st, k = .5) => {
     const mix = c => { const a = toRgb(c), w = [243, 242, 247]; return toHex(a.map((v, i) => v + (w[i] - v) * k)); };
@@ -3331,13 +3423,17 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const cols = introBg.stops.map(x => x.c), g = flowCtx;
     g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
     g.fillStyle = introBg.base; g.fillRect(0, 0, W, H);
+    // on the resting backdrop a colour's spread sets its size: the orange is a smaller, crisper pool
+    const calm = introBg.base === CALM.base;
     cols.slice(0, 6).forEach((c, i) => {
-      const f = FLOW_SEEDS[i], m = Math.max(W, H);
+      const f = FLOW_SEEDS[i], m = Math.max(W, H), k = calm ? introBg.stops[i].s / 60 : 1;
       const x = W * (.5 + .42 * Math.sin(t * f.w1 * 4.8 + f.a)), y = H * (.5 + .4 * Math.cos(t * f.w2 * 4.8 + f.b));
       g.save(); g.translate(x, y); g.rotate(t * f.r * 4.8 + f.a); g.scale(1.9, .62);
-      const rr = m * (.42 + .1 * Math.sin(t * .16 + i));
+      const rr = m * (.42 + .1 * Math.sin(t * .16 + i)) * k;
       const gr = g.createRadialGradient(0, 0, 0, 0, 0, rr);
-      gr.addColorStop(0, c); gr.addColorStop(.55, c + 'aa'); gr.addColorStop(1, c + '00');
+      gr.addColorStop(0, c);
+      if (k < 1) gr.addColorStop(.68, c + 'cc'); else gr.addColorStop(.55, c + 'aa');
+      gr.addColorStop(1, c + '00');
       g.globalAlpha = .9; g.fillStyle = gr; g.fillRect(-rr, -rr, rr * 2, rr * 2); g.restore();
     });
     ictx.save();
