@@ -239,6 +239,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .side-scroll > .row:has(> #modes) + .psep { flex-basis: 6px; max-height: 26px; }
 .side-scroll::-webkit-scrollbar { display: none; }
 /* export sits at the foot of the column, always in view */
+.stabs { display: none; }
 .side-foot { flex: none; display: grid; grid-template-columns: auto auto auto; gap: 4px; padding: 6px 20px 20px; }
 .fbtn {
   display: inline-flex; align-items: center; justify-content: center; gap: 5px; height: 34px; padding: 0 6px; min-width: 0;
@@ -661,6 +662,16 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .bt2 { font: 400 11.5px/14px var(--sans); color: var(--muted); white-space: nowrap; }
 .barbtn kbd { margin-left: auto; opacity: .45; font-size: 10.5px; padding: 1px 5px; }
 .sbdiv { width: 1px; margin: 9px 0; background: var(--card-line); flex: none; }
+/* on phones, saving lives in the settings sheet's Export tab, next to Copy CSS, Image and Video */
+#saveTopBtn, #saveSheetBtn { display: none; }
+@media (max-width: 860px) {
+  #saveSheetBtn { display: inline-flex; }
+  .side[data-tab="export"] .side-foot { grid-template-columns: repeat(4, auto); }
+  .side .side-foot .fbtn { min-width: 0; }
+  .sidebtn svg { display: none; }
+  body.mixing #sizeWrap { display: none; }
+  #dock #saveBtn, #dock #saveBtn + .sbdiv, #dock .sbdiv:has(+ #saveBtn) { display: none; }
+}
 
 /* presets: one row of tiles that rises out of the bar, floating just above it (no panel around them) */
 #dock { position: relative; }
@@ -761,13 +772,18 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
   .mxname { height: 28px; font-size: 22px; line-height: 28px; grid-row: 1 / 3; align-self: center; }
   .mxrow { margin-top: 0; }
   .mxrgb { margin-top: 2px; }
-  .mxglobe-wrap { inset: 128px 124px 104px 12px; }
+  .mxglobe-wrap { inset: 128px 12px 206px 12px; }
   .mxtop { padding-left: 12px; }
-  .mxtemp { right: 12px; top: 140px; bottom: 96px; width: 104px; padding: 8px; }
+  /* on phones the two scales lie flat under the globe, so the globe can sit in the middle */
+  .mxtemp { left: 12px; right: 12px; top: auto; bottom: 96px; width: auto; padding: 6px; }
   .mxtemp > .mxlbl { display: none; }
-  .mxcols { margin-top: 0; gap: 4px; }
-  .mxcol { padding: 8px 0; font-size: 11px; }
-  .mxtrack { width: 14px; }
+  .mxcols { margin-top: 0; gap: 2px; grid-template-columns: 1fr; }
+  .mxcol { flex-direction: row; gap: 14px; padding: 13px 14px; font-size: 11.5px; }
+  .mxcol > span { flex: none; width: 34px; }
+  .mxcol > span:last-child { text-align: right; }
+  .mxtrack { flex: 1; width: auto; height: 14px; }
+  .mxcol[data-sc="warm"] .mxtrack { background: linear-gradient(90deg, #ff1500, #ff3d00 16%, #ff7a00 32%, #f9bc29 46%, #f6dcc0 60%, #ecc9f3 74%, #b3aef8 87%, #6586f6); }
+  .mxcol[data-sc="fresh"] .mxtrack { background: linear-gradient(90deg, #c3e83f, #6fe0a8 14%, #23c48e 28%, #10a6a6 42%, #1ec1e0 55%, #2a6fe0 68%, #3a33b8 80%, #7b2fd6 90%, #d42fb0); }
   .mxbar-wrap { left: 12px; right: 12px; }
   .mxbar-wrap .barbtn kbd { display: none; }
 }
@@ -845,10 +861,31 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
   .dtools { display: flex; flex: none; border-left: 1px solid var(--card-line); padding-left: 6px; }
   .sidebtn { display: inline-flex; gap: 6px; padding: 0 10px; }
   /* the right column becomes a card that opens above the dock */
+  /* settings open as a sheet over the lower half; the canvas moves up into the space above it, so you
+     can watch every change as you make it */
   .side {
-    position: fixed; z-index: 15; left: 16px; right: 16px; bottom: calc(var(--dock-h, 150px) + 4px);
-    width: auto; max-height: 62vh; margin: 0; display: none; animation: popin .16s ease-out; align-self: auto;
+    position: fixed; z-index: 15; left: 12px; right: 12px; bottom: var(--sheet-bottom, 90px);
+    width: auto; max-height: none; margin: 0; display: none; animation: sheetin .32s cubic-bezier(.22,1,.36,1); align-self: auto;
   }
+  /* one section at a time, picked from a row of tabs, so the sheet stays short and the canvas stays big */
+  .side .stabs { display: flex; gap: 2px; padding: 8px 8px 0; overflow-x: auto; scrollbar-width: none; flex: none; }
+  .side .stabs::-webkit-scrollbar { display: none; }
+  .side .stabs button { flex: 1 1 auto; min-width: 0; height: 34px; padding: 0 6px; border: 0; border-radius: 9px; background: none; color: var(--muted); font: 500 12.5px var(--sans); white-space: nowrap; }
+  .side .stabs button[aria-selected="true"] { background: var(--card-sel); color: var(--fg); }
+  .side .side-scroll { padding: 10px 0 12px; overflow: visible; min-height: 0; }
+  .side .side-scroll > .psep { display: none; }
+  .side .side-scroll > [data-sec] { display: none; }
+  .side[data-tab="type"] [data-sec="type"], .side[data-tab="colors"] [data-sec="colors"], .side[data-tab="adjust"] [data-sec="adjust"],
+  .side[data-tab="texture"] [data-sec="texture"], .side[data-tab="motion"] [data-sec="motion"] { display: flex; }
+  .side[data-tab="colors"] .bar[data-sec="colors"] { display: block; }
+  .side[data-tab="type"] [data-sec="type"] .seg { margin: 4px 0; }
+  .side .side-scroll > [data-sec][hidden] { display: none !important; }
+  .side .side-foot { display: none; padding: 12px 16px 14px; }
+  .side[data-tab="export"] .side-foot { display: grid; }
+  .side[data-tab="export"] .side-scroll { display: none; }
+  @keyframes sheetin { from { opacity: 0; transform: translateY(24px); } }
+  body.sheet-open .stage { padding-bottom: calc(var(--sheet-h, 0px) + 14px); }
+  body.sheet-anim .frame { transition: width .32s cubic-bezier(.22,1,.36,1), height .32s cubic-bezier(.22,1,.36,1); }
   .side.open { display: flex; }
   .dlabel { display: none; }
   .savebar { width: auto; gap: 2px; }
@@ -929,7 +966,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 }
 @media (max-width: 340px) { .top-actions { flex-wrap: wrap; } }
 @media (max-width: 480px) { .bt1 .xl { display: none; } }
-@media (max-width: 380px) { .sidebtn span { display: none; } .dtools .dbtn { padding: 0 12px; } .barbtn { padding: 0 10px; gap: 7px; } }
+@media (max-width: 380px) { .side[data-tab="export"] .side-foot { grid-template-columns: repeat(4, minmax(0, 1fr)); padding-left: 12px; padding-right: 12px; } .side .side-foot .fbtn svg { display: none; } .dtools .dbtn { padding: 0 12px; } .barbtn { padding: 0 10px; gap: 7px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -943,6 +980,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       <button class="btn icon" id="redoBtn" type="button" aria-label="Redo" title="Redo (Shift+Ctrl+Z / ⇧⌘Z)" disabled><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M12.5 4.5L16 8l-3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M16 8H8.5a4.5 4.5 0 0 0 0 9H11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     </div>
     <button class="btn icon theme" id="themeBtn" type="button" aria-label="Switch to dark mode" title="Switch to dark mode"><svg class="sun" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M10 2.5v1.6M10 15.9v1.6M2.5 10h1.6M15.9 10h1.6M4.7 4.7l1.1 1.1M14.2 14.2l1.1 1.1M4.7 15.3l1.1-1.1M14.2 5.8l1.1-1.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><svg class="moon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M16.5 12.2A6.6 6.6 0 0 1 7.8 3.5a6.6 6.6 0 1 0 8.7 8.7z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
+    <button class="btn icon" id="saveTopBtn" type="button" aria-label="Save to library" title="Save to library"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M5.5 3.5h9a1 1 0 0 1 1 1v12.2l-5.5-3.6-5.5 3.6V4.5a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/></svg></button>
     <button class="btn icon" id="libBtn" type="button" aria-label="Library" title="Library (L) · save with S"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="3" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="3" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="11" y="11" width="6" height="6" rx="1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
     <div class="menu-wrap" id="sizeWrap">
       <button class="btn" id="sizeBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sizeMenu" title="Size"><span class="szi" id="sizeIcon" aria-hidden="true"></span><span class="szl" id="sizeName"></span><svg class="chev" viewBox="0 0 11 7" width="11" height="7" aria-hidden="true"><path d="M1 1l4.5 4.5L10 1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -960,7 +998,15 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     </div>
   </div>
 
-  <aside class="side card" id="side" aria-label="Settings">
+  <aside class="side card" id="side" aria-label="Settings" data-tab="colors">
+    <div class="stabs" role="tablist" aria-label="Settings sections">
+      <button type="button" role="tab" data-tab="type">Type</button>
+      <button type="button" role="tab" data-tab="colors" aria-selected="true">Colours</button>
+      <button type="button" role="tab" data-tab="adjust">Adjust</button>
+      <button type="button" role="tab" data-tab="texture">Texture</button>
+      <button type="button" role="tab" data-tab="motion">Motion</button>
+      <button type="button" role="tab" data-tab="export">Export</button>
+    </div>
     <div class="side-scroll">
       <div class="row">
         <div class="seg" id="modes" role="group" aria-label="Gradient type">
@@ -1038,6 +1084,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       <button class="fbtn" id="copyBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M7 6l-4 4 4 4M13 6l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Copy CSS</span></button>
       <button class="fbtn" id="pngBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M10 3.5v9M6 9l4 4 4-4M4 16.5h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Image</span></button>
       <button class="fbtn" id="mp4Btn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="3" y="4.5" width="14" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8.5 8v4l3.5-2z" fill="currentColor"/></svg><span>Video</span></button>
+      <button class="fbtn" id="saveSheetBtn" type="button"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M5.5 3.5h9a1 1 0 0 1 1 1v12.2l-5.5-3.6-5.5 3.6V4.5a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none"/></svg><span>Save</span></button>
     </div>
   </aside>
 
@@ -1977,7 +2024,33 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
   // On phones the right column folds into a card that opens from the dock.
   const side = $('side'), sideBtn = $('sideBtn');
-  function closeSide() { side.classList.remove('open'); sideBtn.setAttribute('aria-expanded', 'false'); }
+  // on phones the canvas makes room for the settings sheet, sliding up into the space above it
+  // which section each part of the settings belongs to (only used by the phone sheet)
+  const secOf = (el, sec) => el && (el.closest('.side-scroll > *') || el).setAttribute('data-sec', sec);
+  secOf($('modes'), 'type');
+  [$('reverseBtn'), document.querySelector('.side .colorline'), $('bar')].forEach(el => secOf(el, 'colors'));
+  [$('sizeField'), $('angleField'), $('blur'), $('grain')].forEach(el => secOf(el, 'adjust'));
+  [$('texOn'), $('texKindsRow'), $('texSizeField'), $('texDepthField')].forEach(el => secOf(el, 'texture'));
+  [$('motionOn'), $('speedField'), $('amountField')].forEach(el => secOf(el, 'motion'));
+  side.querySelectorAll('.stabs button').forEach(t => t.addEventListener('click', () => {
+    side.dataset.tab = t.dataset.tab;
+    side.querySelectorAll('.stabs button').forEach(x => x.setAttribute('aria-selected', String(x === t)));
+    segs.forEach(seg => { seg.firstElementChild.classList.add('instant'); placeInd(seg); });
+  }));
+  function roomForSheet(open) {
+    if (open) document.documentElement.style.setProperty('--sheet-bottom', Math.round(innerHeight - $('dock').getBoundingClientRect().top + 6) + 'px');
+    if (document.body.classList.contains('sheet-open') === open) return;
+    document.documentElement.style.setProperty('--sheet-h', open ? side.offsetHeight + 'px' : '0px');
+    document.body.classList.add('sheet-anim');
+    document.body.classList.toggle('sheet-open', open);
+    fit(); draw();
+    clearTimeout(roomForSheet.t); roomForSheet.t = setTimeout(() => document.body.classList.remove('sheet-anim'), 360);
+  }
+  new ResizeObserver(() => {
+    if (!document.body.classList.contains('sheet-open')) return;
+    document.documentElement.style.setProperty('--sheet-h', side.offsetHeight + 'px'); fit(); draw();
+  }).observe(side);
+  function closeSide() { side.classList.remove('open'); sideBtn.setAttribute('aria-expanded', 'false'); roomForSheet(false); }
   sideBtn.addEventListener('click', () => {
     const open = !side.classList.contains('open');
     closeMenu(false); closeSide();
@@ -1986,8 +2059,10 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     document.documentElement.style.setProperty('--dock-h', $('dockWrap').offsetHeight + 'px');
     side.classList.add('open'); sideBtn.setAttribute('aria-expanded', 'true');
     segs.forEach(seg => { seg.firstElementChild.classList.add('instant'); placeInd(seg); });
+    roomForSheet(true);
   });
-  document.addEventListener('pointerdown', e => { if (!side.contains(e.target) && !sideBtn.contains(e.target)) closeSide(); });
+  // working on the canvas (dragging its dots) keeps the sheet open; anywhere else closes it
+  document.addEventListener('pointerdown', e => { if (!side.contains(e.target) && !sideBtn.contains(e.target) && !frame.contains(e.target) && !e.target.closest('#tour')) closeSide(); });
   addEventListener('resize', () => { if (!matchMedia('(max-width: 860px)').matches) closeSide(); });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && side.classList.contains('open')) { e.stopPropagation(); closeSide(); sideBtn.focus(); }
@@ -2083,6 +2158,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   const bowl = { src: [], stirs: [], fade: null, fadeT: 0, pending: null, ts: { warm: .46, fresh: .42 }, sc: 'warm', raf: 0, last: 0, time: 0, seed: 0, lastDropT: null, lastDropAt: 0, name: '' };
   const mxCv = $('mxGlobe'), mxCtx = mxCv.getContext('2d');
   const mxCols = [...document.querySelectorAll('.mxcol')];
+  // phones lay the scales flat (left to right); larger screens stand them up (top to bottom)
+  const mixFlat = () => matchMedia('(max-width: 860px)').matches;
   const mxOff = document.createElement('canvas'); mxOff.width = mxOff.height = 128;
   const mxOx = mxOff.getContext('2d');
   const mxNoise = (() => {
@@ -2123,7 +2200,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     mxCols.forEach(col => {
       const sc = col.dataset.sc, t = bowl.ts[sc], kc = mixColorAt(t, sc), knob = col.querySelector('.mxknob');
       col.classList.toggle('on', sc === bowl.sc);
-      knob.style.top = (t * 100) + '%'; knob.style.setProperty('--knob', kc);
+      if (mixFlat()) { knob.style.left = (t * 100) + '%'; knob.style.top = '50%'; }
+      else { knob.style.top = (t * 100) + '%'; knob.style.left = ''; }
+      knob.style.setProperty('--knob', kc);
       knob.setAttribute('aria-valuenow', Math.round(t * 100));
       knob.setAttribute('aria-valuetext', `${mixName(t, sc)} ${kc}`);
     });
@@ -2335,12 +2414,12 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   // the Fun mode switch slides on, then the playground opens; it switches off again on the way out
   $('funBtn').onclick = openMix;
   $('mixClose').onclick = closeMix;
-  addEventListener('resize', () => { if (!$('mixView').hidden) { alignMix(); fitMix(); } });
+  addEventListener('resize', () => { if (!$('mixView').hidden) { alignMix(); fitMix(); syncMixReadout(); } });
 
   // the sliders: dragging either one pours a little of each colour you pass through
   function mixSetT(e, track, sc) {
     const r = track.getBoundingClientRect();
-    bowl.sc = sc; bowl.ts[sc] = clamp((e.clientY - r.top) / r.height, 0, 1);
+    bowl.sc = sc; bowl.ts[sc] = clamp(mixFlat() ? (e.clientX - r.left) / r.width : (e.clientY - r.top) / r.height, 0, 1);
     syncMixReadout();
     const moved = bowl.lastDropT === null || Math.abs(curT() - bowl.lastDropT) > .045;
     if (moved && performance.now() - bowl.lastDropAt > 140) mixPour(bowl.lastDropT !== null);
@@ -2363,7 +2442,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     track.addEventListener('pointerup', end);
     track.addEventListener('pointercancel', end);
     knob.addEventListener('keydown', e => {
-      const d = { ArrowUp: -.04, ArrowDown: .04, PageUp: -.15, PageDown: .15 }[e.key];
+      const d = { ArrowUp: -.04, ArrowDown: .04, ArrowLeft: -.04, ArrowRight: .04, PageUp: -.15, PageDown: .15 }[e.key];
       if (d !== undefined) { e.preventDefault(); bowl.sc = sc; bowl.ts[sc] = clamp(bowl.ts[sc] + d, 0, 1); syncMixReadout(); }
       else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); bowl.sc = sc; mixPour(); bowlCommit(); }
     });
@@ -3064,6 +3143,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     return true;
   }
   $('saveBtn').onclick = () => saveToLibrary();
+  $('saveTopBtn').onclick = () => mixing() ? saveBowl() : saveToLibrary();
+  $('saveSheetBtn').onclick = () => saveToLibrary();
   function saveToLibrary(st = S, from) {
     if (st instanceof Event) st = S;
     const name = funName(st, library.map(x => x.name));
@@ -3612,18 +3693,18 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   // Enter / → next, ← back, Esc skips. The ? button (or the ? key) plays it again.
   const TOUR = [
     { title: 'Welcome to Gradient', text: 'Make soft, grainy gradients, set them moving, and take them anywhere as CSS, an image or a video. Here is a quick look around, and you can try each part as you go.', next: 'Show me around' },
-    { el: ['#frame'], title: 'Your canvas', text: 'Drag a dot to move its colour around. Go on, try it.<span class="kh"> Pinch on a trackpad, or hold <kbd>⌘</kbd> / <kbd>Ctrl</kbd> and scroll, to zoom in.</span>' },
-    { el: ['#side', '#sideBtn'], title: 'Shape it', text: 'Pick linear, radial or mesh, then tune the colours, blur, noise, glass texture and motion. Have a play.' },
+    { el: ['#frame'], title: 'Your canvas', ptext: 'Drag a dot to move its colour around. Go on, try it.', text: 'Drag a dot to move its colour around. Go on, try it.<span class="kh"> Pinch on a trackpad, or hold <kbd>⌘</kbd> / <kbd>Ctrl</kbd> and scroll, to zoom in.</span>' },
+    { el: ['#side', '#sideBtn'], also: ['#side'], title: 'Shape it', ptext: 'Tap Settings, then flip through the tabs: type, colours, blur and noise, glass texture and motion. Have a play.', text: 'Pick linear, radial or mesh, then tune the colours, blur, noise, glass texture and motion. Have a play.' },
     { el: ['#presetBtn'], also: ['#pPanel'], key: 'p', title: 'Presets', text: 'Not sure where to start? Open the row of classics and pick one to try it.<span class="kh"> Or press <kbd>P</kbd>.</span>' },
-    { el: ['#funBtn'], key: 'f', title: 'Fun mode', text: 'Pour colours into a liquid globe, then turn the mix into a gradient. Open it for a go; the tour waits here until you are back.' },
-    { el: ['#saveBtn'], key: 's', title: 'Save to library', text: 'Keep what you make. Try it and watch it fly into your Library, up top.<span class="kh"> Or press <kbd>S</kbd>.</span>' },
-    { el: ['.side-foot', '#sideBtn'], hug: true, title: 'Take it with you', text: 'Copy the CSS, or export an image or a looping video in the size you need.' },
-    { el: ['#randomBtn'], key: 'r', title: 'Feeling stuck?', text: 'Randomize gives you something new any time. Press it a few times and keep the one you like.<span class="kh"> Or press <kbd>R</kbd>.</span>', next: 'Start creating' },
+    { el: ['#funBtn'], key: 'f', title: 'Fun mode', ptext: 'Pour colours into a liquid globe, then turn the mix into a gradient. Tap it for a go; the tour waits here until you are back.', text: 'Pour colours into a liquid globe, then turn the mix into a gradient. Open it for a go; the tour waits here until you are back.' },
+    { el: ['#saveBtn'], pel: ['#saveSheetBtn'], sheet: 'export', key: 's', title: 'Save to library', ptext: 'On your phone, saving lives in Settings, under Export. Tap Save and watch it fly into your Library, up top.', text: 'Keep what you make. Try it and watch it fly into your Library, up top.<span class="kh"> Or press <kbd>S</kbd>.</span>' },
+    { el: ['.side-foot', '#sideBtn'], sheet: 'export', hug: true, title: 'Take it with you', text: 'Copy the CSS, or export an image or a looping video in the size you need.' },
+    { el: ['#randomBtn'], key: 'r', title: 'Feeling stuck?', ptext: 'Randomize gives you something new any time. Tap it a few times and keep the one you like.', text: 'Randomize gives you something new any time. Press it a few times and keep the one you like.<span class="kh"> Or press <kbd>R</kbd>.</span>', next: 'Start creating' },
   ];
   const tourEl = $('tour'), spot = $('tourSpot'), tcard = $('tourCard');
   let tourAt = -1, tourBack = null;
   const visible = el => el && el.getClientRects().length && el.getBoundingClientRect().width > 0;
-  const tourTarget = st => (st.el || []).map(q => document.querySelector(q)).find(visible);
+  const tourTarget = st => ((onPhone() && st.pel) || st.el || []).map(q => document.querySelector(q)).find(visible);
   // everything outside the highlight is covered, so only the part being shown can be used
   const blocks = [...document.querySelectorAll('.tour-block')];
   blocks.forEach(bl => bl.addEventListener('wheel', e => {
@@ -3661,7 +3742,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       h = { l: b.left - px, t: b.top - py, r: b.right + px, b: b.bottom + py };
     }
     // presets: once the row is open, the highlight grows to take it in, so it can be clicked
-    if (st.also && dockEl.classList.contains('popen')) st.also.map(q => document.querySelector(q)).filter(visible).forEach(el => {
+    if (st.also && (dockEl.classList.contains('popen') || side.classList.contains('open'))) st.also.map(q => document.querySelector(q)).filter(visible).filter(el => el !== t).forEach(el => {
       const c = el.getBoundingClientRect();
       h = { l: Math.min(h.l, c.left - pad), t: Math.min(h.t, c.top - pad - 8), r: Math.max(h.r, c.right + pad), b: Math.max(h.b, c.bottom + pad) };
     });
@@ -3684,12 +3765,21 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     x = clamp(x, m, vw - cw - m); y = clamp(y, m, vh - ch - m);
     tcard.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
   }
+  const onPhone = () => matchMedia('(max-width: 860px)').matches;
+  // on phones some steps open the settings sheet on the right tab, so what they point at is in view
+  function tourSheet(tab) {
+    if (!onPhone()) return;
+    if (!tab) { closeSide(); return; }
+    if (!side.classList.contains('open')) sideBtn.click();
+    const t = side.querySelector(`.stabs [data-tab="${tab}"]`); if (t) t.click();
+  }
   function showTourStep(i) {
     tourAt = i;
     const st = TOUR[i];
+    tourSheet(st.sheet);
     tourEl.classList.toggle('welcome', i === 0);
     $('tourTitle').textContent = st.title;
-    $('tourText').innerHTML = st.text;
+    $('tourText').innerHTML = onPhone() && st.ptext ? st.ptext : st.text;
     $('tourCount').textContent = `${i} of ${TOUR.length - 1}`;
     $('tourNext').textContent = st.next || 'Next';
     $('tourSkip').textContent = i === TOUR.length - 1 ? 'Back' : 'Skip';
@@ -3711,12 +3801,13 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   }
   function endTour() {
     tourAt = -1; tourEl.hidden = true; tourEl.classList.remove('away');
+    if (onPhone()) closeSide();
     store.set('gb-onboarded', 1);
     tourBack && tourBack.focus && tourBack.focus();
   }
   // a first visit opens on the intro screen, and the tour follows once you are in;
   // the Gradient name in the corner opens the intro again
-  function maybeTour() { if (!store.get('gb-onboarded', 0) && $('mixView').hidden) openIntro(); }
+  function maybeTour() { if (!store.get('gb-onboarded', 0) && $('mixView').hidden) { if (onPhone()) openTour(); else openIntro(); } }
   document.querySelector('.top .brand').addEventListener('click', () => { if ($('mixView').hidden && $('libView').hidden && tourAt < 0) openIntro(); });
   $('tourNext').onclick = () => tourAt < TOUR.length - 1 ? showTourStep(tourAt + 1) : endTour();
   $('tourSkip').onclick = () => tourAt === TOUR.length - 1 ? showTourStep(tourAt - 1) : endTour();
