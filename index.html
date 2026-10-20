@@ -240,7 +240,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: 4px; border: 
 .side-scroll::-webkit-scrollbar { display: none; }
 /* export sits at the foot of the column, always in view */
 .stabs { display: none; }
-.side-foot { flex: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 6px 20px 20px; }
+.side-foot { flex: none; display: grid; grid-template-columns: auto auto auto; gap: 4px; padding: 6px 20px 20px; }
 .fbtn {
   display: inline-flex; align-items: center; justify-content: center; gap: 5px; height: 34px; padding: 0 6px; min-width: 0;
   border: 0; border-radius: 10px; background: var(--card-sel); color: var(--fg); font: 500 13px var(--sans); white-space: nowrap;
@@ -665,13 +665,15 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .bt2 { font: 400 11.5px/14px var(--sans); color: var(--muted); white-space: nowrap; }
 .barbtn kbd { margin-left: auto; opacity: .45; font-size: 10.5px; padding: 1px 5px; }
 .sbdiv { width: 1px; margin: 9px 0; background: var(--card-line); flex: none; }
-/* saving lives with the export buttons, next to Copy CSS, Image and Video */
-#saveTopBtn { display: none; }
+/* on phones, saving lives in the settings sheet's Export tab, next to Copy CSS, Image and Video */
+#saveTopBtn, #saveSheetBtn { display: none; }
 @media (max-width: 860px) {
+  #saveSheetBtn { display: inline-flex; }
   .side[data-tab="export"] .side-foot { grid-template-columns: repeat(4, auto); }
   .side .side-foot .fbtn { min-width: 0; }
   .sidebtn svg { display: none; }
   body.mixing #sizeWrap { display: none; }
+  #dock #saveBtn, #dock #saveBtn + .sbdiv, #dock .sbdiv:has(+ #saveBtn) { display: none; }
 }
 
 /* presets: one row of tiles that rises out of the bar, floating just above it (no panel around them) */
@@ -1099,7 +1101,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   </aside>
 
   <div class="dock-wrap" id="dockWrap">
-    <div class="dock card savebar" id="dock" role="toolbar" aria-label="Presets and fun mode">
+    <div class="dock card savebar" id="dock" role="toolbar" aria-label="Presets, save and fun mode">
       <div class="pexp" id="pPanel" inert>
         <div class="pgrid" id="presets" role="group" aria-label="Presets"></div>
       </div>
@@ -1111,6 +1113,11 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       <button class="barbtn" id="funBtn" type="button">
         <span class="bt"><span class="bt1">Fun mode</span><span class="bt2">Mix colours in a globe</span></span>
         <kbd>F</kbd>
+      </button>
+      <span class="sbdiv" aria-hidden="true"></span>
+      <button class="barbtn" id="saveBtn" type="button">
+        <span class="bt"><span class="bt1">Save<span class="xl"> to library</span></span><span class="bt2">Keep this gradient</span></span>
+        <kbd>S</kbd>
       </button>
       <div class="dtools">
         <button class="dbtn sidebtn" type="button" id="sideBtn" aria-expanded="false" aria-controls="side" title="Settings"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4 6h7M15 6h1M4 14h1M9 14h7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="13" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="7" cy="14" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span>Settings</span></button>
@@ -1233,7 +1240,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   <div class="libgrid" id="libGrid"></div>
   <div class="libempty" id="libEmpty" hidden>
     <p>Nothing saved yet.</p>
-    <p>Make something you like, then press <b>Save</b> or <kbd>S</kbd>. It will show up here.</p>
+    <p>Make something you like, then press <b>Save to library</b> or <kbd>S</kbd>. It will show up here.</p>
   </div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -2393,7 +2400,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   // fun mode lines up with the editor: its bar sits exactly where the editor's bar is, and the
   // globe is centred above it, in the space the canvas uses
   function alignMix() {
-    const r = $('dock').getBoundingClientRect(), b = $('presetBtn').getBoundingClientRect();
+    const r = $('dock').getBoundingClientRect(), b = $('saveBtn').getBoundingClientRect();
     const d = { left: r.left, width: r.width, bottom: r.bottom, top: b.top - 5 }, wrap = document.querySelector('.mxbar-wrap');
     wrap.style.left = d.left + 'px'; wrap.style.width = d.width + 'px'; wrap.style.right = 'auto';
     wrap.style.bottom = (innerHeight - d.bottom) + 'px';
@@ -3227,6 +3234,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     };
     return true;
   }
+  $('saveBtn').onclick = () => saveToLibrary();
   $('saveTopBtn').onclick = () => mixing() ? saveBowl() : saveToLibrary();
   $('saveSheetBtn').onclick = () => saveToLibrary();
   function saveToLibrary(st = S, from) {
@@ -3781,7 +3789,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     { el: ['#side', '#sideBtn'], also: ['#side'], title: 'Shape it', ptext: 'Tap Settings, then flip through the tabs: type, colours, blur and noise, glass texture and motion. Have a play.', text: 'Pick linear, radial or mesh, then tune the colours, blur, noise, glass texture and motion. Have a play.' },
     { el: ['#presetBtn'], also: ['#pPanel'], key: 'p', title: 'Presets', text: 'Not sure where to start? Open the row of classics and pick one to try it.<span class="kh"> Or press <kbd>P</kbd>.</span>' },
     { el: ['#funBtn'], key: 'f', title: 'Fun mode', ptext: 'Pour colours into a liquid globe, then turn the mix into a gradient. Tap it for a go; the tour waits here until you are back.', text: 'Pour colours into a liquid globe, then turn the mix into a gradient. Open it for a go; the tour waits here until you are back.' },
-    { el: ['#saveSheetBtn'], sheet: 'export', key: 's', title: 'Save to library', ptext: 'On your phone, saving lives in Settings, under Export. Tap Save and watch it fly into your Library, up top.', text: 'Keep what you make. Save sits with the export buttons; try it and watch it fly into your Library, up top.<span class="kh"> Or press <kbd>S</kbd>.</span>' },
+    { el: ['#saveBtn'], pel: ['#saveSheetBtn'], sheet: 'export', key: 's', title: 'Save to library', ptext: 'On your phone, saving lives in Settings, under Export. Tap Save and watch it fly into your Library, up top.', text: 'Keep what you make. Try it and watch it fly into your Library, up top.<span class="kh"> Or press <kbd>S</kbd>.</span>' },
     { el: ['.side-foot', '#sideBtn'], sheet: 'export', hug: true, title: 'Take it with you', text: 'Copy the CSS, or export an image or a looping video in the size you need.' },
     { el: ['#randomBtn'], key: 'r', title: 'Feeling stuck?', ptext: 'Randomize gives you something new any time. Tap it a few times and keep the one you like.', text: 'Randomize gives you something new any time. Press it a few times and keep the one you like.<span class="kh"> Or press <kbd>R</kbd>.</span>', next: 'Start creating' },
   ];
