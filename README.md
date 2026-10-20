@@ -9,7 +9,7 @@ a saved library, and PNG / MP4 export. It's a single file, `index.html`, with no
 - `versions/v3.0.html` is v3, the live version: floating layout with a right settings column, textures, a bottom bar
   (Presets / Fun mode / Save to library) with two rotating sets of presets, canvas zoom, image export settings (size, PNG / JPG / WebP, quality, background), and Fun mode, where colours
   are poured into a liquid globe and turned into a mesh gradient.
-  First visits start with a hands-on 7-step tour (desktop and phone). A keyword intro screen is being built on the `v5` branch
+  First visits open on a keyword intro: describe a gradient in a few words (on phones, tap one of the words offered under the bar) and the backdrop turns into it, then a hands-on 7-step tour follows
 - `versions/archive/` holds in-between snapshots
 - `saved-for-later/` is the separate "What I saved for later" dock animation
 
