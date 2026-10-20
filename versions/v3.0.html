@@ -3836,7 +3836,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (way === 'random') randomize();
     else if (way === 'go' && introPick) { S = { ...introPick, format: '16:9' }; sel = 0; fit(); draw(); }
     else { fit(); draw(); }
-    store.set('gb-onboarded', 1);
+    store.set('gb-onboarded', 1); store.set('gb-intro', 1);
     introEl.classList.add('leaving');
     setTimeout(() => {
       introEl.hidden = true; cancelAnimationFrame(introRaf); introRaf = 0; clearInterval(phTimer); clearInterval(tryTimer); clearInterval(tryTyping);
@@ -3975,7 +3975,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   }
   // a first visit opens on the intro screen, and the tour follows once you are in;
   // the Gradient name in the corner opens the intro again
-  function maybeTour() { if (!store.get('gb-onboarded', 0) && $('mixView').hidden) openIntro(); }
+  // the keyword intro is new, so everyone sees it once, including people who already took the tour
+  function maybeTour() { if (!store.get('gb-intro', 0) && $('mixView').hidden) openIntro(); }
   document.querySelector('.top .brand').addEventListener('click', () => { if ($('mixView').hidden && $('libView').hidden && tourAt < 0) openIntro(); });
   $('tourNext').onclick = () => tourAt < TOUR.length - 1 ? showTourStep(tourAt + 1) : endTour();
   $('tourSkip').onclick = () => tourAt === TOUR.length - 1 ? showTourStep(tourAt - 1) : endTour();
