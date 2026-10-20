@@ -897,11 +897,11 @@ body.mixing #sizeBtn { opacity: .4; pointer-events: none; }
   .savebar { width: auto; gap: 2px; }
   .barbtn { height: 42px; padding: 0 12px; gap: 9px; min-width: 0; }
   .barbtn kbd, .bt2 { display: none; }
-  /* presets run edge to edge across the screen as an endless carousel */
+  /* presets run edge to edge across the screen as an endless row you swipe through */
   .pexp { left: 50%; right: auto; width: 100vw; transform: translateX(-50%); }
   .pgrid { overflow-x: auto; scrollbar-width: none; padding: 14px 0 8px; margin-top: -14px; gap: 10px; overscroll-behavior-x: contain; }
   .pgrid::-webkit-scrollbar { display: none; }
-  .pcell { flex: 0 0 96px; }
+  .pcell { flex: 0 0 86px; }
   .dtools { align-items: stretch; }
 }
 /* ---------- Touch screens: bigger targets, no keyboard hints ---------- */
@@ -2654,33 +2654,21 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     });
   }
   const phoneRow = () => matchMedia('(max-width: 860px)').matches;
-  // the phone carousel drifts on its own and can be swiped either way; it pauses while a finger is on
-  // it and, once the row comes to rest, jumps by one set of tiles so it never runs out
+  // the phone carousel stays still until swiped, either way; once the row comes to rest it jumps by
+  // one set of tiles, out of sight, so it never runs out
   const pRow = $('presets');
-  let pPos = 0, pHeld = false, pIdle = 0, pRaf = 0, pLast = 0;
+  let pHeld = false, pRest = 0;
   const pSet = () => { const c = pRow.children, n = c.length / 3; return n >= 1 ? c[n].offsetLeft - c[0].offsetLeft : 0; };
-  function pTick(t) {
-    pRaf = 0;
-    if (!presetsOpen() || !phoneRow()) return;
-    const dt = Math.min(50, t - (pLast || t)); pLast = t;
-    if (!pHeld && t > pIdle) {
-      const w = pSet();
-      if (Math.abs(pRow.scrollLeft - pPos) > 1) pPos = pRow.scrollLeft;
-      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) pPos += dt * .028;
-      if (pPos >= 2 * w) pPos -= w; else if (pPos < w * .5) pPos += w;
-      pRow.scrollLeft = Math.round(pPos);
-    }
-    pRaf = requestAnimationFrame(pTick);
+  function pWrap() {
+    if (pHeld || !presetsOpen() || !phoneRow()) return;
+    const w = pSet(), x = pRow.scrollLeft;
+    if (x >= 2 * w) pRow.scrollLeft = x - w; else if (x < w * .5) pRow.scrollLeft = x + w;
   }
-  function pStart() {
-    if (!phoneRow()) return;
-    pPos = pSet(); pRow.scrollLeft = Math.round(pPos); pLast = 0; pIdle = 0;
-    if (!pRaf) pRaf = requestAnimationFrame(pTick);
-  }
+  function pStart() { if (phoneRow()) pRow.scrollLeft = pSet(); }
   pRow.addEventListener('pointerdown', () => { pHeld = true; });
-  const pLet = () => { pHeld = false; pIdle = performance.now() + 900; };
+  const pLet = () => { pHeld = false; clearTimeout(pRest); pRest = setTimeout(pWrap, 200); };
   pRow.addEventListener('pointerup', pLet); pRow.addEventListener('pointercancel', pLet);
-  pRow.addEventListener('scroll', () => { if (!pHeld && Math.abs(pRow.scrollLeft - Math.round(pPos)) > 1) pIdle = performance.now() + 250; }, { passive: true });
+  pRow.addEventListener('scroll', () => { clearTimeout(pRest); pRest = setTimeout(pWrap, 200); }, { passive: true });
 
   // ---------- Copy + export ----------
   const toastEl = $('toast'); let tt;
