@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="gb-build" content="35">
+<meta name="gb-build" content="36">
 <script>
 // phones and in-app browsers keep an old copy of the page for a while: if the live page is a newer build,
 // load it once, fresh
@@ -962,7 +962,8 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   .card .seg button { height: 38px; }
   /* kept as separate rules: a browser drops a whole selector list when one of its pseudo-elements is
      another engine's, which is what left the thumb line sitting low on iPhones */
-  .card input[type="range"] { height: 40px; }
+  .card input[type="range"] { height: 40px; touch-action: none; }
+  .card input[type="range"].drag::-webkit-slider-thumb { opacity: .9; }
   .card input[type="range"]::-webkit-slider-runnable-track { height: 40px; }
   .card input[type="range"]::-moz-range-track { height: 40px; }
   .card input[type="range"]::-moz-range-progress { height: 40px; }
@@ -1838,6 +1839,25 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
 
     renderHandles();
   }
+
+  // ---------- Sliders on touch screens ----------
+  // a finger can't catch the slim slider mark, and phones only move a slider from its mark: so on touch the
+  // whole bar answers instead. Touch anywhere and the value jumps there, then follows the finger.
+  document.querySelectorAll('.card input[type="range"]').forEach(r => {
+    const setFrom = e => {
+      const b = r.getBoundingClientRect(), min = +r.min || 0, max = +r.max || 100, step = +r.step || 1;
+      const v = clamp(Math.round((min + clamp((e.clientX - b.left) / b.width, 0, 1) * (max - min)) / step) * step, min, max);
+      if (+r.value !== v) { r.value = v; r.dispatchEvent(new Event('input', { bubbles: true })); }
+    };
+    r.addEventListener('touchstart', e => { if (!r.disabled) e.preventDefault(); }, { passive: false });
+    r.addEventListener('pointerdown', e => {
+      if (e.pointerType === 'mouse' || r.disabled) return;
+      e.preventDefault(); r.setPointerCapture(e.pointerId); r.classList.add('drag'); setFrom(e);
+      const mv = ev => setFrom(ev);
+      const up = () => { r.classList.remove('drag'); r.removeEventListener('pointermove', mv); r.removeEventListener('pointerup', up); r.removeEventListener('pointercancel', up); r.dispatchEvent(new Event('change', { bubbles: true })); };
+      r.addEventListener('pointermove', mv); r.addEventListener('pointerup', up); r.addEventListener('pointercancel', up);
+    });
+  });
 
   // ---------- Canvas handles ----------
   const handles = $('handles');
