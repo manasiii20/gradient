@@ -10,6 +10,7 @@ a saved library, and PNG / MP4 export. It's a single file, `index.html`, with no
   (Presets / Fun mode / Save to library) with two rotating sets of presets, canvas zoom, image export settings (size, PNG / JPG / WebP, quality, background), and Fun mode, where colours
   are poured into a liquid globe and turned into a mesh gradient.
   First visits open on a keyword intro: describe a gradient in a few words (on phones, tap one of the words offered under the bar) and the backdrop turns into it, then a hands-on 7-step tour follows
+- `versions/v4.0.html` is v4, a separate rebuild of the UI after the Gradient Lab layout (from the `v4` branch, never made live)
 - `versions/archive/` holds in-between snapshots
 - `saved-for-later/` is the separate "What I saved for later" dock animation
 
