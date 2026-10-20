@@ -3399,7 +3399,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   const introOpen = () => !introEl.hidden && !introEl.classList.contains('leaving');
   // the resting backdrop: mostly white and sky blue, with a touch of warm orange
   const CALM = { name: 'Calm', mode: 'mesh', angle: 0, cx: 50, cy: 50, base: '#fbfcff', grain: 0, blur: 100,
-    stops: [['#6ea6ff', 0, 15, 40, 60], ['#ffffff', 20, 50, 50, 60], ['#b4d0ff', 40, 85, 40, 60], ['#ffffff', 60, 50, 50, 60], ['#ff8f45', 80, 70, 80, 47], ['#ffffff', 100, 30, 70, 60]] };
+    stops: [['#6ea6ff', 0, 15, 40, 60], ['#ff8f45', 20, 70, 80, 34], ['#b4d0ff', 40, 85, 40, 60], ['#ffffff', 60, 50, 50, 60], ['#ffffff', 80, 50, 50, 60], ['#ffffff', 100, 30, 70, 60]] };
   // soften a gradient toward the paper colour so the backdrop never shouts
   const calmed = (st, k = .5) => {
     const mix = c => { const a = toRgb(c), w = [243, 242, 247]; return toHex(a.map((v, i) => v + (w[i] - v) * k)); };
@@ -3416,7 +3416,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
   const FLOW_SEEDS = Array.from({ length: 6 }, (_, i) => ({ a: 1.3 + i * 2.1, b: .7 + i * 1.7, w1: .045 + i * .011, w2: .037 + i * .009, r: .018 + i * .005 }));
   function introFrame(now) {
     introRaf = requestAnimationFrame(introFrame);
-    if (now - introLast < 33) return;
     introLast = now;
     const t = (now - introT0) / 1000, W = 240, H = Math.max(120, Math.round(240 * icv.height / icv.width));
     if (flowCv.width !== W || flowCv.height !== H) { flowCv.width = W; flowCv.height = H; }
@@ -3427,9 +3426,9 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     const calm = introBg.base === CALM.base;
     cols.slice(0, 6).forEach((c, i) => {
       const f = FLOW_SEEDS[i], m = Math.max(W, H), k = calm ? introBg.stops[i].s / 60 : 1;
-      const x = W * (.5 + .42 * Math.sin(t * f.w1 * 4.8 + f.a)), y = H * (.5 + .4 * Math.cos(t * f.w2 * 4.8 + f.b));
-      g.save(); g.translate(x, y); g.rotate(t * f.r * 4.8 + f.a); g.scale(1.9, .62);
-      const rr = m * (.42 + .1 * Math.sin(t * .16 + i)) * k;
+      const x = W * (.5 + .42 * Math.sin(t * f.w1 * 3 + f.a)), y = H * (.5 + .4 * Math.cos(t * f.w2 * 3 + f.b));
+      g.save(); g.translate(x, y); g.rotate(t * f.r * 3 + f.a); if (calm) g.scale(1.35, .85); else g.scale(1.9, .62);
+      const rr = m * (calm ? .3 + .05 * Math.sin(t * .16 + i) : .42 + .1 * Math.sin(t * .16 + i)) * k;
       const gr = g.createRadialGradient(0, 0, 0, 0, 0, rr);
       gr.addColorStop(0, c);
       if (k < 1) gr.addColorStop(.68, c + 'cc'); else gr.addColorStop(.55, c + 'aa');
