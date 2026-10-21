@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="gb-build" content="42">
+<meta name="gb-build" content="43">
 <script>
 // phones and in-app browsers keep an old copy of the page for a while: if the live page is a newer build,
 // load it once, fresh
@@ -624,25 +624,25 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 }
 @media (max-width: 380px) { .try-chip { padding: 0 11px; font-size: 12.5px; } .ask-ph .ph-phone { display: none; } .ask-ph .ph-short { display: inline; } }
 /* desktop: four ways in, as small glass cards the width of the bar; they give way to the tags once you type */
-.ask-ways { position: absolute; left: 0; right: 0; bottom: 100%; margin-bottom: 14px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; transition: opacity .3s, transform .3s; }
+.ask-ways { position: absolute; left: 0; right: 0; bottom: 100%; margin-bottom: clamp(48px, 13vh, 130px); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; transition: opacity .3s, transform .3s; }
 .ask:has(.ask-field.filled) .ask-ways { opacity: 0; transform: translateY(6px); pointer-events: none; }
 .ask:has(.ask-field.filled) .ask-read { transition: opacity .3s .1s; }
-.way { position: relative; display: flex; flex-direction: column; align-items: flex-start; height: 128px; padding: 12px 14px 13px; border: 0; border-radius: 16px; text-align: left; overflow: hidden;
-  background: rgba(255,255,255,.42); box-shadow: inset 0 0 0 1px rgba(255,255,255,.65), 0 16px 34px -26px rgba(30,30,60,.45); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+.way { position: relative; display: flex; flex-direction: column; align-items: flex-start; height: clamp(150px, 26vh, 236px); padding: 16px 18px 17px; border: 0; border-radius: 20px; text-align: left; overflow: hidden;
+  background: rgba(255,255,255,.55); box-shadow: inset 0 0 0 1px rgba(255,255,255,.75), 0 18px 40px -30px rgba(30,30,60,.35); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
   color: #1d1d22; animation: chipin .5s cubic-bezier(.22,1,.36,1) both; transition: transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s, background-color .25s; }
 .way:nth-child(2) { animation-delay: 60ms; } .way:nth-child(3) { animation-delay: 120ms; } .way:nth-child(4) { animation-delay: 180ms; }
 .way:hover, .way:focus-visible { transform: translateY(-4px); background: rgba(255,255,255,.58); box-shadow: inset 0 0 0 1px rgba(255,255,255,.8), 0 22px 38px -24px rgba(30,30,60,.5); outline: none; }
 .way:active { transform: translateY(-1px) scale(.99); }
-.way-blob { position: absolute; left: 50%; top: 8px; width: 120px; height: 72px; transform: translateX(-50%); border-radius: 50%; filter: blur(16px); opacity: .9;
-  background: radial-gradient(circle at 35% 45%, var(--a), transparent 62%), radial-gradient(circle at 68% 55%, var(--b), transparent 60%); transition: transform .5s cubic-bezier(.22,1,.36,1); }
-.way-blob.round { width: 76px; height: 76px; top: 6px; }
-.way:hover .way-blob { transform: translateX(-50%) scale(1.12); }
-.way-t { margin-top: auto; font: 600 14px/18px var(--sans); letter-spacing: -.01em; }
-.way-s { margin-top: 2px; font: 400 12px/15px var(--sans); color: rgba(29,29,34,.55); }
+.way-blob { position: absolute; left: 50%; top: 38%; width: min(64%, 130px); aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; filter: blur(18px); opacity: .5;
+  background: radial-gradient(circle at 40% 42%, var(--a), transparent 64%), radial-gradient(circle at 66% 60%, var(--b), transparent 62%); transition: transform .5s cubic-bezier(.22,1,.36,1); }
+.way:hover .way-blob { transform: translate(-50%, -50%) scale(1.1); opacity: .62; }
+.way-t { margin-top: auto; font: 500 15px/19px var(--sans); letter-spacing: -.01em; color: rgba(29,29,34,.72); }
+.way-s { margin-top: 3px; font: 400 12.5px/16px var(--sans); color: rgba(29,29,34,.45); }
 .intro.dim .way { background: rgba(255,255,255,.1); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); color: #fff; }
-.intro.dim .way-s { color: rgba(255,255,255,.6); }
+.intro.dim .way-t { color: rgba(255,255,255,.85); }
+.intro.dim .way-s { color: rgba(255,255,255,.55); }
 @media (max-width: 860px) { .ask-ways { display: none; } }
-@media (max-height: 640px) { .way { height: 96px; } .way-blob { top: 8px; height: 44px; width: 76px; } .way-blob.round { width: 46px; height: 46px; } }
+
 @media (prefers-reduced-motion: reduce) { .ask-card, .ask-glass { animation: none; } }
 
 /* ---------- Onboarding: a welcome card, then a spotlight that glides from part to part ---------- */
@@ -1219,10 +1219,10 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       </form>
       <div class="ask-read" id="askRead" aria-live="polite"></div>
       <div class="ask-ways" id="askWays" role="group" aria-label="Ways to start">
-        <button type="button" class="way" data-way="type"><span class="way-blob" style="--a:#7fb2ff;--b:#ffc29a"></span><span class="way-t">Describe it</span><span class="way-s">Type a few words below</span></button>
-        <button type="button" class="way" data-way="fun"><span class="way-blob round" style="--a:#d08cff;--b:#ff9ec4"></span><span class="way-t">Fun mode</span><span class="way-s">Pour colours into a globe</span></button>
-        <button type="button" class="way" data-way="presets"><span class="way-blob" style="--a:#ffb35c;--b:#ff6f91"></span><span class="way-t">Presets</span><span class="way-s">Start from a classic</span></button>
-        <button type="button" class="way" data-way="editor"><span class="way-blob" style="--a:#7fd8b5;--b:#a9c9ff"></span><span class="way-t">Editor</span><span class="way-s">Open the canvas</span></button>
+        <button type="button" class="way" data-way="type"><span class="way-blob" style="--a:#9cc3ff;--b:#ffd2b3"></span><span class="way-t">Describe it</span><span class="way-s">Type a few words below</span></button>
+        <button type="button" class="way" data-way="fun"><span class="way-blob" style="--a:#a9b4ff;--b:#f6b6dc"></span><span class="way-t">Fun mode</span><span class="way-s">Pour colours into a globe</span></button>
+        <button type="button" class="way" data-way="presets"><span class="way-blob" style="--a:#ffd59a;--b:#ffaab8"></span><span class="way-t">Presets</span><span class="way-s">Start from a classic</span></button>
+        <button type="button" class="way" data-way="editor"><span class="way-blob" style="--a:#a6e6c4;--b:#cfe7a8"></span><span class="way-t">Editor</span><span class="way-s">Open the canvas</span></button>
       </div>
       <p class="ask-hint" id="askHint" aria-live="polite"></p>
       <div class="ask-try" id="askTry" role="group" aria-label="Words to try"></div>
