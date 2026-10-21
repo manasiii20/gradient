@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="gb-build" content="40">
+<meta name="gb-build" content="41">
 <script>
 // phones and in-app browsers keep an old copy of the page for a while: if the live page is a newer build,
 // load it once, fresh
@@ -3910,14 +3910,15 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
     if (way === 'random') randomize();
     else if (way === 'go' && introPick) { S = { ...introPick, format: '16:9' }; sel = 0; fit(); draw(); }
     else { fit(); draw(); }
-    // the step-by-step tour only follows on someone's very first visit; it marks itself done when it ends
+    // the step-by-step tour only follows on someone's very first visit, however they leave the intro
+    // (skipping included); it marks itself done when it ends
     const firstTime = !store.get('gb-onboarded', 0);
     introEl.classList.add('leaving');
     setTimeout(() => {
       introEl.hidden = true; cancelAnimationFrame(introRaf); introRaf = 0; clearInterval(phTimer); clearInterval(tryTimer); clearInterval(tryTyping);
       if (way === 'fun') { openMix(); if (firstTime) openTour(4); }
       else if (way === 'presets') { openPresets(); if (firstTime) openTour(3); }
-      else if (way === 'skip' || !firstTime) {}
+      else if (!firstTime) {}
       else openTour(1);
     }, 750);
   }
