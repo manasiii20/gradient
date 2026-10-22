@@ -664,7 +664,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro[data-ways="d"] .ask-ways { position: fixed; left: 50%; top: 51%; width: min(820px, calc(100% - 40px)); transform: translate(-50%, -50%);
   display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .intro[data-ways="d"] .ask:has(.ask-field.filled) .ask-ways { transform: translate(-50%, calc(-50% + 8px)); }
-.intro[data-ways="d"] .way { flex-direction: column; align-items: flex-start; gap: 0; aspect-ratio: 3 / 4; max-height: 260px; padding: 16px 16px 18px; border-radius: 22px;
+.intro[data-ways="d"] .way { flex-direction: column; align-items: flex-start; gap: 0; height: clamp(180px, 24vh, 216px); padding: 16px 16px 18px; border-radius: 22px;
   background: rgba(246,247,250,.72); box-shadow: inset 0 0 0 1px rgba(255,255,255,.8), 0 1px 2px rgba(30,30,60,.04), 0 22px 44px -34px rgba(30,30,60,.4);
   -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); transition: transform .35s cubic-bezier(.22,1,.36,1), background-color .25s, box-shadow .35s; }
 .intro[data-ways="d"] .way:hover, .intro[data-ways="d"] .way:focus-visible { transform: translateY(-4px); background: rgba(255,255,255,.86);
