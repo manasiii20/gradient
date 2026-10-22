@@ -651,7 +651,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro[data-ways="b"] .way[data-way="image"]::before { display: none; }
 .intro[data-ways="b"] .way + .way::before { content: ""; position: relative; left: -10px; width: 1px; height: 14px; background: rgba(29,29,34,.14); margin-right: -6px; }
 /* c: small tiles */
-.intro[data-ways="c"] .ask-ways { bottom: 100%; margin-bottom: 16px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.intro[data-ways="c"] .ask-ways { bottom: 100%; margin-bottom: 16px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .intro[data-ways="c"] .way { flex-direction: column; align-items: flex-start; gap: 0; height: 104px; padding: 12px 13px; border-radius: 16px; background: rgba(255,255,255,.5);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.75), 0 14px 30px -24px rgba(30,30,60,.45); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
   transition: transform .35s cubic-bezier(.22,1,.36,1), background-color .2s, box-shadow .35s; }
@@ -661,8 +661,8 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro[data-ways="c"] .way-tx { margin-top: auto; }
 .intro[data-ways="c"] .way-s { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 /* d: tall, plain cards in the middle of the screen, the first thing you land on */
-.intro[data-ways="d"] .ask-ways { position: fixed; left: 50%; top: 44%; width: min(820px, calc(100% - 40px)); transform: translate(-50%, -50%);
-  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.intro[data-ways="d"] .ask-ways { position: fixed; left: 50%; top: 51%; width: min(820px, calc(100% - 40px)); transform: translate(-50%, -50%);
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .intro[data-ways="d"] .ask:has(.ask-field.filled) .ask-ways { transform: translate(-50%, calc(-50% + 8px)); }
 .intro[data-ways="d"] .way { flex-direction: column; align-items: flex-start; gap: 0; aspect-ratio: 3 / 4; max-height: 260px; padding: 16px 16px 18px; border-radius: 22px;
   background: rgba(246,247,250,.72); box-shadow: inset 0 0 0 1px rgba(255,255,255,.8), 0 1px 2px rgba(30,30,60,.04), 0 22px 44px -34px rgba(30,30,60,.4);
@@ -673,7 +673,7 @@ select { height: 34px; border-radius: 7px; border: 1px solid var(--line); backgr
 .intro[data-ways="d"] .way-tx { margin-top: auto; gap: 4px; }
 .intro[data-ways="d"] .way-t { font: 500 15.5px/19px var(--sans); letter-spacing: -.01em; color: rgba(29,29,34,.82); white-space: normal; }
 .intro[data-ways="d"] .way-s { min-height: 32px; font: 400 12.5px/16px var(--sans); color: rgba(29,29,34,.45); white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-@media (max-height: 700px) { .intro[data-ways="d"] .ask-ways { top: 40%; } .intro[data-ways="d"] .way { aspect-ratio: auto; height: 170px; } }
+@media (max-height: 700px) { .intro[data-ways="d"] .ask-ways { top: 45%; } .intro[data-ways="d"] .way { aspect-ratio: auto; height: 170px; } }
 .intro.dim[data-ways="d"] .way { background: rgba(255,255,255,.1); box-shadow: inset 0 0 0 1px rgba(255,255,255,.16); }
 .intro.dim[data-ways="d"] .way-t { color: rgba(255,255,255,.88); }
 .intro.dim[data-ways="d"] .way-ic { background: rgba(255,255,255,.14); color: rgba(255,255,255,.8); box-shadow: none; }
@@ -1266,7 +1266,6 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
         <button type="button" class="way" data-way="image" style="--a:#ffd59a;--b:#ffb3c4"><span class="way-ic"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 13.5l3.8-3.8 3 3 2-2 4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="13" cy="8" r="1.3" fill="currentColor"/></svg></span><span class="way-tx"><span class="way-t">From an image</span><span class="way-s">Pull the colours from a photo</span></span></button>
         <button type="button" class="way" data-way="fun" style="--a:#d6c4ff;--b:#ffc4e1"><span class="way-ic"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3.2 11.2c1.7-1.6 3.6-1.6 5.3 0s3.7 1.6 5.5 0c1-.8 1.9-1.1 2.8-.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><span class="way-tx"><span class="way-t">Fun mode</span><span class="way-s">Pour colours into a globe</span></span></button>
         <button type="button" class="way" data-way="presets" style="--a:#ffe0a8;--b:#c9e4ff"><span class="way-ic"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="3" width="6" height="6" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="11" width="6" height="6" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="6" height="6" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span><span class="way-tx"><span class="way-t">Presets</span><span class="way-s">Start from a classic</span></span></button>
-        <button type="button" class="way" data-way="editor" style="--a:#c3ecd6;--b:#dbe9ff"><span class="way-ic"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="2.5" y="4.5" width="15" height="11" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="7.5" cy="9" r="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="13" cy="11.5" r="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></span><span class="way-tx"><span class="way-t">Blank canvas</span><span class="way-s">Go straight to the editor</span></span></button>
       </div>
       <p class="ask-hint" id="askHint" aria-live="polite"></p>
       <div class="ask-try" id="askTry" role="group" aria-label="Words to try"></div>
@@ -4045,7 +4044,7 @@ button, .sw, .sleeve { -webkit-tap-highlight-color: transparent; touch-action: m
       else openTour(1);
     }, 750);
   }
-  // the ways in: describe it (to the bar), from an image, Fun mode, Presets, or a blank canvas
+  // the ways in: describe it (to the bar), from an image, Fun mode or Presets
   $('askWays').addEventListener('click', e => {
     const w = e.target.closest('.way'); if (!w) return;
     const way = w.dataset.way;
